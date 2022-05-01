@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>Test</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script type="module">
+      import init, { App } from "./pkg/wasm_react.js";
+      import { React, getComponent } from "./react-bindings.js";
+      import ReactDOM from "https://cdn.skypack.dev/react-dom";
+
+      async function main() {
+        await init();
+
+        ReactDOM.render(
+          React.createElement(getComponent("App")),
+          document.getElementById("root")
+        );
+      }
+
+      main();
+    </script>
+  </body>
+</html>
