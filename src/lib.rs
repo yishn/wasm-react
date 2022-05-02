@@ -2,7 +2,7 @@ mod react;
 
 use js_sys::{Function, Object, Reflect};
 use react::get_component;
-use std::fmt::Debug;
+use std::{fmt::Debug, ops::Deref};
 use wasm_bindgen::{prelude::*, JsCast};
 use HtmlOrComponent::*;
 
@@ -42,12 +42,42 @@ pub fn hc<C: Into<JsValue>>(name: &'static str, props: C) -> JsValue {
   h(Component(name), [("rustProps", props.into())], [])
 }
 
-pub fn use_state<'a, T>(
-  value: impl Fn() -> T,
-) -> (&'a T, impl Fn(fn(&mut T)) + Clone)
-where
-  T: 'static,
-{
+#[derive(Debug)]
+pub struct UseState<T>(*mut T, Function);
+
+impl<T> Clone for UseState<T> {
+  fn clone(&self) -> Self {
+    Self(self.0, self.1.clone())
+  }
+}
+
+impl<T> Deref for UseState<T> {
+  type Target = T;
+
+  fn deref(&self) -> &Self::Target {
+    Box::leak(unsafe { Box::from_raw(self.0) })
+  }
+}
+
+impl<T: 'static> UseState<T> {
+  pub fn update(&self, mutator: impl Fn(&mut T) + 'static) {
+    let ptr = self.0;
+
+    self
+      .1
+      .call1(
+        &JsValue::undefined(),
+        &Closure::wrap(Box::new(move |_| {
+          let state = Box::leak(unsafe { Box::from_raw(ptr) });
+          mutator(state);
+        }) as Box<dyn Fn(f64)>)
+        .into_js_value(),
+      )
+      .ok();
+  }
+}
+
+pub fn use_state<T: 'static>(value: impl Fn() -> T) -> UseState<T> {
   let result = react::use_rust_state(
     &|| Box::into_raw(Box::new(value())) as usize as f64,
     Closure::wrap(Box::new(|ptr: f64| unsafe {
@@ -57,21 +87,8 @@ where
   );
   let update_state = result.get(1).dyn_into::<Function>().unwrap();
   let ptr = result.get(0).as_f64().unwrap() as usize as *mut T;
-  let state = Box::leak(unsafe { Box::from_raw(ptr) });
 
-  (state, move |mutator| {
-    update_state
-      .call1(
-        &JsValue::undefined(),
-        &Closure::wrap(Box::new(move |ptr: f64| {
-          let state =
-            Box::leak(unsafe { Box::from_raw(ptr as usize as *mut T) });
-          mutator(state);
-        }) as Box<dyn Fn(f64)>)
-        .into_js_value(),
-      )
-      .ok();
-  })
+  UseState(ptr, update_state)
 }
 
 pub trait IntoJs {
@@ -96,7 +113,7 @@ pub struct App;
 impl App {
   #[wasm_bindgen]
   pub fn render() -> JsValue {
-    let (state, update_state) = use_state(|| AppState::default());
+    let state = use_state(|| AppState::default());
 
     h(
       HtmlTag("div"),
@@ -111,10 +128,10 @@ impl App {
         h(
           HtmlTag("button"),
           [("onClick", {
-            let update_state = update_state.clone();
+            let state = state.clone();
 
             Closure::wrap(Box::new(move || {
-              update_state(|state| {
+              state.update(|state| {
                 state.counter += 1;
               })
             }) as Box<dyn FnMut()>)
@@ -126,10 +143,10 @@ impl App {
         h(
           HtmlTag("button"),
           [("onClick", {
-            let update_state = update_state.clone();
+            let state = state.clone();
 
             Closure::wrap(Box::new(move || {
-              update_state(|state| {
+              state.update(|state| {
                 state.counter -= 1;
               })
             }) as Box<dyn FnMut()>)
