@@ -6,12 +6,6 @@ use std::{fmt::Debug, ops::Deref};
 use wasm_bindgen::{prelude::*, JsCast};
 use HtmlOrComponent::*;
 
-#[wasm_bindgen]
-extern "C" {
-  #[wasm_bindgen(js_namespace = console)]
-  pub fn log(x: &str);
-}
-
 pub enum HtmlOrComponent {
   HtmlTag(&'static str),
   Component(&'static str),
@@ -174,10 +168,4 @@ impl Counter {
       ["Counter: ".into(), props.counter.into()],
     )
   }
-}
-
-#[wasm_bindgen(start)]
-pub fn main() {
-  react::register_component("App");
-  react::register_component("Counter");
 }

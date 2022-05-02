@@ -3,13 +3,13 @@ import * as React from "https://cdn.skypack.dev/react";
 
 let components = {};
 
-export function registerComponent(name) {
-  Object.assign(components, {
-    [name]: ({ rustProps }) => Components[name].render(rustProps),
-  });
-}
-
 export function getComponent(name) {
+  if (components[name] == null) {
+    Object.assign(components, {
+      [name]: ({ rustProps }) => Components[name].render(rustProps),
+    });
+  }
+
   return components[name];
 }
 
