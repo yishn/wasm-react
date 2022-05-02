@@ -10,12 +10,18 @@ extern "C" {
     children: Array,
   ) -> JsValue;
 
-  #[wasm_bindgen(js_namespace = React, js_name = useState)]
-  pub fn use_state(value: &dyn Fn() -> JsValue) -> Array;
+  #[wasm_bindgen(js_name = useRustState)]
+  pub fn use_rust_state(
+    value: &dyn Fn() -> f64,
+    on_free: JsValue,
+  ) -> Array;
 
   #[wasm_bindgen(js_name = registerComponent)]
   pub fn register_component(name: &str);
 
   #[wasm_bindgen(js_name = getComponent)]
   pub fn get_component(name: &str) -> JsValue;
+
+  #[wasm_bindgen]
+  pub fn cast(value: JsValue) -> JsValue;
 }

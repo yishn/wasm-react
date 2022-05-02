@@ -1,9 +1,16 @@
 mod react;
 
-use js_sys::{Array, Function, Object, Reflect};
+use js_sys::{Function, Object, Reflect};
 use react::get_component;
+use std::fmt::Debug;
 use wasm_bindgen::{prelude::*, JsCast};
 use HtmlOrComponent::*;
+
+#[wasm_bindgen]
+extern "C" {
+  #[wasm_bindgen(js_namespace = console)]
+  pub fn log(x: &str);
+}
 
 pub enum HtmlOrComponent {
   HtmlTag(&'static str),
@@ -21,31 +28,65 @@ pub fn h(
     Reflect::set(&props_obj, &(*prop).into(), &value).ok();
   }
 
-  let children_arr = Array::new();
-
-  for element in children.into_iter() {
-    children_arr.push(&element);
-  }
-
   react::create_element(
     match tag {
       HtmlTag(tag) => tag.into(),
       Component(name) => get_component(name),
     },
     props_obj.into(),
-    children_arr,
+    children.into_iter().collect(),
   )
 }
 
-pub fn use_state(
-  value: impl Fn() -> JsValue,
-) -> (JsValue, impl Fn(JsValue) + Clone) {
-  let result = react::use_state(&value);
-  let set_state = result.get(1).dyn_into::<Function>().unwrap();
+pub fn hc<C: Into<JsValue>>(name: &'static str, props: C) -> JsValue {
+  h(Component(name), [("rustProps", props.into())], [])
+}
 
-  (result.get(0), move |value: JsValue| {
-    set_state.call1(&JsValue::undefined(), &value).ok();
+pub fn use_state<'a, T>(
+  value: impl Fn() -> T,
+) -> (&'a T, impl Fn(fn(&mut T)) + Clone)
+where
+  T: 'static,
+{
+  let result = react::use_rust_state(
+    &|| Box::into_raw(Box::new(value())) as usize as f64,
+    Closure::wrap(Box::new(|ptr: f64| unsafe {
+      drop(Box::from_raw(ptr as usize as *mut T));
+    }) as Box<dyn Fn(f64)>)
+    .into_js_value(),
+  );
+  let update_state = result.get(1).dyn_into::<Function>().unwrap();
+  let ptr = result.get(0).as_f64().unwrap() as usize as *mut T;
+  let state = Box::leak(unsafe { Box::from_raw(ptr) });
+
+  (state, move |mutator| {
+    update_state
+      .call1(
+        &JsValue::undefined(),
+        &Closure::wrap(Box::new(move |ptr: f64| {
+          let state =
+            Box::leak(unsafe { Box::from_raw(ptr as usize as *mut T) });
+          mutator(state);
+        }) as Box<dyn Fn(f64)>)
+        .into_js_value(),
+      )
+      .ok();
   })
+}
+
+pub trait IntoJs {
+  fn into_js(self);
+}
+
+#[derive(Debug)]
+pub struct AppState {
+  pub counter: i32,
+}
+
+impl Default for AppState {
+  fn default() -> Self {
+    Self { counter: 11 }
+  }
 }
 
 #[wasm_bindgen]
@@ -55,21 +96,28 @@ pub struct App;
 impl App {
   #[wasm_bindgen]
   pub fn render() -> JsValue {
-    let (counter, set_counter) = use_state(|| 0f64.into());
-    let counter = counter.as_f64().unwrap();
+    let (state, update_state) = use_state(|| AppState::default());
 
     h(
       HtmlTag("div"),
       None,
       [
-        h(Component("Counter"), [("counter", counter.into())], None),
+        hc(
+          "Counter",
+          Counter {
+            counter: state.counter,
+          },
+        ),
         h(
           HtmlTag("button"),
           [("onClick", {
-            let set_counter = set_counter.clone();
+            let update_state = update_state.clone();
 
-            Closure::wrap(Box::new(move || set_counter((counter + 1.0).into()))
-              as Box<dyn FnMut()>)
+            Closure::wrap(Box::new(move || {
+              update_state(|state| {
+                state.counter += 1;
+              })
+            }) as Box<dyn FnMut()>)
             .into_js_value()
           })],
           ["Increment".into()],
@@ -78,10 +126,13 @@ impl App {
         h(
           HtmlTag("button"),
           [("onClick", {
-            let set_counter = set_counter.clone();
+            let update_state = update_state.clone();
 
-            Closure::wrap(Box::new(move || set_counter((counter - 1.0).into()))
-              as Box<dyn FnMut()>)
+            Closure::wrap(Box::new(move || {
+              update_state(|state| {
+                state.counter -= 1;
+              })
+            }) as Box<dyn FnMut()>)
             .into_js_value()
           })],
           ["Decrement".into()],
@@ -92,18 +143,18 @@ impl App {
 }
 
 #[wasm_bindgen]
-pub struct Counter;
+pub struct Counter {
+  counter: i32,
+}
 
 #[wasm_bindgen]
 impl Counter {
   #[wasm_bindgen]
-  pub fn render(props: JsValue) -> JsValue {
-    let counter = Reflect::get(&props, &"counter".into()).unwrap();
-
+  pub fn render(props: Counter) -> JsValue {
     h(
       HtmlTag("div"),
       [("className", "counter".into())],
-      ["Counter: ".into(), counter.into()],
+      ["Counter: ".into(), props.counter.into()],
     )
   }
 }
