@@ -67,10 +67,10 @@ impl<T: 'static> UseState<T> {
       .1
       .call1(
         &JsValue::undefined(),
-        &Closure::wrap(Box::new(move |_| {
+        &Closure::wrap(Box::new(move || {
           let state = Box::leak(unsafe { Box::from_raw(ptr) });
           mutator(state);
-        }) as Box<dyn Fn(f64)>)
+        }) as Box<dyn Fn()>)
         .into_js_value(),
       )
       .ok();
@@ -78,6 +78,10 @@ impl<T: 'static> UseState<T> {
 }
 
 pub fn use_state<T: 'static>(value: impl Fn() -> T) -> UseState<T> {
+  // The lifetime of the state (`T`) is completely managed by the React
+  // component lifetime, meaning whenever the component gets removed from the
+  // DOM by React, the state will also be dropped.
+
   let result = react::use_rust_state(
     &|| Box::into_raw(Box::new(value())) as usize as f64,
     Closure::wrap(Box::new(|ptr: f64| unsafe {
@@ -89,10 +93,6 @@ pub fn use_state<T: 'static>(value: impl Fn() -> T) -> UseState<T> {
   let ptr = result.get(0).as_f64().unwrap() as usize as *mut T;
 
   UseState(ptr, update_state)
-}
-
-pub trait IntoJs {
-  fn into_js(self);
 }
 
 #[derive(Debug)]

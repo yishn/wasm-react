@@ -3,7 +3,7 @@ use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(raw_module = "../react-bindings.js")]
 extern "C" {
-  #[wasm_bindgen(js_namespace = React, js_name = createElement)]
+  #[wasm_bindgen(js_name = createElement)]
   pub fn create_element(
     name: JsValue,
     props: JsValue,
@@ -21,7 +21,4 @@ extern "C" {
 
   #[wasm_bindgen(js_name = getComponent)]
   pub fn get_component(name: &str) -> JsValue;
-
-  #[wasm_bindgen]
-  pub fn cast(value: JsValue) -> JsValue;
 }
