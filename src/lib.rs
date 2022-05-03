@@ -4,12 +4,11 @@ mod react;
 mod vnode;
 
 use js_sys::{Object, Reflect};
-use props::Style;
 use std::fmt::Debug;
 use wasm_bindgen::prelude::*;
 
+pub mod attr;
 pub mod hooks;
-pub mod props;
 pub use callback::*;
 pub use component::*;
 pub use vnode::*;
@@ -41,7 +40,7 @@ pub fn html<'a>(
 }
 
 #[doc(hidden)]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct AppState {
   pub counter: i32,
   pub diff: i32,
@@ -63,14 +62,11 @@ extern "C" {
 }
 
 #[doc(hidden)]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct App;
 
 impl Component for App {
-  fn js_name() -> &'static str
-  where
-    Self: Sized,
-  {
+  fn js_name() -> &'static str {
     "App"
   }
 
@@ -96,7 +92,7 @@ impl Component for App {
 
     html(
       "div",
-      [props::classnames("app")],
+      [attr::classnames("app")],
       [Counter {
         counter: state.counter,
         on_increment: Some({
@@ -126,6 +122,7 @@ pub fn create_app() -> VNode {
 }
 
 #[doc(hidden)]
+#[derive(Debug, Clone)]
 pub struct Counter {
   pub counter: i32,
   pub on_increment: Option<Callback<()>>,
@@ -133,22 +130,21 @@ pub struct Counter {
 }
 
 impl Component for Counter {
-  fn js_name() -> &'static str
-  where
-    Self: Sized,
-  {
+  fn js_name() -> &'static str {
     "Counter"
   }
 
   fn render(&self) -> VNode {
+    log(&format!("{:?}", self));
+
     html(
       "div",
-      [props::classnames("counter")],
+      [attr::classnames("counter")],
       [
         html(
           "h2",
-          [Style::new()
-            .add(
+          [attr::style()
+            .insert(
               "color",
               if self.counter >= 50 {
                 Some("red")
@@ -161,7 +157,7 @@ impl Component for Counter {
         ),
         html(
           "button",
-          [props::on_click({
+          [attr::on_click({
             let on_decrement = self.on_decrement.clone();
             move |_| {
               if let Some(on_decrement) = on_decrement.as_ref() {
@@ -174,7 +170,7 @@ impl Component for Counter {
         " ".into(),
         html(
           "button",
-          [props::on_click({
+          [attr::on_click({
             let on_increment = self.on_increment.clone();
             move |_| {
               if let Some(on_increment) = on_increment.as_ref() {
