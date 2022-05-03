@@ -2,8 +2,8 @@ mod react;
 
 use js_sys::{Function, Object, Reflect};
 use react::get_component;
-use std::{fmt::Debug, ops::Deref};
-use wasm_bindgen::{prelude::*, JsCast};
+use std::{fmt::Debug, ops::Deref, rc::Rc};
+use wasm_bindgen::{convert::FromWasmAbi, prelude::*, JsCast};
 use HtmlOrComponent::*;
 
 pub enum HtmlOrComponent {
@@ -36,6 +36,32 @@ pub fn hc<C: Into<JsValue>>(name: &'static str, props: C) -> JsValue {
   h(Component(name), [("rustProps", props.into())], [])
 }
 
+#[derive(Clone)]
+pub struct Callback<T>(Rc<dyn Fn(T)>);
+
+impl<T> Deref for Callback<T> {
+  type Target = Rc<dyn Fn(T)>;
+
+  fn deref(&self) -> &Self::Target {
+    &self.0
+  }
+}
+
+impl<T: FromWasmAbi + 'static> From<Callback<T>> for JsValue {
+  fn from(value: Callback<T>) -> Self {
+    Closure::wrap(Box::new(move |arg| {
+      value.0(arg);
+    }) as Box<dyn Fn(T)>)
+    .into_js_value()
+  }
+}
+
+impl<T> Callback<T> {
+  pub fn new<F: Fn(T) + 'static>(f: F) -> Self {
+    Self(Rc::new(f))
+  }
+}
+
 #[derive(Debug)]
 pub struct UseState<T>(*mut T, Function);
 
@@ -61,11 +87,11 @@ impl<T: 'static> UseState<T> {
       .1
       .call1(
         &JsValue::undefined(),
-        &Closure::wrap(Box::new(move || {
+        &Callback::new(move |_: JsValue| {
           let state = Box::leak(unsafe { Box::from_raw(ptr) });
           mutator(state);
-        }) as Box<dyn Fn()>)
-        .into_js_value(),
+        })
+        .into(),
       )
       .ok();
   }
@@ -78,10 +104,10 @@ pub fn use_state<T: 'static>(value: impl Fn() -> T) -> UseState<T> {
 
   let result = react::use_rust_state(
     &|| Box::into_raw(Box::new(value())) as usize as f64,
-    Closure::wrap(Box::new(|ptr: f64| unsafe {
+    Callback::new(|ptr: f64| unsafe {
       drop(Box::from_raw(ptr as usize as *mut T));
-    }) as Box<dyn Fn(f64)>)
-    .into_js_value(),
+    })
+    .into(),
   );
   let update_state = result.get(1).dyn_into::<Function>().unwrap();
   let ptr = result.get(0).as_f64().unwrap() as usize as *mut T;
@@ -92,11 +118,15 @@ pub fn use_state<T: 'static>(value: impl Fn() -> T) -> UseState<T> {
 #[derive(Debug)]
 pub struct AppState {
   pub counter: i32,
+  pub diff: i32,
 }
 
 impl Default for AppState {
   fn default() -> Self {
-    Self { counter: 11 }
+    Self {
+      counter: 11,
+      diff: 5,
+    }
   }
 }
 
@@ -109,46 +139,25 @@ impl App {
   pub fn render() -> JsValue {
     let state = use_state(|| AppState::default());
 
-    h(
-      HtmlTag("div"),
-      None,
-      [
-        hc(
-          "Counter",
-          Counter {
-            counter: state.counter,
-          },
-        ),
-        h(
-          HtmlTag("button"),
-          [("onClick", {
-            let state = state.clone();
+    hc(
+      "Counter",
+      Counter {
+        counter: state.counter,
+        on_increment: {
+          let state = state.clone();
 
-            Closure::wrap(Box::new(move || {
-              state.update(|state| {
-                state.counter += 1;
-              })
-            }) as Box<dyn FnMut()>)
-            .into_js_value()
-          })],
-          ["Increment".into()],
-        ),
-        " ".into(),
-        h(
-          HtmlTag("button"),
-          [("onClick", {
-            let state = state.clone();
+          Callback::new(move |_| {
+            state.update(|state| state.counter += state.diff);
+          })
+        },
+        on_decrement: {
+          let state = state.clone();
 
-            Closure::wrap(Box::new(move || {
-              state.update(|state| {
-                state.counter -= 1;
-              })
-            }) as Box<dyn FnMut()>)
-            .into_js_value()
-          })],
-          ["Decrement".into()],
-        ),
-      ],
+          Callback::new(move |_| {
+            state.update(|state| state.counter -= state.diff);
+          })
+        },
+      },
     )
   }
 }
@@ -156,6 +165,8 @@ impl App {
 #[wasm_bindgen]
 pub struct Counter {
   counter: i32,
+  on_increment: Callback<()>,
+  on_decrement: Callback<()>,
 }
 
 #[wasm_bindgen]
@@ -164,8 +175,33 @@ impl Counter {
   pub fn render(props: Counter) -> JsValue {
     h(
       HtmlTag("div"),
-      [("className", "counter".into())],
-      ["Counter: ".into(), props.counter.into()],
+      None,
+      [
+        h(
+          HtmlTag("div"),
+          [("className", "counter".into())],
+          ["Counter: ".into(), props.counter.into()],
+        ),
+        h(
+          HtmlTag("button"),
+          [("onClick", {
+            let on_decrement = props.on_decrement.clone();
+
+            Callback::new(move |_: JsValue| on_decrement(())).into()
+          })],
+          ["Decrement".into()],
+        ),
+        " ".into(),
+        h(
+          HtmlTag("button"),
+          [("onClick", {
+            let on_increment = props.on_increment.clone();
+
+            Callback::new(move |_: JsValue| on_increment(())).into()
+          })],
+          ["Increment".into()],
+        ),
+      ],
     )
   }
 }
