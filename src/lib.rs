@@ -3,6 +3,7 @@ mod component;
 mod react;
 mod vnode;
 
+use attr::{Attr, Style};
 use js_sys::{Object, Reflect};
 use std::fmt::Debug;
 use wasm_bindgen::prelude::*;
@@ -14,7 +15,7 @@ pub use component::*;
 pub use vnode::*;
 
 pub fn create_element<'a>(
-  tag: JsValue,
+  typ: JsValue,
   props: impl IntoIterator<Item = (&'a str, JsValue)>,
   children: impl IntoIterator<Item = VNode>,
 ) -> VNode {
@@ -25,18 +26,22 @@ pub fn create_element<'a>(
   }
 
   VNode(react::create_element(
-    tag,
+    typ,
     props_obj.into(),
     children.into_iter().map(|c| JsValue::from(c)).collect(),
   ))
 }
 
-pub fn html<'a>(
+pub fn html(
   tag: &str,
-  props: impl IntoIterator<Item = (&'a str, JsValue)>,
+  attr: Attr,
   children: impl IntoIterator<Item = VNode>,
 ) -> VNode {
-  create_element(tag.into(), props, children)
+  VNode(react::create_element(
+    tag.into(),
+    attr.into(),
+    children.into_iter().map(|c| JsValue::from(c)).collect(),
+  ))
 }
 
 #[doc(hidden)]
@@ -79,9 +84,9 @@ impl Component for App {
 
         move || {
           log(if state.counter >= 50 {
-            "Counter is above 50 🎉"
+            "Counter is now above 50 🎉"
           } else {
-            "Counter is below 50"
+            "Counter is now below 50"
           });
 
           || ()
@@ -92,22 +97,18 @@ impl Component for App {
 
     html(
       "div",
-      [attr::classnames("app")],
+      Attr::new()
+        .class_name("app")
+        .insert("data-counter", state.counter),
       [Counter {
         counter: state.counter,
         on_increment: Some({
           let state = state.clone();
-
-          Callback::new(move |_| {
-            state.update(|state| state.counter += state.diff);
-          })
+          move || state.update(|state| state.counter += state.diff)
         }),
         on_decrement: Some({
           let state = state.clone();
-
-          Callback::new(move |_| {
-            state.update(|state| state.counter -= state.diff);
-          })
+          move || state.update(|state| state.counter -= state.diff)
         }),
       }
       .into_vnode()],
@@ -123,61 +124,57 @@ pub fn create_app() -> VNode {
 
 #[doc(hidden)]
 #[derive(Debug, Clone)]
-pub struct Counter {
+pub struct Counter<F, G>
+where
+  F: Fn() + Clone + 'static,
+  G: Fn() + Clone + 'static,
+{
   pub counter: i32,
-  pub on_increment: Option<Callback<()>>,
-  pub on_decrement: Option<Callback<()>>,
+  pub on_increment: Option<F>,
+  pub on_decrement: Option<G>,
 }
 
-impl Component for Counter {
+impl<F, G> Component for Counter<F, G>
+where
+  F: Fn() + Clone + 'static,
+  G: Fn() + Clone + 'static,
+{
   fn js_name() -> &'static str {
     "Counter"
   }
 
   fn render(&self) -> VNode {
-    log(&format!("{:?}", self));
-
     html(
       "div",
-      [attr::classnames("counter")],
+      Attr::new().class_name("counter"),
       [
         html(
           "h2",
-          [attr::style()
-            .insert(
-              "color",
-              if self.counter >= 50 {
-                Some("red")
-              } else {
-                None
-              },
-            )
-            .into()],
+          Attr::new().style(Style::new().insert(
+            "color",
+            if self.counter >= 50 {
+              Some("red")
+            } else {
+              None
+            },
+          )),
           ["Counter: ".into(), self.counter.into()],
         ),
         html(
           "button",
-          [attr::on_click({
+          Attr::new().on_click({
             let on_decrement = self.on_decrement.clone();
-            move |_| {
-              if let Some(on_decrement) = on_decrement.as_ref() {
-                on_decrement(());
-              }
-            }
-          })],
+            move |_| on_decrement.as_ref().map(|f| f()).unwrap_or(())
+          }),
           ["Decrement".into()],
         ),
         " ".into(),
         html(
           "button",
-          [attr::on_click({
+          Attr::new().on_click({
             let on_increment = self.on_increment.clone();
-            move |_| {
-              if let Some(on_increment) = on_increment.as_ref() {
-                on_increment(());
-              }
-            }
-          })],
+            move |_| on_increment.as_ref().map(|f| f()).unwrap_or(())
+          }),
           ["Increment".into()],
         ),
       ],

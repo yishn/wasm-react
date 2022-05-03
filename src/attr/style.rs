@@ -1,40 +1,27 @@
-use js_sys::{Object, Reflect};
+use super::Attr;
 use wasm_bindgen::JsValue;
 
 #[derive(Debug, Default, Clone)]
-pub struct Style<'a> {
-  data: Vec<(&'a str, JsValue)>,
-}
+pub struct Style(Attr);
 
-impl<'a> Style<'a> {
-  pub fn new() -> Style<'a> {
-    Style { data: vec![] }
+impl Style {
+  pub fn new() -> Self {
+    Self(Attr::new())
   }
 
-  pub fn insert(mut self, key: &'a str, value: impl Into<JsValue>) -> Self {
-    self.data.push((key, value.into()));
-    self
+  pub fn insert(self, key: &str, value: impl Into<JsValue>) -> Self {
+    Self(self.0.insert(key, value.into()))
   }
 }
 
-impl<'a> From<Style<'a>> for JsValue {
-  fn from(style: Style<'a>) -> Self {
-    let style_object = Object::new();
-
-    for (name, value) in style.data.into_iter() {
-      Reflect::set(&style_object, &name.into(), &value).unwrap();
-    }
-
-    style_object.into()
+impl From<Style> for JsValue {
+  fn from(style: Style) -> Self {
+    style.0.into()
   }
 }
 
-impl<'a> From<Style<'a>> for (&'static str, JsValue) {
-  fn from(style: Style<'a>) -> Self {
-    ("style", style.into())
+impl Attr {
+  pub fn style(self, value: Style) -> Self {
+    self.insert("style", value)
   }
-}
-
-pub fn style<'a>() -> Style<'a> {
-  Style::new()
 }

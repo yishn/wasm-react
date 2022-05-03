@@ -2,6 +2,11 @@ use crate::{react, Callback};
 use js_sys::Array;
 use wasm_bindgen::JsValue;
 
+pub enum Deps {
+  All,
+  None,
+}
+
 pub fn use_effect<G: Fn() + 'static, F: Fn() -> G + 'static>(
   f: F,
   deps: Option<&[JsValue]>,
