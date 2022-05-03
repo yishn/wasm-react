@@ -14,7 +14,7 @@ extern "C" {
   pub fn use_rust_state(create: &dyn Fn() -> usize, on_free: Function) -> Array;
 
   #[wasm_bindgen(js_namespace = React, js_name = useEffect)]
-  pub fn use_effect(f: Function, deps: Option<Array>);
+  pub fn use_effect(f: Function, deps: JsValue);
 
   #[wasm_bindgen(js_name = createComponent)]
   pub(crate) fn create_component(name: &str, props: JsValue) -> JsValue;

@@ -4,6 +4,7 @@ mod react;
 mod vnode;
 
 use attr::{Attr, Style};
+use hooks::Deps;
 use js_sys::{Object, Reflect};
 use std::fmt::Debug;
 use wasm_bindgen::prelude::*;
@@ -92,7 +93,7 @@ impl Component for App {
           || ()
         }
       },
-      Some(&[(state.counter >= 50).into()]),
+      Deps::None.push(state.counter >= 50),
     );
 
     html(
