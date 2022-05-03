@@ -11,6 +11,7 @@ use wasm_bindgen::prelude::*;
 
 pub mod attr;
 pub mod hooks;
+
 pub use callback::*;
 pub use component::*;
 pub use vnode::*;
