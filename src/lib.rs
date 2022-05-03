@@ -1,56 +1,15 @@
+mod callback;
 mod react;
+mod vnode;
 
-use js_sys::{Function, Object, Reflect};
-use std::{
-  fmt::{Debug, Display},
-  ops::Deref,
-  rc::Rc,
-};
-use wasm_bindgen::{
-  convert::{FromWasmAbi, IntoWasmAbi},
-  describe::WasmDescribe,
-  prelude::*,
-  JsCast,
-};
+use js_sys::{Object, Reflect};
+use std::fmt::Debug;
+use wasm_bindgen::prelude::*;
 
-pub struct VNode(JsValue);
-
-impl From<VNode> for JsValue {
-  fn from(value: VNode) -> Self {
-    value.0
-  }
-}
-
-impl<T> From<T> for VNode
-where
-  T: Display + Into<JsValue>,
-{
-  fn from(value: T) -> Self {
-    VNode(value.into())
-  }
-}
-
-impl WasmDescribe for VNode {
-  fn describe() {
-    JsValue::describe()
-  }
-}
-
-impl IntoWasmAbi for VNode {
-  type Abi = <JsValue as IntoWasmAbi>::Abi;
-
-  fn into_abi(self) -> Self::Abi {
-    self.0.into_abi()
-  }
-}
-
-impl FromWasmAbi for VNode {
-  type Abi = <JsValue as FromWasmAbi>::Abi;
-
-  unsafe fn from_abi(js: Self::Abi) -> Self {
-    VNode(JsValue::from_abi(js))
-  }
-}
+pub mod hooks;
+pub mod props;
+pub use callback::*;
+pub use vnode::*;
 
 pub fn create_element(
   tag: JsValue,
@@ -78,94 +37,11 @@ pub fn html(
   create_element(tag.into(), props, children)
 }
 
-pub fn component_into_vnode<P: Into<JsValue>>(
+pub fn render_component<P: Into<JsValue>>(
   name: &'static str,
   props: P,
 ) -> VNode {
-  create_element(
-    react::get_component(name),
-    [("rustProps", props.into())],
-    None,
-  )
-}
-
-#[derive(Clone)]
-pub struct Callback<T>(Rc<dyn Fn(T)>);
-
-impl<T> Deref for Callback<T> {
-  type Target = Rc<dyn Fn(T)>;
-
-  fn deref(&self) -> &Self::Target {
-    &self.0
-  }
-}
-
-impl<T: FromWasmAbi + 'static> From<Callback<T>> for JsValue {
-  fn from(value: Callback<T>) -> Self {
-    Closure::wrap(Box::new(move |arg| {
-      value.0(arg);
-    }) as Box<dyn Fn(T)>)
-    .into_js_value()
-  }
-}
-
-impl<T> Callback<T> {
-  pub fn new<F: Fn(T) + 'static>(f: F) -> Self {
-    Self(Rc::new(f))
-  }
-}
-
-pub struct UseState<T>(*mut T, Function);
-
-impl<T> Clone for UseState<T> {
-  fn clone(&self) -> Self {
-    Self(self.0, self.1.clone())
-  }
-}
-
-impl<T> Deref for UseState<T> {
-  type Target = T;
-
-  fn deref(&self) -> &Self::Target {
-    Box::leak(unsafe { Box::from_raw(self.0) })
-  }
-}
-
-impl<T: 'static> UseState<T> {
-  pub fn update(&self, mutator: impl Fn(&mut T) + 'static) {
-    let ptr = self.0;
-
-    self
-      .1
-      .call1(
-        &JsValue::undefined(),
-        &Callback::new(move |_: JsValue| {
-          let state = Box::leak(unsafe { Box::from_raw(ptr) });
-          mutator(state);
-        })
-        .into(),
-      )
-      .ok();
-  }
-}
-
-pub fn use_state<T: 'static>(value: impl Fn() -> T) -> UseState<T> {
-  // The lifetime of the state (`T`) is completely managed by the React
-  // component lifetime, meaning whenever the component is unmounted by React,
-  // the state will also be dropped.
-
-  let result = react::use_rust_state(
-    &|| Box::into_raw(Box::new(value())) as usize,
-    // This callback will be called when the component unmounts
-    Callback::new(|ptr: usize| unsafe {
-      drop(Box::from_raw(ptr as *mut T));
-    })
-    .into(),
-  );
-  let update_state = result.get(1).dyn_into::<Function>().unwrap();
-  let ptr = react::cast_into_usize(result.get(0)) as *mut T;
-
-  UseState(ptr, update_state)
+  VNode(react::render_component(name, props.into()))
 }
 
 #[derive(Debug)]
@@ -190,11 +66,11 @@ pub struct App;
 impl App {
   #[wasm_bindgen]
   pub fn render() -> VNode {
-    let state = use_state(|| AppState::default());
+    let state = hooks::use_state(|| AppState::default());
 
     html(
       "div",
-      [("className", "app".into())],
+      [props::classnames("app")],
       [Counter {
         counter: state.counter,
         on_increment: {
@@ -226,7 +102,7 @@ pub struct Counter {
 
 impl From<Counter> for VNode {
   fn from(value: Counter) -> Self {
-    component_into_vnode("Counter", value)
+    render_component("Counter", value)
   }
 }
 
@@ -236,7 +112,7 @@ impl Counter {
   pub fn render(props: Counter) -> VNode {
     html(
       "div",
-      [("className", "counter".into())],
+      [props::classnames("counter")],
       [
         html("h2", None, ["Counter: ".into(), props.counter.into()]),
         html(

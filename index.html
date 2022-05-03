@@ -10,15 +10,15 @@
     <div id="root"></div>
 
     <script type="module">
-      import init, { App } from "./pkg/wasm_react.js";
-      import { React, getComponent } from "./react-bindings.js";
+      import init from "./pkg/wasm_react.js";
+      import { React, renderComponent } from "./react-bindings.js";
       import ReactDOM from "https://cdn.skypack.dev/react-dom";
 
       async function main() {
         await init();
 
         ReactDOM.render(
-          React.createElement(getComponent("App")),
+          renderComponent("App"),
           document.getElementById("root")
         );
       }
