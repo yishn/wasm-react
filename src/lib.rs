@@ -1,39 +1,92 @@
 mod react;
 
 use js_sys::{Function, Object, Reflect};
-use react::get_component;
-use std::{fmt::Debug, ops::Deref, rc::Rc};
-use wasm_bindgen::{convert::FromWasmAbi, prelude::*, JsCast};
-use HtmlOrComponent::*;
+use std::{
+  fmt::{Debug, Display},
+  ops::Deref,
+  rc::Rc,
+};
+use wasm_bindgen::{
+  convert::{FromWasmAbi, IntoWasmAbi},
+  describe::WasmDescribe,
+  prelude::*,
+  JsCast,
+};
 
-pub enum HtmlOrComponent {
-  HtmlTag(&'static str),
-  Component(&'static str),
+pub struct VNode(JsValue);
+
+impl From<VNode> for JsValue {
+  fn from(value: VNode) -> Self {
+    value.0
+  }
 }
 
-pub fn h(
-  tag: HtmlOrComponent,
+impl<T> From<T> for VNode
+where
+  T: Display + Into<JsValue>,
+{
+  fn from(value: T) -> Self {
+    VNode(value.into())
+  }
+}
+
+impl WasmDescribe for VNode {
+  fn describe() {
+    JsValue::describe()
+  }
+}
+
+impl IntoWasmAbi for VNode {
+  type Abi = <JsValue as IntoWasmAbi>::Abi;
+
+  fn into_abi(self) -> Self::Abi {
+    self.0.into_abi()
+  }
+}
+
+impl FromWasmAbi for VNode {
+  type Abi = <JsValue as FromWasmAbi>::Abi;
+
+  unsafe fn from_abi(js: Self::Abi) -> Self {
+    VNode(JsValue::from_abi(js))
+  }
+}
+
+pub fn create_element(
+  tag: JsValue,
   props: impl IntoIterator<Item = (&'static str, JsValue)>,
-  children: impl IntoIterator<Item = JsValue>,
-) -> JsValue {
+  children: impl IntoIterator<Item = VNode>,
+) -> VNode {
   let props_obj = Object::new();
 
   for (prop, value) in props.into_iter() {
     Reflect::set(&props_obj, &(*prop).into(), &value).ok();
   }
 
-  react::create_element(
-    match tag {
-      HtmlTag(tag) => tag.into(),
-      Component(name) => get_component(name),
-    },
+  VNode(react::create_element(
+    tag,
     props_obj.into(),
-    children.into_iter().collect(),
-  )
+    children.into_iter().map(|c| JsValue::from(c)).collect(),
+  ))
 }
 
-pub fn hc<C: Into<JsValue>>(name: &'static str, props: C) -> JsValue {
-  h(Component(name), [("rustProps", props.into())], [])
+pub fn html(
+  tag: &'static str,
+  props: impl IntoIterator<Item = (&'static str, JsValue)>,
+  children: impl IntoIterator<Item = VNode>,
+) -> VNode {
+  create_element(tag.into(), props, children)
+}
+
+pub fn component_into_vnode<P: Into<JsValue>>(
+  name: &'static str,
+  props: P,
+) -> VNode {
+  create_element(
+    react::get_component(name),
+    [("rustProps", props.into())],
+    None,
+  )
 }
 
 #[derive(Clone)]
@@ -62,7 +115,6 @@ impl<T> Callback<T> {
   }
 }
 
-#[derive(Debug)]
 pub struct UseState<T>(*mut T, Function);
 
 impl<T> Clone for UseState<T> {
@@ -99,18 +151,19 @@ impl<T: 'static> UseState<T> {
 
 pub fn use_state<T: 'static>(value: impl Fn() -> T) -> UseState<T> {
   // The lifetime of the state (`T`) is completely managed by the React
-  // component lifetime, meaning whenever the component gets removed from the
-  // DOM by React, the state will also be dropped.
+  // component lifetime, meaning whenever the component is unmounted by React,
+  // the state will also be dropped.
 
   let result = react::use_rust_state(
-    &|| Box::into_raw(Box::new(value())) as usize as f64,
-    Callback::new(|ptr: f64| unsafe {
-      drop(Box::from_raw(ptr as usize as *mut T));
+    &|| Box::into_raw(Box::new(value())) as usize,
+    // This callback will be called when the component unmounts
+    Callback::new(|ptr: usize| unsafe {
+      drop(Box::from_raw(ptr as *mut T));
     })
     .into(),
   );
   let update_state = result.get(1).dyn_into::<Function>().unwrap();
-  let ptr = result.get(0).as_f64().unwrap() as usize as *mut T;
+  let ptr = react::cast_into_usize(result.get(0)) as *mut T;
 
   UseState(ptr, update_state)
 }
@@ -136,12 +189,13 @@ pub struct App;
 #[wasm_bindgen]
 impl App {
   #[wasm_bindgen]
-  pub fn render() -> JsValue {
+  pub fn render() -> VNode {
     let state = use_state(|| AppState::default());
 
-    hc(
-      "Counter",
-      Counter {
+    html(
+      "div",
+      [("className", "app".into())],
+      [Counter {
         counter: state.counter,
         on_increment: {
           let state = state.clone();
@@ -157,7 +211,8 @@ impl App {
             state.update(|state| state.counter -= state.diff);
           })
         },
-      },
+      }
+      .into()],
     )
   }
 }
@@ -169,21 +224,23 @@ pub struct Counter {
   on_decrement: Callback<()>,
 }
 
+impl From<Counter> for VNode {
+  fn from(value: Counter) -> Self {
+    component_into_vnode("Counter", value)
+  }
+}
+
 #[wasm_bindgen]
 impl Counter {
   #[wasm_bindgen]
-  pub fn render(props: Counter) -> JsValue {
-    h(
-      HtmlTag("div"),
-      None,
+  pub fn render(props: Counter) -> VNode {
+    html(
+      "div",
+      [("className", "counter".into())],
       [
-        h(
-          HtmlTag("div"),
-          [("className", "counter".into())],
-          ["Counter: ".into(), props.counter.into()],
-        ),
-        h(
-          HtmlTag("button"),
+        html("h2", None, ["Counter: ".into(), props.counter.into()]),
+        html(
+          "button",
           [("onClick", {
             let on_decrement = props.on_decrement.clone();
 
@@ -192,8 +249,8 @@ impl Counter {
           ["Decrement".into()],
         ),
         " ".into(),
-        h(
-          HtmlTag("button"),
+        html(
+          "button",
           [("onClick", {
             let on_increment = props.on_increment.clone();
 

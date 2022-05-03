@@ -1,5 +1,7 @@
 import * as Components from "./pkg/wasm_react.js";
-import * as React from "https://cdn.skypack.dev/react";
+import { useState, useEffect } from "https://cdn.skypack.dev/react";
+
+export * as React from "https://cdn.skypack.dev/react";
 
 let components = {};
 
@@ -13,21 +15,21 @@ export function getComponent(name) {
   return components[name];
 }
 
-export function createElement(...args) {
-  return React.createElement(...args);
-}
+export function useRustState(create, onFree) {
+  let [state, setState] = useState(() => ({ ptr: create() }));
 
-export function useRustState(defaultValue, onFree) {
-  let [state, setState] = React.useState(() => [defaultValue()]);
-
-  React.useEffect(() => () => onFree(state[0]), []);
+  useEffect(() => () => onFree(state.ptr), []);
 
   return [
-    state[0],
+    state.ptr,
     (mutator) =>
       setState((state) => {
         mutator();
-        return [state[0]];
+        return { ...state };
       }),
   ];
+}
+
+export function cast(x) {
+  return x;
 }

@@ -11,14 +11,14 @@
 
     <script type="module">
       import init, { App } from "./pkg/wasm_react.js";
-      import { createElement, getComponent } from "./react-bindings.js";
+      import { React, getComponent } from "./react-bindings.js";
       import ReactDOM from "https://cdn.skypack.dev/react-dom";
 
       async function main() {
         await init();
 
         ReactDOM.render(
-          createElement(getComponent("App")),
+          React.createElement(getComponent("App")),
           document.getElementById("root")
         );
       }
