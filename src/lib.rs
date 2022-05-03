@@ -4,6 +4,7 @@ mod react;
 mod vnode;
 
 use js_sys::{Object, Reflect};
+use props::Style;
 use std::fmt::Debug;
 use wasm_bindgen::prelude::*;
 
@@ -21,7 +22,7 @@ pub fn create_element<'a>(
   let props_obj = Object::new();
 
   for (prop, value) in props.into_iter() {
-    Reflect::set(&props_obj, &(*prop).into(), &value).ok();
+    Reflect::set(&props_obj, &(*prop).into(), &value).unwrap();
   }
 
   VNode(react::create_element(
@@ -158,34 +159,43 @@ impl Component for Counter {
       "div",
       [props::classnames("counter")],
       [
-        html("h2", None, ["Counter: ".into(), props.counter.into()]),
+        html(
+          "h2",
+          [Style::new()
+            .add(
+              "color",
+              if props.counter >= 50 {
+                Some("red")
+              } else {
+                None
+              },
+            )
+            .into()],
+          ["Counter: ".into(), props.counter.into()],
+        ),
         html(
           "button",
-          [(
-            "onClick",
-            props
-              .on_decrement
-              .clone()
-              .map(|on_decrement| -> JsValue {
-                Callback::new(move |_: JsValue| on_decrement(())).into()
-              })
-              .into(),
-          )],
+          [props::on_click({
+            let on_decrement = props.on_decrement.clone();
+            move |_| {
+              if let Some(f) = on_decrement.as_ref() {
+                f(());
+              }
+            }
+          })],
           ["Decrement".into()],
         ),
         " ".into(),
         html(
           "button",
-          [(
-            "onClick",
-            props
-              .on_increment
-              .clone()
-              .map(|on_increment| -> JsValue {
-                Callback::new(move |_: JsValue| on_increment(())).into()
-              })
-              .into(),
-          )],
+          [props::on_click({
+            let on_increment = props.on_increment.clone();
+            move |_| {
+              if let Some(f) = on_increment.as_ref() {
+                f(());
+              }
+            }
+          })],
           ["Increment".into()],
         ),
       ],

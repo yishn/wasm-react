@@ -9,7 +9,7 @@ export * as React from "https://cdn.skypack.dev/react";
 
 let components = {};
 
-export function renderComponent(name, rustProps) {
+export function createComponent(name, rustProps) {
   if (components[name] == null) {
     Object.assign(components, {
       [name]: ({ rustProps }) => WasmExports[name].render(rustProps),

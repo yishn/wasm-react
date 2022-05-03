@@ -5,20 +5,6 @@ use wasm_bindgen::{JsCast, JsValue};
 
 pub struct UseState<T>(*mut T, Function);
 
-impl<T> Clone for UseState<T> {
-  fn clone(&self) -> Self {
-    Self(self.0, self.1.clone())
-  }
-}
-
-impl<T> Deref for UseState<T> {
-  type Target = T;
-
-  fn deref(&self) -> &Self::Target {
-    Box::leak(unsafe { Box::from_raw(self.0) })
-  }
-}
-
 impl<T: 'static> UseState<T> {
   pub fn update(&self, mutator: impl Fn(&mut T) + 'static) {
     let ptr = self.0;
@@ -33,7 +19,21 @@ impl<T: 'static> UseState<T> {
         })
         .into(),
       )
-      .ok();
+      .unwrap();
+  }
+}
+
+impl<T> Clone for UseState<T> {
+  fn clone(&self) -> Self {
+    Self(self.0, self.1.clone())
+  }
+}
+
+impl<T> Deref for UseState<T> {
+  type Target = T;
+
+  fn deref(&self) -> &Self::Target {
+    Box::leak(unsafe { Box::from_raw(self.0) })
   }
 }
 

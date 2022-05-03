@@ -5,7 +5,7 @@ pub trait Component: Sized + HasJsComponent {
   fn render(props: Self) -> VNode;
 
   fn into_vnode(self) -> VNode {
-    VNode(react::render_component(
+    VNode(react::create_component(
       Self::js_name(),
       <Self as HasJsComponent>::JsComponent::from(self).into(),
     ))

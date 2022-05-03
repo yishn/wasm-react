@@ -5,6 +5,7 @@ use wasm_bindgen::{
   JsValue,
 };
 
+#[derive(Clone)]
 pub struct VNode(pub(crate) JsValue);
 
 impl From<VNode> for JsValue {
