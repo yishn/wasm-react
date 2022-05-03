@@ -26,7 +26,7 @@ pub struct JsComponentWrapper(Box<dyn Component>);
 #[wasm_bindgen(js_class = __JsComponentWrapper)]
 impl JsComponentWrapper {
   #[wasm_bindgen]
-  pub fn render(props: &JsComponentWrapper) -> VNode {
-    props.0.render()
+  pub fn render(props: &JsComponentWrapper) -> JsValue {
+    props.0.render().into()
   }
 }

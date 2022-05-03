@@ -1,9 +1,5 @@
 use std::fmt::Display;
-use wasm_bindgen::{
-  convert::{FromWasmAbi, IntoWasmAbi},
-  describe::WasmDescribe,
-  JsValue,
-};
+use wasm_bindgen::JsValue;
 
 #[derive(Clone)]
 pub struct VNode(pub(crate) JsValue);
@@ -20,27 +16,5 @@ where
 {
   fn from(value: T) -> Self {
     VNode(value.into())
-  }
-}
-
-impl WasmDescribe for VNode {
-  fn describe() {
-    JsValue::describe()
-  }
-}
-
-impl IntoWasmAbi for VNode {
-  type Abi = <JsValue as IntoWasmAbi>::Abi;
-
-  fn into_abi(self) -> Self::Abi {
-    self.0.into_abi()
-  }
-}
-
-impl FromWasmAbi for VNode {
-  type Abi = <JsValue as FromWasmAbi>::Abi;
-
-  unsafe fn from_abi(js: Self::Abi) -> Self {
-    VNode(JsValue::from_abi(js))
   }
 }

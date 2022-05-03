@@ -119,8 +119,8 @@ impl Component for App {
 
 #[doc(hidden)]
 #[wasm_bindgen(js_name = createApp)]
-pub fn create_app() -> VNode {
-  App.into_vnode()
+pub fn create_app() -> JsValue {
+  App.into_vnode().into()
 }
 
 #[doc(hidden)]
