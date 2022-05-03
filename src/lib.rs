@@ -5,7 +5,6 @@ mod vnode;
 
 use attr::{Attr, Style};
 use hooks::Deps;
-use js_sys::{Object, Reflect};
 use std::fmt::Debug;
 use wasm_bindgen::prelude::*;
 
@@ -18,18 +17,12 @@ pub use vnode::*;
 
 pub fn create_element<'a>(
   typ: JsValue,
-  props: impl IntoIterator<Item = (&'a str, JsValue)>,
+  props: Attr,
   children: impl IntoIterator<Item = VNode>,
 ) -> VNode {
-  let props_obj = Object::new();
-
-  for (prop, value) in props.into_iter() {
-    Reflect::set(&props_obj, &(*prop).into(), &value).unwrap();
-  }
-
   VNode(react::create_element(
     typ,
-    props_obj.into(),
+    props.into(),
     children.into_iter().map(|c| JsValue::from(c)).collect(),
   ))
 }
@@ -39,11 +32,7 @@ pub fn html(
   attr: Attr,
   children: impl IntoIterator<Item = VNode>,
 ) -> VNode {
-  VNode(react::create_element(
-    tag.into(),
-    attr.into(),
-    children.into_iter().map(|c| JsValue::from(c)).collect(),
-  ))
+  create_element(tag.into(), attr, children)
 }
 
 #[doc(hidden)]

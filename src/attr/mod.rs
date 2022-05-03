@@ -2,10 +2,6 @@ mod classnames;
 mod event;
 mod style;
 
-pub use classnames::*;
-pub use event::*;
-pub use style::*;
-
 use crate::Callback;
 use js_sys::{Object, Reflect};
 use wasm_bindgen::{
@@ -13,10 +9,12 @@ use wasm_bindgen::{
   JsValue,
 };
 
+pub use classnames::*;
+pub use event::*;
+pub use style::*;
+
 #[derive(Debug, Default, Clone)]
-pub struct Attr {
-  data: Object,
-}
+pub struct Attr(Object);
 
 impl Attr {
   pub fn new() -> Self {
@@ -24,7 +22,7 @@ impl Attr {
   }
 
   pub fn insert(self, key: &str, value: impl Into<JsValue>) -> Self {
-    Reflect::set(&self.data, &key.into(), &value.into()).unwrap();
+    Reflect::set(&self.0, &key.into(), &value.into()).unwrap();
     self
   }
 
@@ -39,10 +37,18 @@ impl Attr {
   {
     self.insert(key, Callback::new(f))
   }
+
+  pub fn dangerously_set_inner_html(self, value: &str) -> Self {
+    self.insert("dangerouslySetInnerHTML", {
+      let result = Object::new();
+      Reflect::set(&result, &"__html".into(), &value.into()).unwrap();
+      result
+    })
+  }
 }
 
 impl From<Attr> for JsValue {
   fn from(style: Attr) -> Self {
-    style.data.into()
+    style.0.into()
   }
 }
