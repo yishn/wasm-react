@@ -1,19 +1,31 @@
 use crate::{react, VNode};
-use wasm_bindgen::{convert::FromWasmAbi, JsValue};
+use wasm_bindgen::prelude::*;
 
-pub trait Component: Sized + HasJsComponent {
-  fn render(props: Self) -> VNode;
+pub trait Component {
+  fn js_name() -> &'static str
+  where
+    Self: Sized;
 
-  fn into_vnode(self) -> VNode {
+  fn render(&self) -> VNode;
+
+  fn into_vnode(self) -> VNode
+  where
+    Self: Sized + 'static,
+  {
     VNode(react::create_component(
       Self::js_name(),
-      <Self as HasJsComponent>::JsComponent::from(self).into(),
+      JsComponentWrapper(Box::new(self)).into(),
     ))
   }
 }
 
-pub trait HasJsComponent: Sized {
-  type JsComponent: FromWasmAbi + Into<JsValue> + From<Self> + Into<Self>;
+#[wasm_bindgen(js_name = __JsComponentWrapper)]
+pub struct JsComponentWrapper(Box<dyn Component>);
 
-  fn js_name() -> &'static str;
+#[wasm_bindgen(js_class = __JsComponentWrapper)]
+impl JsComponentWrapper {
+  #[wasm_bindgen]
+  pub fn render(props: &JsComponentWrapper) -> VNode {
+    props.0.render()
+  }
 }

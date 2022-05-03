@@ -67,7 +67,14 @@ extern "C" {
 pub struct App;
 
 impl Component for App {
-  fn render(_: Self) -> VNode {
+  fn js_name() -> &'static str
+  where
+    Self: Sized,
+  {
+    "App"
+  }
+
+  fn render(&self) -> VNode {
     let state = hooks::use_state(|| AppState::default());
 
     hooks::use_effect(
@@ -112,38 +119,10 @@ impl Component for App {
   }
 }
 
-impl HasJsComponent for App {
-  type JsComponent = JsApp;
-
-  fn js_name() -> &'static str {
-    "App"
-  }
-}
-
 #[doc(hidden)]
-#[wasm_bindgen(js_name = App)]
-pub struct JsApp {
-  component: App,
-}
-
-impl From<JsApp> for App {
-  fn from(value: JsApp) -> Self {
-    value.component
-  }
-}
-
-impl From<App> for JsApp {
-  fn from(component: App) -> Self {
-    Self { component }
-  }
-}
-
-#[wasm_bindgen(js_class = App)]
-impl JsApp {
-  #[wasm_bindgen]
-  pub fn render() -> VNode {
-    App::render(App)
-  }
+#[wasm_bindgen(js_name = createApp)]
+pub fn create_app() -> VNode {
+  App.into_vnode()
 }
 
 #[doc(hidden)]
@@ -154,7 +133,14 @@ pub struct Counter {
 }
 
 impl Component for Counter {
-  fn render(props: Self) -> VNode {
+  fn js_name() -> &'static str
+  where
+    Self: Sized,
+  {
+    "Counter"
+  }
+
+  fn render(&self) -> VNode {
     html(
       "div",
       [props::classnames("counter")],
@@ -164,22 +150,22 @@ impl Component for Counter {
           [Style::new()
             .add(
               "color",
-              if props.counter >= 50 {
+              if self.counter >= 50 {
                 Some("red")
               } else {
                 None
               },
             )
             .into()],
-          ["Counter: ".into(), props.counter.into()],
+          ["Counter: ".into(), self.counter.into()],
         ),
         html(
           "button",
           [props::on_click({
-            let on_decrement = props.on_decrement.clone();
+            let on_decrement = self.on_decrement.clone();
             move |_| {
-              if let Some(f) = on_decrement.as_ref() {
-                f(());
+              if let Some(on_decrement) = on_decrement.as_ref() {
+                on_decrement(());
               }
             }
           })],
@@ -189,10 +175,10 @@ impl Component for Counter {
         html(
           "button",
           [props::on_click({
-            let on_increment = props.on_increment.clone();
+            let on_increment = self.on_increment.clone();
             move |_| {
-              if let Some(f) = on_increment.as_ref() {
-                f(());
+              if let Some(on_increment) = on_increment.as_ref() {
+                on_increment(());
               }
             }
           })],
@@ -200,39 +186,5 @@ impl Component for Counter {
         ),
       ],
     )
-  }
-}
-
-impl HasJsComponent for Counter {
-  type JsComponent = JsCounter;
-
-  fn js_name() -> &'static str {
-    "Counter"
-  }
-}
-
-#[doc(hidden)]
-#[wasm_bindgen(js_name = Counter)]
-pub struct JsCounter {
-  component: Counter,
-}
-
-impl From<JsCounter> for Counter {
-  fn from(value: JsCounter) -> Self {
-    value.component
-  }
-}
-
-impl From<Counter> for JsCounter {
-  fn from(component: Counter) -> Self {
-    Self { component }
-  }
-}
-
-#[wasm_bindgen(js_class = Counter)]
-impl JsCounter {
-  #[wasm_bindgen]
-  pub fn render(props: JsCounter) -> VNode {
-    Counter::render(props.component)
   }
 }

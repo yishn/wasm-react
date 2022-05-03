@@ -1,4 +1,4 @@
-import * as WasmExports from "./pkg/wasm_react.js";
+import { __JsComponentWrapper } from "./pkg/wasm_react.js";
 import {
   createElement,
   useState,
@@ -12,7 +12,7 @@ let components = {};
 export function createComponent(name, rustProps) {
   if (components[name] == null) {
     Object.assign(components, {
-      [name]: ({ rustProps }) => WasmExports[name].render(rustProps),
+      [name]: ({ rustProps }) => __JsComponentWrapper.render(rustProps),
     });
   }
 

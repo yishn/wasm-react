@@ -10,17 +10,14 @@
     <div id="root"></div>
 
     <script type="module">
-      import init from "./pkg/wasm_react.js";
-      import { React, createComponent } from "./react-bindings.js";
+      import init, { createApp } from "./pkg/wasm_react.js";
+      import { React } from "./react-bindings.js";
       import ReactDOM from "https://cdn.skypack.dev/react-dom";
 
       async function main() {
         await init();
 
-        ReactDOM.render(
-          createComponent("App"),
-          document.getElementById("root")
-        );
+        ReactDOM.render(createApp(), document.getElementById("root"));
       }
 
       main();
