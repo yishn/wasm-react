@@ -1,5 +1,5 @@
 use js_sys::Function;
-use std::{ops::Deref, rc::Rc};
+use std::{fmt::Debug, ops::Deref, rc::Rc};
 use wasm_bindgen::{
   convert::{FromWasmAbi, IntoWasmAbi},
   prelude::Closure,
@@ -12,6 +12,12 @@ pub struct Callback<T, U = ()>(Rc<dyn Fn(T) -> U>);
 impl<T, U> Callback<T, U> {
   pub fn new<F: Fn(T) -> U + 'static>(f: F) -> Self {
     Self(Rc::new(f))
+  }
+}
+
+impl<T, U> Debug for Callback<T, U> {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    f.write_str("Callback(|_| { ... })")
   }
 }
 

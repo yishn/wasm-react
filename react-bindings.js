@@ -9,19 +9,32 @@ export * as React from "https://cdn.skypack.dev/react";
 
 let components = {};
 
-export function createComponent(name, rustProps) {
+export function getComponent(name) {
   if (components[name] == null) {
+    // This curious construction is needed to ensure that the components show up
+    // with their names correctly in the React Developer Tools
     Object.assign(components, {
-      [name]: ({ rustProps }) => __JsComponentWrapper.render(rustProps),
+      [name]: ({ rustProps }) => {
+        // We need to free up the memory on Rust side whenever the old props are
+        // replaced with new ones.
+        useEffect(() => () => rustProps.free(), [rustProps]);
+
+        return __JsComponentWrapper.render(rustProps);
+      },
     });
   }
 
-  return createElement(components[name], { rustProps });
+  return components[name];
+}
+
+export function createComponent(name, rustProps) {
+  return createElement(getComponent(name), { rustProps });
 }
 
 export function useRustState(create, onFree) {
+  // We only maintain a pointer to the state struct
   let [state, setState] = useState(() => ({ ptr: create() }));
-
+  // Let Rust free up the memory whenever the component unmounts
   useEffect(() => () => onFree(state.ptr), []);
 
   return [

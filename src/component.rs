@@ -19,6 +19,7 @@ pub trait Component {
   }
 }
 
+#[doc(hidden)]
 #[wasm_bindgen(js_name = __JsComponentWrapper)]
 pub struct JsComponentWrapper(Box<dyn Component>);
 
