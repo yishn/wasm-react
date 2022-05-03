@@ -55,6 +55,12 @@ impl Default for AppState {
   }
 }
 
+#[wasm_bindgen]
+extern "C" {
+  #[wasm_bindgen(js_namespace = console)]
+  fn log(input: &str);
+}
+
 #[doc(hidden)]
 #[derive(Debug)]
 pub struct App;
@@ -62,6 +68,23 @@ pub struct App;
 impl Component for App {
   fn render(_: Self) -> VNode {
     let state = hooks::use_state(|| AppState::default());
+
+    hooks::use_effect(
+      {
+        let state = state.clone();
+
+        move || {
+          log(if state.counter >= 50 {
+            "Counter is above 50 🎉"
+          } else {
+            "Counter is below 50"
+          });
+
+          || ()
+        }
+      },
+      Some(&[(state.counter >= 50).into()]),
+    );
 
     html(
       "div",
