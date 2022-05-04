@@ -1,4 +1,4 @@
-use js_sys::{Array, Function};
+use js_sys::Array;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(module = "/react-bindings.js")]
@@ -11,10 +11,10 @@ extern "C" {
   ) -> JsValue;
 
   #[wasm_bindgen(js_name = useRustState)]
-  pub fn use_rust_state(create: &dyn Fn() -> usize, on_free: Function) -> Array;
+  pub fn use_rust_state(create: &dyn Fn() -> usize, on_free: JsValue) -> Array;
 
   #[wasm_bindgen(js_namespace = React, js_name = useEffect)]
-  pub fn use_effect(f: Function, deps: JsValue);
+  pub fn use_effect(f: JsValue, deps: JsValue);
 
   #[wasm_bindgen(js_name = createComponent)]
   pub(crate) fn create_component(name: &str, props: JsValue) -> JsValue;

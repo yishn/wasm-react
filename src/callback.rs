@@ -49,3 +49,31 @@ where
     JsValue::from(value).dyn_into().unwrap()
   }
 }
+
+pub trait Callable<T, U> {
+  fn call(&self, input: T) -> U;
+}
+
+impl<T, U, F: Fn(T) -> U> Callable<T, U> for F {
+  fn call(&self, input: T) -> U {
+    self(input)
+  }
+}
+
+impl<T, U> Callable<T, U> for Callback<T, U> {
+  fn call(&self, input: T) -> U {
+    self.0(input)
+  }
+}
+
+impl Callable<&JsValue, Result<JsValue, JsValue>> for Function {
+  fn call(&self, input: &JsValue) -> Result<JsValue, JsValue> {
+    self.call1(&JsValue::undefined(), input)
+  }
+}
+
+impl<T, U: Default, F: Callable<T, U>> Callable<T, U> for Option<F> {
+  fn call(&self, input: T) -> U {
+    self.as_ref().map(|f| f.call(input)).unwrap_or_default()
+  }
+}

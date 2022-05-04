@@ -94,12 +94,12 @@ impl Component for App {
         on_increment: Some({
           let state = state.clone();
           let diff = self.diff;
-          move || state.update(move |state| state.counter += diff)
+          move |_| state.update(move |state| state.counter += diff)
         }),
         on_decrement: Some({
           let state = state.clone();
           let diff = self.diff;
-          move || state.update(move |state| state.counter -= diff)
+          move |_| state.update(move |state| state.counter -= diff)
         }),
       }
       .into_vnode()],
@@ -117,8 +117,8 @@ pub fn create_app() -> JsValue {
 #[derive(Debug, Clone)]
 pub struct Counter<F, G>
 where
-  F: Fn() + Clone + 'static,
-  G: Fn() + Clone + 'static,
+  F: Fn(()) + Clone + 'static,
+  G: Fn(()) + Clone + 'static,
 {
   pub counter: i32,
   pub on_increment: Option<F>,
@@ -127,8 +127,8 @@ where
 
 impl<F, G> Component for Counter<F, G>
 where
-  F: Fn() + Clone + 'static,
-  G: Fn() + Clone + 'static,
+  F: Fn(()) + Clone + 'static,
+  G: Fn(()) + Clone + 'static,
 {
   fn js_name() -> &'static str {
     "Counter"
@@ -155,7 +155,7 @@ where
           "button",
           Attr::new().on_click({
             let on_decrement = self.on_decrement.clone();
-            move |_| on_decrement.as_ref().map(|f| f()).unwrap_or(())
+            move |_| on_decrement.call(())
           }),
           ["Decrement".into()],
         ),
@@ -164,7 +164,7 @@ where
           "button",
           Attr::new().on_click({
             let on_increment = self.on_increment.clone();
-            move |_| on_increment.as_ref().map(|f| f()).unwrap_or(())
+            move |_| on_increment.call(())
           }),
           ["Increment".into()],
         ),

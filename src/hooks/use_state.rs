@@ -1,4 +1,4 @@
-use crate::{react, Callback};
+use crate::{react, Callable, Callback};
 use js_sys::Function;
 use std::ops::Deref;
 use wasm_bindgen::{JsCast, JsValue};
@@ -11,8 +11,7 @@ impl<T: 'static> UseState<T> {
 
     self
       .1
-      .call1(
-        &JsValue::undefined(),
+      .call(
         &Callback::new(move |_: JsValue| {
           let state = Box::leak(unsafe { Box::from_raw(ptr) });
           mutator(state);
