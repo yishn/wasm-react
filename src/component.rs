@@ -2,7 +2,7 @@ use crate::{react, VNode};
 use wasm_bindgen::prelude::*;
 
 pub trait Component {
-  fn js_name() -> &'static str
+  fn name() -> &'static str
   where
     Self: Sized;
 
@@ -13,7 +13,7 @@ pub trait Component {
     Self: Sized + 'static,
   {
     VNode(react::create_component(
-      Self::js_name(),
+      Self::name(),
       JsComponentWrapper(Box::new(self)).into(),
     ))
   }
