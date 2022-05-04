@@ -113,14 +113,11 @@ where
       [
         html(
           "h2",
-          Attr::new().style(Style::new().insert(
-            "color",
-            if self.counter >= 50 {
-              Some("red")
-            } else {
-              None
-            },
-          )),
+          Attr::new().style(Style::new().color(if self.counter >= 50 {
+            Some("red")
+          } else {
+            None
+          })),
           ["Counter: ".into(), self.counter.into()],
         ),
         html(

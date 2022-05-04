@@ -57,7 +57,7 @@ pub fn create_element(
 /// # Example
 ///
 /// ```
-/// html("div", Attr::new().insert("id", "app"), [
+/// html("div", Attr::new().id("app"), [
 ///   html("h1", None, ["Hello World!".into()])
 /// ])
 /// ```
