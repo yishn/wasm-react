@@ -1,20 +1,20 @@
-use super::Attr;
+use super::H;
 use web_sys::{
   AnimationEvent, DragEvent, Event, FocusEvent, KeyboardEvent, MouseEvent,
   PointerEvent, TransitionEvent, UiEvent, WheelEvent,
 };
 
 macro_rules! impl_event {
-  ($($on_event:ident, $on_event_str:expr, $evt:ty);*;) => {
+  ($($on_event:ident, $on_event_str:expr, $E:ty);*;) => {
     $(
-      pub fn $on_event(self, f: impl Fn($evt) + 'static) -> Self {
-        self.insert_callback($on_event_str, f)
+      pub fn $on_event(self, f: impl Fn($E) + 'static) -> Self {
+        self.attr_callback($on_event_str, f)
       }
     )*
   };
 }
 
-impl Attr {
+impl<'a> H<'a> {
   impl_event! {
     on_focus, "onFocus", FocusEvent;
     on_focus_capture, "onFocusCapture", FocusEvent;

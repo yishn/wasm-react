@@ -4,9 +4,10 @@ mod react_bindings;
 mod test;
 mod vnode;
 
-pub mod props;
 pub mod hooks;
+pub mod props;
 
+use props::{Props, H};
 use wasm_bindgen::prelude::*;
 
 pub use callback::*;
@@ -38,8 +39,9 @@ impl WasmReact {
   }
 }
 
-/// The Rust equivalent to `React.createElement`. Use [`html()`] for a more
-/// convenient way to create HTML elements.
+/// The Rust equivalent to `React.createElement`. Use [`h()`] for a more
+/// convenient way to create HTML elements. To create Rust components, use
+/// [`Component::into_vnode()`].
 pub fn create_element(
   typ: &JsValue,
   props: impl Into<JsValue>,
@@ -53,18 +55,22 @@ pub fn create_element(
 }
 
 /// A convenience function to [`create_element()`] for creating HTML elements.
+/// This returns a builder [`H`] which provides auto-completion for HTML
+/// attributes and events.
 ///
 /// # Example
 ///
 /// ```
-/// html("div", Attr::new().id("app"), [
-///   html("h1", None, ["Hello World!".into()])
-/// ])
+/// h("div")
+///   .attr("id", "app")
+///   .attr("className", "info")
+///   .children([
+///     h("h1").children(["Hello World!".into()])
+///   ])
 /// ```
-pub fn html(
-  tag: &str,
-  attr: impl Into<JsValue>,
-  children: impl IntoIterator<Item = VNode>,
-) -> VNode {
-  create_element(&tag.into(), attr, children)
+pub fn h<'a>(tag: &'a str) -> H<'a> {
+  H {
+    tag,
+    props: Props::new(),
+  }
 }

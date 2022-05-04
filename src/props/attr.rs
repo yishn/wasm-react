@@ -1,43 +1,29 @@
-use super::Props;
-use crate::Callback;
-use wasm_bindgen::{
-  convert::{FromWasmAbi, IntoWasmAbi},
-  JsValue,
-};
+use super::H;
+use super::{Classnames, Props, Style};
+use wasm_bindgen::JsValue;
 
-/// To be used with [`Attr::dangerously_set_inner_html()`].
+/// To be used with [`H::dangerously_set_inner_html()`].
 #[derive(Debug, Default, PartialEq, Eq, Clone)]
 pub struct DangerousHtml {
   pub __html: String,
 }
 
-/// A convenience wrapper around [`Props`] that provides auto-completion for
-/// HTML attributes.
-#[derive(Debug, Default, Clone)]
-pub struct Attr(Props);
+macro_rules! impl_attr {
+  ($($attr:ident, $attr_str:expr, $T:ty);*;) => {
+    $(
+      pub fn $attr(self, value: $T) -> Self {
+        self.attr($attr_str, value)
+      }
+    )*
+  };
+}
 
-impl Attr {
-  /// Creates a new, empty object.
-  pub fn new() -> Self {
-    Self(Props::new())
-  }
-
-  /// Equivalent to `props[key] = value;`.
-  pub fn insert(self, key: &str, value: impl Into<JsValue>) -> Self {
-    Self(self.0.insert(key, value.into()))
-  }
-
-  /// Equivalent to `props[key] = f;`.
-  pub fn insert_callback<T, U>(
-    self,
-    key: &str,
-    f: impl Fn(T) -> U + 'static,
-  ) -> Self
-  where
-    T: FromWasmAbi + 'static,
-    U: IntoWasmAbi + 'static,
-  {
-    Self(self.0.insert(key, Callback::new(f)))
+impl<'a> H<'a> {
+  /// Sets the [React key][key].
+  ///
+  /// [key]: https://reactjs.org/docs/lists-and-keys.html
+  pub fn key(self, value: Option<&str>) -> Self {
+    self.attr("key", value)
   }
 
   /// Equivalent to `props.dangerouslySetInnerHTML = { __html: value.__html };`.
@@ -53,33 +39,38 @@ impl Attr {
   ///   }
   /// }
   ///
-  /// html("div", Attr::new().dangerously_set_inner_html(create_markup()), [])
+  /// h("div")
+  ///   .dangerously_set_inner_html(create_markup())
+  ///   .build()
   /// ```
   pub fn dangerously_set_inner_html(self, value: DangerousHtml) -> Self {
-    Self(self.0.insert(
+    self.attr(
       "dangerouslySetInnerHTML",
       Props::new().insert("__html", value.__html),
-    ))
+    )
   }
-}
 
-impl From<Attr> for JsValue {
-  fn from(attr: Attr) -> Self {
-    attr.0.into()
+  /// Constructs the `className` based on the given [`Classnames`] value.
+  ///
+  /// # Example
+  ///
+  /// ```
+  /// h("div").class_name("button").build()
+  /// // createElement("div", { className: "button" })
+  ///
+  /// h("div").class_name(["button", "blue"]).build()
+  /// // createElement("div", { className: "button blue" })
+  ///
+  /// h("div").class_name([("button", true), ("blue", false), ("disabled", true)]).build()
+  /// // createElement("div", { className: "button disabled" })
+  ///
+  /// h("div").class_name([Some("button"), Some("blue"), None]).build()
+  /// // createElement("div", { className: "button blue" })
+  /// ```
+  pub fn class_name<'b>(self, value: impl Classnames<'b>) -> Self {
+    self.attr("className", value.to_value().into_owned())
   }
-}
 
-macro_rules! impl_attr {
-  ($($attr:ident, $attr_str:expr, $value:ty);*;) => {
-    $(
-      pub fn $attr(self, value: $value) -> Self {
-        self.insert($attr_str, value)
-      }
-    )*
-  };
-}
-
-impl Attr {
   impl_attr! {
     // Standard HTML Attributes
     access_key, "accessKey", &str;
@@ -93,6 +84,7 @@ impl Attr {
     placeholder, "placeholder", &str;
     slot, "slot", &str;
     spell_check, "spellCheck", bool;
+    style, "style", Style;
     tab_index, "tabIndex", i32;
     title, "title", &str;
     translate, "translate", &str;

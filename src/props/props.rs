@@ -8,8 +8,8 @@ use wasm_bindgen::{
 /// A convenience builder for Javascript objects. Mainly used for constructing
 /// props that are not controlled by Rust.
 ///
-/// Use [`Attr`](super::Attr) to build props for HTML elements and
-/// [`Style`](super::Style) to create style objects.
+/// Use [`Style`](super::Style) to create style objects which also provides
+/// auto-completion.
 ///
 /// # Example
 ///

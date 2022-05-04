@@ -1,7 +1,7 @@
 use crate::{
+  h,
   hooks::{self, Deps},
-  html,
-  props::{Attr, Style},
+  props::Style,
   Callable, Component, VNode,
 };
 use wasm_bindgen::prelude::*;
@@ -55,12 +55,10 @@ impl Component for App {
       Deps::None.push(state.counter >= 50),
     );
 
-    html(
-      "div",
-      Attr::new()
-        .class_name("app")
-        .insert("data-counter", state.counter),
-      [Counter {
+    h("div")
+      .class_name("app")
+      .attr("data-counter", state.counter)
+      .children([Counter {
         counter: state.counter,
         on_increment: Some({
           let state = state.clone();
@@ -73,8 +71,7 @@ impl Component for App {
           move |_| state.update(move |state| state.counter -= diff)
         }),
       }
-      .into_vnode()],
-    )
+      .into_vnode()])
   }
 }
 
@@ -107,37 +104,27 @@ where
   }
 
   fn render(&self) -> VNode {
-    html(
-      "div",
-      Attr::new().class_name("counter"),
-      [
-        html(
-          "h2",
-          Attr::new().style(Style::new().color(if self.counter >= 50 {
-            Some("red")
-          } else {
-            None
-          })),
-          ["Counter: ".into(), self.counter.into()],
-        ),
-        html(
-          "button",
-          Attr::new().on_click({
-            let on_decrement = self.on_decrement.clone();
-            move |_| on_decrement.call(())
-          }),
-          ["Decrement".into()],
-        ),
-        " ".into(),
-        html(
-          "button",
-          Attr::new().on_click({
-            let on_increment = self.on_increment.clone();
-            move |_| on_increment.call(())
-          }),
-          ["Increment".into()],
-        ),
-      ],
-    )
+    h("div").class_name("counter").children([
+      h("h2")
+        .style(Style::new().color(if self.counter >= 50 {
+          Some("red")
+        } else {
+          None
+        }))
+        .children(["Counter: ".into(), self.counter.into()]),
+      h("button")
+        .on_click({
+          let on_decrement = self.on_decrement.clone();
+          move |_| on_decrement.call(())
+        })
+        .children(["Decrement".into()]),
+      " ".into(),
+      h("button")
+        .on_click({
+          let on_increment = self.on_increment.clone();
+          move |_| on_increment.call(())
+        })
+        .children(["Increment".into()]),
+    ])
   }
 }

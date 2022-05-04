@@ -1,4 +1,4 @@
-use super::{Attr, Props};
+use super::Props;
 use wasm_bindgen::JsValue;
 
 /// A convenience wrapper around [`Props`] that provides auto-completion for
@@ -21,13 +21,6 @@ impl Style {
 impl From<Style> for JsValue {
   fn from(style: Style) -> Self {
     style.0.into()
-  }
-}
-
-impl Attr {
-  /// Sets the `style` prop.
-  pub fn style(self, value: Style) -> Self {
-    self.insert("style", value)
   }
 }
 
