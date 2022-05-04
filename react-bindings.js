@@ -1,4 +1,5 @@
 import { __WasmReact_ComponentWrapper } from "../../wasm_react.js";
+import * as WasmExports from "../../wasm_react.js";
 
 let components = {};
 
@@ -13,12 +14,21 @@ export function registerComponent(name) {
     // This curious construction is needed to ensure that the components show up
     // with their names correctly in the React Developer Tools
     Object.assign(components, {
-      [name]: ({ rustProps }) => {
-        // We need to free up the memory on Rust side whenever the old props are
-        // replaced with new ones.
-        React.useEffect(() => () => rustProps.free(), [rustProps]);
+      [name]: (props = {}) => {
+        if (props.component instanceof __WasmReact_ComponentWrapper) {
+          // This is a component implemented using the Component trait, i.e.
+          // with a Rust struct as props
+          let component = props.component;
 
-        return __WasmReact_ComponentWrapper.render(rustProps);
+          // We need to free up the memory on Rust side whenever the old props
+          // are replaced with new ones.
+          React.useEffect(() => () => component.free(), [component]);
+
+          return __WasmReact_ComponentWrapper.render(component);
+        } else {
+          // TODO: This is a component not implemented using the Component trait
+          return WasmExports[name].render(props);
+        }
       },
     });
   }
@@ -29,8 +39,8 @@ export function getComponent(name) {
   return components[name];
 }
 
-export function createComponent(name, rustProps) {
-  return React.createElement(getComponent(name), { rustProps });
+export function createComponent(name, props) {
+  return React.createElement(getComponent(name), props);
 }
 
 export function useRustState(create, onFree) {

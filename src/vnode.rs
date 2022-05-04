@@ -1,6 +1,7 @@
 use std::fmt::Display;
 use wasm_bindgen::JsValue;
 
+/// Represents a node in the virtual DOM of React.
 #[derive(Clone)]
 pub struct VNode(pub(crate) JsValue);
 

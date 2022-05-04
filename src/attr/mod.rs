@@ -2,16 +2,16 @@ mod classnames;
 mod event;
 mod style;
 
+pub use classnames::*;
+pub use event::*;
+pub use style::*;
+
 use crate::Callback;
 use js_sys::{Object, Reflect};
 use wasm_bindgen::{
   convert::{FromWasmAbi, IntoWasmAbi},
   JsValue,
 };
-
-pub use classnames::*;
-pub use event::*;
-pub use style::*;
 
 #[derive(Debug, Default, Clone)]
 pub struct Attr(Object);

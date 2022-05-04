@@ -3,12 +3,11 @@ mod component;
 mod react_bindings;
 mod vnode;
 
-use attr::Attr;
-use wasm_bindgen::prelude::*;
-
 pub mod attr;
 pub mod hooks;
 pub mod test;
+
+use wasm_bindgen::prelude::*;
 
 pub use callback::*;
 pub use component::*;
@@ -23,16 +22,11 @@ impl WasmReact {
   pub fn set_react(value: JsValue) {
     react_bindings::set_react(value);
   }
-
-  #[wasm_bindgen(js_name = getComponent)]
-  pub fn get_component(name: &str) -> JsValue {
-    react_bindings::get_component(name)
-  }
 }
 
 pub fn create_element(
   typ: &JsValue,
-  props: Attr,
+  props: impl Into<JsValue>,
   children: impl IntoIterator<Item = VNode>,
 ) -> VNode {
   VNode(react_bindings::create_element(
@@ -44,7 +38,7 @@ pub fn create_element(
 
 pub fn html(
   tag: &str,
-  attr: Attr,
+  attr: impl Into<JsValue>,
   children: impl IntoIterator<Item = VNode>,
 ) -> VNode {
   create_element(&tag.into(), attr, children)
