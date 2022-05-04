@@ -3,9 +3,20 @@ use std::{fmt::Debug, ops::Deref, rc::Rc};
 use wasm_bindgen::{
   convert::{FromWasmAbi, IntoWasmAbi},
   prelude::Closure,
-  JsCast, JsValue,
+  JsValue,
 };
 
+/// Represents a callback with one and only one input argument and some return
+/// value that can be passed to Javascript.
+///
+/// When converted into [`JsValue`], memory management will be transferred to
+/// the Javascript garbage collection. This is facilitated through
+/// [`FinalizationRegistry`][FinalizationRegistry].
+///
+/// **Remember** to set `WASM_BINDGEN_WEAKREF=1` before building with
+/// `wasm-bindgen`, otherwise you will get memory leaks.
+///
+/// [FinalizationRegistry]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/FinalizationRegistry
 #[derive(Clone)]
 pub struct Callback<T, U = ()>(Rc<dyn Fn(T) -> U>);
 
@@ -22,10 +33,10 @@ impl<T, U> Debug for Callback<T, U> {
 }
 
 impl<T, U> Deref for Callback<T, U> {
-  type Target = Rc<dyn Fn(T) -> U>;
+  type Target = dyn Fn(T) -> U;
 
   fn deref(&self) -> &Self::Target {
-    &self.0
+    &*self.0
   }
 }
 
@@ -40,40 +51,33 @@ where
   }
 }
 
-impl<T, U> From<Callback<T, U>> for Function
-where
-  T: FromWasmAbi + 'static,
-  U: IntoWasmAbi + 'static,
-{
-  fn from(value: Callback<T, U>) -> Self {
-    JsValue::from(value).dyn_into().unwrap()
-  }
-}
-
+/// A trait for callable structs with one and only one input argument and some
+/// return value.
 pub trait Callable<T, U> {
-  fn call(&self, input: T) -> U;
+  /// Calls the struct with the given input argument.
+  fn call(&self, arg: T) -> U;
 }
 
 impl<T, U, F: Fn(T) -> U> Callable<T, U> for F {
-  fn call(&self, input: T) -> U {
-    self(input)
+  fn call(&self, arg: T) -> U {
+    self(arg)
   }
 }
 
 impl<T, U> Callable<T, U> for Callback<T, U> {
-  fn call(&self, input: T) -> U {
-    self.0(input)
+  fn call(&self, arg: T) -> U {
+    self.0(arg)
   }
 }
 
 impl Callable<&JsValue, Result<JsValue, JsValue>> for Function {
-  fn call(&self, input: &JsValue) -> Result<JsValue, JsValue> {
-    self.call1(&JsValue::undefined(), input)
+  fn call(&self, arg: &JsValue) -> Result<JsValue, JsValue> {
+    self.call1(&JsValue::undefined(), arg)
   }
 }
 
 impl<T, U: Default, F: Callable<T, U>> Callable<T, U> for Option<F> {
-  fn call(&self, input: T) -> U {
-    self.as_ref().map(|f| f.call(input)).unwrap_or_default()
+  fn call(&self, arg: T) -> U {
+    self.as_ref().map(|f| f.call(arg)).unwrap_or_default()
   }
 }

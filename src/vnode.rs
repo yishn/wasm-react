@@ -13,9 +13,9 @@ impl From<VNode> for JsValue {
 
 impl<T> From<T> for VNode
 where
-  T: Display + Into<JsValue>,
+  T: Display,
 {
   fn from(value: T) -> Self {
-    VNode(value.into())
+    VNode(value.to_string().into())
   }
 }

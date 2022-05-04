@@ -1,7 +1,7 @@
 use js_sys::Array;
 use wasm_bindgen::prelude::*;
 
-#[wasm_bindgen(module = "/react-bindings.js")]
+#[wasm_bindgen(module = "/js/react-bindings.js")]
 extern "C" {
   #[wasm_bindgen(js_name = setReact)]
   pub fn set_react(value: JsValue);

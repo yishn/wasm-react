@@ -1,7 +1,8 @@
 use crate::{
-  attr::{Attr, Style},
   hooks::{self, Deps},
-  html, Callable, Component, VNode,
+  html,
+  props::{Attr, Style},
+  Callable, Component, VNode,
 };
 use wasm_bindgen::prelude::*;
 
@@ -78,6 +79,7 @@ impl Component for App {
 }
 
 #[doc(hidden)]
+#[allow(dead_code)]
 #[wasm_bindgen(js_name = createApp)]
 pub fn create_app() -> JsValue {
   App { diff: 5 }.into_vnode().into()

@@ -1,12 +1,16 @@
-import { __WasmReact_ComponentWrapper } from "../../wasm_react.js";
-import * as WasmExports from "../../wasm_react.js";
+import { __WasmReact_ComponentWrapper } from "../../../wasm_react.js";
+import * as WasmExports from "../../../wasm_react.js";
 
 let components = {};
 
 export let React = undefined;
 
 export function setReact(value) {
-  React = value;
+  if (React == null) {
+    React = value;
+  } else {
+    throw new Error("React runtime is already set");
+  }
 }
 
 export function registerComponent(name) {
