@@ -1,7 +1,7 @@
 use js_sys::{Array, Function};
 use wasm_bindgen::prelude::*;
 
-#[wasm_bindgen(raw_module = "../react-bindings.js")]
+#[wasm_bindgen(module = "/react-bindings.js")]
 extern "C" {
   #[wasm_bindgen(js_namespace = React, js_name = createElement)]
   pub fn create_element(

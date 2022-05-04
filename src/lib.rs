@@ -39,15 +39,11 @@ pub fn html(
 #[derive(Debug, Clone)]
 pub struct AppState {
   pub counter: i32,
-  pub diff: i32,
 }
 
 impl Default for AppState {
   fn default() -> Self {
-    Self {
-      counter: 11,
-      diff: 5,
-    }
+    Self { counter: 11 }
   }
 }
 
@@ -59,7 +55,9 @@ extern "C" {
 
 #[doc(hidden)]
 #[derive(Debug, Clone)]
-pub struct App;
+pub struct App {
+  diff: i32,
+}
 
 impl Component for App {
   fn js_name() -> &'static str {
@@ -95,11 +93,13 @@ impl Component for App {
         counter: state.counter,
         on_increment: Some({
           let state = state.clone();
-          move || state.update(|state| state.counter += state.diff)
+          let diff = self.diff;
+          move || state.update(move |state| state.counter += diff)
         }),
         on_decrement: Some({
           let state = state.clone();
-          move || state.update(|state| state.counter -= state.diff)
+          let diff = self.diff;
+          move || state.update(move |state| state.counter -= diff)
         }),
       }
       .into_vnode()],
@@ -110,7 +110,7 @@ impl Component for App {
 #[doc(hidden)]
 #[wasm_bindgen(js_name = createApp)]
 pub fn create_app() -> JsValue {
-  App.into_vnode().into()
+  App { diff: 5 }.into_vnode().into()
 }
 
 #[doc(hidden)]

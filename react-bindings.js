@@ -1,4 +1,4 @@
-import { __JsComponentWrapper } from "./pkg/wasm_react.js";
+import { __JsComponentWrapper } from "../../wasm_react.js";
 import {
   createElement,
   useState,

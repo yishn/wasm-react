@@ -39,8 +39,8 @@ impl<T> Deref for UseState<T> {
 
 pub fn use_state<T: 'static>(value: impl Fn() -> T) -> UseState<T> {
   // The lifetime of the state (`T`) is completely managed by the React
-  // component lifetime, meaning whenever the component is unmounted by React,
-  // the state will also be dropped.
+  // component, meaning whenever the component is unmounted by React, the state
+  // will also be dropped.
 
   let result = react::use_rust_state(
     &|| Box::into_raw(Box::new(value())) as usize,
