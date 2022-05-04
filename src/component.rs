@@ -2,8 +2,12 @@ use crate::{props::Props, react_bindings, VNode};
 use wasm_bindgen::prelude::*;
 
 /// Implement this trait on a struct to create a component with the struct as
-/// props. The props will be completely controlled by Rust and will not be
-/// exposed to Javascript. The props struct has to be `'static`.
+/// props. The props struct has to be `'static`.
+///
+/// The props will be completely controlled by Rust, which makes rendering them
+/// relatively simple in Rust. However, since the props struct cannot be
+/// constructed in JS, these components cannot be exposed to JS. This means only
+/// components written in Rust can render a `Component`.
 ///
 /// # Example
 ///
@@ -16,7 +20,7 @@ use wasm_bindgen::prelude::*;
 ///   }
 ///
 ///   fn render(&self) -> VNode {
-///     html("div", None, ["Counter: ".into(), self.0.into()])
+///     h("div").children(["Counter: ".into(), self.0.into()])
 ///   }
 /// }
 /// ```

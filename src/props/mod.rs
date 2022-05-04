@@ -1,5 +1,5 @@
 //! This module provides convenience methods for building React props for
-//! Javascript consumption.
+//! JS consumption.
 
 mod attr;
 mod classnames;

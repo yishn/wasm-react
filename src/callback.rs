@@ -7,16 +7,16 @@ use wasm_bindgen::{
 };
 
 /// Represents a callback with one and only one input argument and some return
-/// value that can be passed to Javascript.
+/// value that can be passed to JS.
 ///
 /// When converted into [`JsValue`], memory management will be transferred to
-/// the Javascript garbage collection. This is facilitated through
+/// the JS garbage collection. This is facilitated through
 /// [`FinalizationRegistry`][FinalizationRegistry].
 ///
 /// **Remember** to set `WASM_BINDGEN_WEAKREF=1` before building with
 /// `wasm-bindgen`, otherwise you will get memory leaks.
 ///
-/// [FinalizationRegistry]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/FinalizationRegistry
+/// [FinalizationRegistry]: https://developer.mozilla.org/en-US/docs/Web/JS/Reference/Global_Objects/FinalizationRegistry
 #[derive(Clone)]
 pub struct Callback<T, U = ()>(Rc<dyn Fn(T) -> U>);
 

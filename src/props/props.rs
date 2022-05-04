@@ -5,8 +5,8 @@ use wasm_bindgen::{
   JsValue,
 };
 
-/// A convenience builder for Javascript objects. Mainly used for constructing
-/// props that are not controlled by Rust.
+/// A convenience builder for JS objects. Mainly used for constructing props
+/// that are not controlled by Rust.
 ///
 /// Use [`Style`](super::Style) to create style objects which also provides
 /// auto-completion.

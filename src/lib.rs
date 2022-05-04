@@ -14,7 +14,7 @@ pub use callback::*;
 pub use component::*;
 pub use vnode::*;
 
-/// Contains all functions exported to Javascript by `wasm-react`.
+/// Contains all functions exported to JS by `wasm-react`.
 #[wasm_bindgen]
 pub struct WasmReact;
 
