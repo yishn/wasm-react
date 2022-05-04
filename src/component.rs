@@ -1,4 +1,4 @@
-use crate::{react, VNode};
+use crate::{react_bindings, VNode};
 use wasm_bindgen::prelude::*;
 
 pub trait Component {
@@ -12,7 +12,7 @@ pub trait Component {
   where
     Self: Sized + 'static,
   {
-    VNode(react::create_component(
+    VNode(react_bindings::create_component(
       Self::name(),
       JsComponentWrapper(Box::new(self)).into(),
     ))

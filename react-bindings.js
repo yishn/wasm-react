@@ -1,15 +1,14 @@
 import { __JsComponentWrapper } from "../../wasm_react.js";
-import {
-  createElement,
-  useState,
-  useEffect,
-} from "https://cdn.skypack.dev/react";
-
-export * as React from "https://cdn.skypack.dev/react";
 
 let components = {};
 
-export function getComponent(name) {
+export let React = undefined;
+
+export function setReact(value) {
+  React = value;
+}
+
+export function registerComponent(name) {
   if (components[name] == null) {
     // This curious construction is needed to ensure that the components show up
     // with their names correctly in the React Developer Tools
@@ -17,25 +16,28 @@ export function getComponent(name) {
       [name]: ({ rustProps }) => {
         // We need to free up the memory on Rust side whenever the old props are
         // replaced with new ones.
-        useEffect(() => () => rustProps.free(), [rustProps]);
+        React.useEffect(() => () => rustProps.free(), [rustProps]);
 
         return __JsComponentWrapper.render(rustProps);
       },
     });
   }
+}
 
+export function getComponent(name) {
+  registerComponent(name);
   return components[name];
 }
 
 export function createComponent(name, rustProps) {
-  return createElement(getComponent(name), { rustProps });
+  return React.createElement(getComponent(name), { rustProps });
 }
 
 export function useRustState(create, onFree) {
   // We only maintain a pointer to the state struct
-  let [state, setState] = useState(() => ({ ptr: create() }));
+  let [state, setState] = React.useState(() => ({ ptr: create() }));
   // Let Rust free up the memory whenever the component unmounts
-  useEffect(() => () => onFree(state.ptr), []);
+  React.useEffect(() => () => onFree(state.ptr), []);
 
   return [
     state.ptr,

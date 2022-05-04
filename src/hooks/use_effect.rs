@@ -1,4 +1,4 @@
-use crate::{react, Callback};
+use crate::{react_bindings, Callback};
 use js_sys::Array;
 use wasm_bindgen::JsValue;
 
@@ -45,7 +45,7 @@ where
   G: Fn() + 'static,
   F: Fn() -> G + 'static,
 {
-  react::use_effect(
+  react_bindings::use_effect(
     Callback::new(move |_: JsValue| -> JsValue {
       let g = f();
       Callback::new(move |_: JsValue| g()).into()

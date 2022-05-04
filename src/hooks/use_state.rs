@@ -1,4 +1,4 @@
-use crate::{react, Callable, Callback};
+use crate::{react_bindings, Callable, Callback};
 use js_sys::Function;
 use std::ops::Deref;
 use wasm_bindgen::{JsCast, JsValue};
@@ -41,7 +41,7 @@ pub fn use_state<T: 'static>(value: impl Fn() -> T) -> UseState<T> {
   // component, meaning whenever the component is unmounted by React, the state
   // will also be dropped.
 
-  let result = react::use_rust_state(
+  let result = react_bindings::use_rust_state(
     &|| Box::into_raw(Box::new(value())) as usize,
     // This callback will be called when the component unmounts
     Callback::new(|ptr: usize| unsafe {
@@ -50,7 +50,7 @@ pub fn use_state<T: 'static>(value: impl Fn() -> T) -> UseState<T> {
     .into(),
   );
   let update_state = result.get(1).dyn_into::<Function>().unwrap();
-  let ptr = react::cast_into_usize(result.get(0)) as *mut T;
+  let ptr = react_bindings::cast_into_usize(result.get(0)) as *mut T;
 
   UseState(ptr, update_state)
 }
