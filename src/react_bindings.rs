@@ -9,6 +9,9 @@ extern "C" {
   #[wasm_bindgen(js_name = registerComponent)]
   pub fn register_component(name: &str);
 
+  #[wasm_bindgen(js_name = getComponent)]
+  pub fn get_component(name: &str) -> JsValue;
+
   #[wasm_bindgen(js_name = createComponent)]
   pub fn create_component(name: &str, props: JsValue) -> JsValue;
 

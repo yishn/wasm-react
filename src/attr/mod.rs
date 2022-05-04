@@ -39,11 +39,10 @@ impl Attr {
   }
 
   pub fn dangerously_set_inner_html(self, value: &str) -> Self {
-    self.insert("dangerouslySetInnerHTML", {
-      let result = Object::new();
-      Reflect::set(&result, &"__html".into(), &value.into()).unwrap();
-      result
-    })
+    self.insert(
+      "dangerouslySetInnerHTML",
+      Attr::new().insert("__html", value),
+    )
   }
 }
 

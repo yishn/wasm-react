@@ -1,4 +1,4 @@
-import { __JsComponentWrapper } from "../../wasm_react.js";
+import { __WasmReact_ComponentWrapper } from "../../wasm_react.js";
 
 let components = {};
 
@@ -18,7 +18,7 @@ export function registerComponent(name) {
         // replaced with new ones.
         React.useEffect(() => () => rustProps.free(), [rustProps]);
 
-        return __JsComponentWrapper.render(rustProps);
+        return __WasmReact_ComponentWrapper.render(rustProps);
       },
     });
   }

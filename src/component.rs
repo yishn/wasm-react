@@ -14,19 +14,19 @@ pub trait Component {
   {
     VNode(react_bindings::create_component(
       Self::name(),
-      JsComponentWrapper(Box::new(self)).into(),
+      ComponentWrapper(Box::new(self)).into(),
     ))
   }
 }
 
 #[doc(hidden)]
-#[wasm_bindgen(js_name = __JsComponentWrapper)]
-pub struct JsComponentWrapper(Box<dyn Component>);
+#[wasm_bindgen(js_name = __WasmReact_ComponentWrapper)]
+pub struct ComponentWrapper(Box<dyn Component>);
 
-#[wasm_bindgen(js_class = __JsComponentWrapper)]
-impl JsComponentWrapper {
+#[wasm_bindgen(js_class = __WasmReact_ComponentWrapper)]
+impl ComponentWrapper {
   #[wasm_bindgen]
-  pub fn render(props: &JsComponentWrapper) -> JsValue {
+  pub fn render(props: &ComponentWrapper) -> JsValue {
     props.0.render().into()
   }
 }
