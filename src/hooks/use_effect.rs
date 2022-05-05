@@ -1,5 +1,5 @@
 use super::Deps;
-use crate::{react_bindings, Callback};
+use crate::{callback::Void, react_bindings, Callback};
 use wasm_bindgen::JsValue;
 
 pub fn use_effect<F, G>(f: F, deps: Deps)
@@ -8,9 +8,9 @@ where
   G: Fn() + 'static,
 {
   react_bindings::use_effect(
-    Callback::new(move |_: JsValue| -> JsValue {
+    Callback::new(move |_: Void| -> JsValue {
       let g = f();
-      Callback::new(move |_: JsValue| g()).into()
+      Callback::new(move |_: Void| g()).into()
     })
     .into(),
     deps.into(),
