@@ -1,8 +1,6 @@
 use crate::{
-  children, classnames, h,
-  hooks::{self, Deps},
-  props::Style,
-  Callable, Component, VNode,
+  children, classnames, deps, h, hooks, props::Style, Callable, Component,
+  VNode,
 };
 use wasm_bindgen::prelude::*;
 
@@ -47,7 +45,7 @@ impl Component for App {
 
         || ()
       },
-      Deps::None.push(warning),
+      deps![warning],
     );
 
     h!(div.["app-container"])

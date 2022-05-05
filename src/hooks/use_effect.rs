@@ -5,20 +5,15 @@ use wasm_bindgen::JsValue;
 #[derive(Debug, Clone)]
 pub enum Deps {
   All,
-  None,
   Some(Array),
 }
 
 impl Deps {
-  pub fn push(self, value: impl Into<JsValue>) -> Self {
+  pub fn push(&self, value: impl Into<JsValue>) {
     match self {
-      Deps::All => Deps::All,
-      Deps::None => {
-        Deps::Some(Some(value.into()).into_iter().collect::<Array>())
-      }
+      Deps::All => (),
       Deps::Some(arr) => {
         arr.push(&value.into());
-        Deps::Some(arr)
       }
     }
   }
@@ -28,7 +23,6 @@ impl From<Deps> for JsValue {
   fn from(value: Deps) -> Self {
     match value {
       Deps::All => JsValue::undefined(),
-      Deps::None => Array::new().into(),
       Deps::Some(deps) => deps.iter().collect::<Array>().into(),
     }
   }
@@ -36,14 +30,14 @@ impl From<Deps> for JsValue {
 
 impl Default for Deps {
   fn default() -> Self {
-    Deps::None
+    Deps::All
   }
 }
 
-pub fn use_effect<G, F>(f: F, deps: Deps)
+pub fn use_effect<F, G>(f: F, deps: Deps)
 where
-  G: Fn() + 'static,
   F: Fn() -> G + 'static,
+  G: Fn() + 'static,
 {
   react_bindings::use_effect(
     Callback::new(move |_: JsValue| -> JsValue {
@@ -53,4 +47,16 @@ where
     .into(),
     deps.into(),
   )
+}
+
+#[macro_export]
+macro_rules! deps {
+  [*] => { $crate::hooks::Deps::All };
+  [$( $into_js:expr ),* $(,)?] => {
+    {
+      let deps = $crate::hooks::Deps::Some(js_sys::Array::new());
+      $( deps.push($into_js); )*
+      deps
+    }
+  }
 }
