@@ -14,7 +14,7 @@ impl From<VNode> for JsValue {
 impl<T: Component + 'static> From<T> for VNode {
   fn from(value: T) -> Self {
     VNode(react_bindings::create_component(
-      stringify!(T),
+      T::name(),
       Props::new()
         .insert("key", value.key())
         .insert("component", ComponentWrapper(Box::new(value)))

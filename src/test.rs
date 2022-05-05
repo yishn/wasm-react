@@ -29,6 +29,13 @@ pub struct App {
 }
 
 impl Component for App {
+  fn name() -> &'static str
+  where
+    Self: Sized + 'static,
+  {
+    "App"
+  }
+
   fn render(&self) -> VNode {
     let state = hooks::use_state(|| AppState::default());
 
@@ -90,6 +97,13 @@ where
   F: Fn(()) + Clone + 'static,
   G: Fn(()) + Clone + 'static,
 {
+  fn name() -> &'static str
+  where
+    Self: Sized + 'static,
+  {
+    "Counter"
+  }
+
   fn render(&self) -> VNode {
     h("div").class_name("counter").build_with(children![
       h("h2")

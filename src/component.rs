@@ -9,8 +9,6 @@ use wasm_bindgen::prelude::*;
 /// constructed in JS, these components cannot be exposed to JS. This means only
 /// components written in Rust can render a `Component`.
 ///
-/// **Warning:** Do not create multiple components with the same name!
-///
 /// # Example
 ///
 /// ```
@@ -27,6 +25,13 @@ use wasm_bindgen::prelude::*;
 /// }
 /// ```
 pub trait Component {
+  /// The name of the component that will be displayed in the React Developer
+  /// Tools, usually the struct name. It has to be unique among all components
+  /// defined in Rust.
+  fn name() -> &'static str
+  where
+    Self: Sized + 'static;
+
   /// The render function.
   ///
   /// **Do not** call this method in another render function.
