@@ -76,8 +76,8 @@ pub fn create_element(
 /// h("div")
 ///   .attr("id", "app")
 ///   .attr("className", "info")
-///   .children([
-///     h("h1").children(["Hello World!".into()])
+///   .build_with(children![
+///     h("h1").build_with(children!["Hello World!"])
 ///   ])
 /// ```
 pub fn h<'a>(tag: &'a str) -> H<'a> {
