@@ -148,7 +148,7 @@ impl Component for Counter {
           " ",
           h!(button.["default"])
             .on_click(handle_increment)
-            .typ("submit")
+            .html_type("submit")
             .build(children!["Increment"])
         ])
     ])
