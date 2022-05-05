@@ -10,11 +10,8 @@ pub enum Deps {
 
 impl Deps {
   pub fn push(&self, value: impl Into<JsValue>) {
-    match self {
-      Deps::All => (),
-      Deps::Some(arr) => {
-        arr.push(&value.into());
-      }
+    if let Deps::Some(arr) = self {
+      arr.push(&value.into());
     }
   }
 }
@@ -23,14 +20,8 @@ impl From<Deps> for JsValue {
   fn from(value: Deps) -> Self {
     match value {
       Deps::All => JsValue::undefined(),
-      Deps::Some(deps) => deps.iter().collect::<Array>().into(),
+      Deps::Some(deps) => deps.into(),
     }
-  }
-}
-
-impl Default for Deps {
-  fn default() -> Self {
-    Deps::All
   }
 }
 
@@ -51,8 +42,8 @@ where
 
 #[macro_export]
 macro_rules! deps {
-  [*] => { $crate::hooks::Deps::All };
-  [$( $into_js:expr ),* $(,)?] => {
+  (*) => { $crate::hooks::Deps::All };
+  ($( $into_js:expr ),* $(,)?) => {
     {
       let deps = $crate::hooks::Deps::Some(js_sys::Array::new());
       $( deps.push($into_js); )*

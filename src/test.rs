@@ -42,7 +42,7 @@ impl Component for App {
           || ()
         }
       },
-      deps![warning],
+      deps!(warning)
     );
 
     h!(div.["app-container"])
