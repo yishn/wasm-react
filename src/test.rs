@@ -1,5 +1,5 @@
 use crate::{
-  h,
+  children, h,
   hooks::{self, Deps},
   props::Style,
   Callable, Component, VNode,
@@ -58,7 +58,7 @@ impl Component for App {
     h("div")
       .class_name("app")
       .attr("data-counter", state.counter)
-      .children([Counter {
+      .build_with(children![Counter {
         counter: state.counter,
         on_increment: Some({
           let state = state.clone();
@@ -104,27 +104,27 @@ where
   }
 
   fn render(&self) -> VNode {
-    h("div").class_name("counter").children([
+    h("div").class_name("counter").build_with(children![
       h("h2")
         .style(Style::new().color(if self.counter >= 50 {
           Some("red")
         } else {
           None
         }))
-        .children(["Counter: ".into(), self.counter.into()]),
+        .build_with(children!["Counter: ", self.counter]),
       h("button")
         .on_click({
           let on_decrement = self.on_decrement.clone();
           move |_| on_decrement.call(())
         })
-        .children(["Decrement".into()]),
-      " ".into(),
+        .build_with(children!["Decrement"]),
+      " ",
       h("button")
         .on_click({
           let on_increment = self.on_increment.clone();
           move |_| on_increment.call(())
         })
-        .children(["Increment".into()]),
+        .build_with(children!["Increment"])
     ])
   }
 }

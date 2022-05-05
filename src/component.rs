@@ -38,6 +38,13 @@ pub trait Component {
   /// of the [`Component::into_vnode()`] methods.
   fn render(&self) -> VNode;
 
+  /// Override this method to provide a [React key][key] when rendering.
+  ///
+  /// [key]: https://reactjs.org/docs/lists-and-keys.html
+  fn key(&self) -> Option<String> {
+    None
+  }
+
   /// Returns a [`VNode`] of the component to be included in a
   /// [`Component::render()`] function.
   fn into_vnode(self) -> VNode
@@ -47,23 +54,7 @@ pub trait Component {
     VNode(react_bindings::create_component(
       Self::name(),
       Props::new()
-        .insert("component", ComponentWrapper(Box::new(self)))
-        .into(),
-    ))
-  }
-
-  /// Returns a [`VNode`] of the component with a [React key][key] to be included
-  /// in a [`Component::render()`] function.
-  ///
-  /// [key]: https://reactjs.org/docs/lists-and-keys.html
-  fn into_vnode_with_key(self, key: &str) -> VNode
-  where
-    Self: Sized + 'static,
-  {
-    VNode(react_bindings::create_component(
-      Self::name(),
-      Props::new()
-        .insert("key", key)
+        .insert("key", self.key())
         .insert("component", ComponentWrapper(Box::new(self)))
         .into(),
     ))

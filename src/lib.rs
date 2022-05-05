@@ -7,6 +7,7 @@ mod vnode;
 pub mod hooks;
 pub mod props;
 
+use js_sys::Array;
 use props::{Props, H};
 use wasm_bindgen::prelude::*;
 
@@ -39,18 +40,29 @@ impl WasmReact {
   }
 }
 
+#[macro_export]
+macro_rules! children {
+  ($($into_vnode:expr),*$(,)?) => {
+    {
+      let arr = js_sys::Array::new();
+      $( arr.push(&$crate::VNode::from($into_vnode).into()); )*
+      arr
+    }
+  };
+}
+
 /// The Rust equivalent to `React.createElement`. Use [`h()`] for a more
 /// convenient way to create HTML elements. To create Rust components, use
 /// [`Component::into_vnode()`].
 pub fn create_element(
   typ: &JsValue,
   props: impl Into<JsValue>,
-  children: impl IntoIterator<Item = VNode>,
+  children: Array,
 ) -> VNode {
   VNode(react_bindings::create_element(
     typ,
     &props.into(),
-    &children.into_iter().map(|c| JsValue::from(c)).collect(),
+    &children.into(),
   ))
 }
 
