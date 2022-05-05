@@ -1,6 +1,5 @@
 use super::Props;
-use crate::{create_element, VNode};
-use js_sys::Array;
+use crate::{create_element, VNode, VNodeList};
 use wasm_bindgen::{
   convert::{FromWasmAbi, IntoWasmAbi},
   JsValue,
@@ -44,7 +43,7 @@ impl<'a> H<'a> {
 
   /// Builds the [`VNode`] and returns it with the given children. Use
   /// [`children!`] for easier construction of the children.
-  pub fn build(self, children: Array) -> VNode {
+  pub fn build(self, children: VNodeList) -> VNode {
     create_element(&self.tag.into(), self.props, children)
   }
 }
@@ -67,8 +66,8 @@ impl<'a> H<'a> {
 macro_rules! children {
   [$( $into_vnode:expr ),* $(,)?] => {
     {
-      let arr = js_sys::Array::new();
-      $( arr.push(&$crate::VNode::from($into_vnode).into()); )*
+      let arr = $crate::VNodeList::new();
+      $( arr.push($into_vnode.into()); )*
       arr
     }
   };

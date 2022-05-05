@@ -7,7 +7,6 @@ mod vnode;
 pub mod hooks;
 pub mod props;
 
-use js_sys::Array;
 use wasm_bindgen::prelude::*;
 
 pub use callback::*;
@@ -45,7 +44,7 @@ impl WasmReact {
 pub fn create_element(
   typ: &JsValue,
   props: impl Into<JsValue>,
-  children: Array,
+  children: VNodeList,
 ) -> VNode {
   VNode(react_bindings::create_element(
     typ,
@@ -72,7 +71,7 @@ impl Fragment {
   /// Returns a [`VNode`] which represents a [React fragment][fragment].
   ///
   /// [fragment]: https://reactjs.org/docs/fragments.html
-  pub fn build(&self, children: Array) -> VNode {
-    VNode(react_bindings::create_fragment(&children))
+  pub fn build(&self, children: VNodeList) -> VNode {
+    VNode(react_bindings::create_fragment(&children.into()))
   }
 }

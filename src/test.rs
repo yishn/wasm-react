@@ -1,24 +1,13 @@
 use crate::{
   children, classnames, deps, h, hooks, props::Style, Callable, Component,
-  VNode,
+  VNode, VNodeList,
 };
 use wasm_bindgen::prelude::*;
-
-#[wasm_bindgen]
-extern "C" {
-  #[wasm_bindgen(js_namespace = console)]
-  fn log(input: &str);
-}
 
 #[derive(Debug, Clone)]
 pub struct AppState {
   pub counter: i32,
-}
-
-impl Default for AppState {
-  fn default() -> Self {
-    Self { counter: 11 }
-  }
+  pub logs: Vec<&'static str>,
 }
 
 #[derive(Debug, Clone)]
@@ -32,18 +21,26 @@ impl Component for App {
   }
 
   fn render(&self) -> VNode {
-    let state = hooks::use_state(|| AppState::default());
+    let state = hooks::use_state(|| AppState {
+      counter: 11,
+      logs: vec![],
+    });
     let warning = state.counter >= 50;
 
     hooks::use_effect(
-      move || {
-        log(if warning {
-          "Counter is now above 50 🎉"
-        } else {
-          "Counter is now below 50"
-        });
+      {
+        let state = state.clone();
+        move || {
+          state.update(move |state| {
+            state.logs.push(if warning {
+              "Counter is now above 50 🎉"
+            } else {
+              "Counter is now below 50"
+            })
+          });
 
-        || ()
+          || ()
+        }
       },
       deps![warning],
     );
@@ -67,7 +64,16 @@ impl Component for App {
             let diff = self.diff;
             move |_| state.update(move |state| state.counter -= diff)
           })
-        }
+        },
+        //
+        h!(ul.["logs"]).build(children![
+          h!(li).build(children!["Started..."]),
+          state
+            .logs
+            .iter()
+            .map(|&log| h!(li).build(children![log]))
+            .collect::<VNodeList>()
+        ])
       ])
   }
 }

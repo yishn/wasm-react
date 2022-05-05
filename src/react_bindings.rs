@@ -16,7 +16,7 @@ extern "C" {
   pub fn create_component(name: &str, props: JsValue) -> JsValue;
 
   #[wasm_bindgen(js_name = createFragment)]
-  pub fn create_fragment(children: &Array) -> JsValue;
+  pub fn create_fragment(children: &JsValue) -> JsValue;
 
   #[wasm_bindgen(js_name = useRustState)]
   pub fn use_rust_state(create: &dyn Fn() -> usize, on_free: JsValue) -> Array;
@@ -28,7 +28,7 @@ extern "C" {
   pub fn create_element(
     name: &JsValue,
     props: &JsValue,
-    children: &Array,
+    children: &JsValue,
   ) -> JsValue;
 
   #[wasm_bindgen(js_namespace = React, js_name = useEffect)]
