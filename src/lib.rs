@@ -3,6 +3,7 @@ mod component;
 mod react_bindings;
 mod test;
 mod vnode;
+mod builtin_components;
 
 pub mod hooks;
 pub mod props;
@@ -12,6 +13,7 @@ use wasm_bindgen::prelude::*;
 pub use callback::*;
 pub use component::*;
 pub use vnode::*;
+pub use builtin_components::*;
 
 /// Contains all functions exported to JS by `wasm-react`.
 #[wasm_bindgen]
@@ -51,27 +53,4 @@ pub fn create_element(
     &props.into(),
     &children.into(),
   ))
-}
-
-/// Can be used to create a [React fragment][fragment].
-///
-/// [fragment]: https://reactjs.org/docs/fragments.html
-///
-/// # Example
-///
-/// ```
-/// Fragment.build(children![
-///   h!(h1).build(children!["Hello World!"]),
-///   h!(div).build(children!["No wrapper element"]),
-/// ])
-/// ```
-pub struct Fragment;
-
-impl Fragment {
-  /// Returns a [`VNode`] which represents a [React fragment][fragment].
-  ///
-  /// [fragment]: https://reactjs.org/docs/fragments.html
-  pub fn build(&self, children: VNodeList) -> VNode {
-    VNode(react_bindings::create_fragment(&children.into()))
-  }
 }

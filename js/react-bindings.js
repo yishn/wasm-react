@@ -47,8 +47,8 @@ export function createComponent(name, props) {
   return React.createElement(getComponent(name), props);
 }
 
-export function createFragment(children) {
-  return React.createElement(React.Fragment, {}, children);
+export function createBuiltinComponent(name, props, children) {
+  return React.createElement(React[name], props, children);
 }
 
 export function useRustState(create, onFree) {
