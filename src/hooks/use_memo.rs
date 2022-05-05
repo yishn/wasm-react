@@ -18,10 +18,12 @@ impl<T: Debug> Debug for UseMemo<T> {
   }
 }
 
-pub fn use_memo<T, F>(f: F, deps: Deps) -> UseMemo<T>
+pub fn use_memo<T>(
+  f: impl Fn() -> T + Clone + 'static,
+  deps: Deps,
+) -> UseMemo<T>
 where
   T: 'static,
-  F: Fn() -> T + Clone + 'static,
 {
   let memo = use_state(|| f());
 

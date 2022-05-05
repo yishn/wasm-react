@@ -1,19 +1,19 @@
-mod callback;
+mod builtin_components;
 mod component;
 mod react_bindings;
 mod test;
 mod vnode;
-mod builtin_components;
 
+pub mod callback;
 pub mod hooks;
 pub mod props;
 
+use callback::*;
 use wasm_bindgen::prelude::*;
 
-pub use callback::*;
+pub use builtin_components::*;
 pub use component::*;
 pub use vnode::*;
-pub use builtin_components::*;
 
 /// Contains all functions exported to JS by `wasm-react`.
 #[wasm_bindgen]

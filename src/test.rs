@@ -1,8 +1,20 @@
 use crate::{
-  children, classnames, deps, h, hooks, props::Style, Callable, Component,
-  VNode, VNodeList,
+  children, classnames, deps, h,
+  hooks::{self, use_callback},
+  props::Style,
+  Callable, Callback, Component, VNode, VNodeList, Void,
 };
 use wasm_bindgen::prelude::*;
+use web_sys::Event;
+
+#[wasm_bindgen]
+extern "C" {
+  #[wasm_bindgen(js_namespace = Math)]
+  pub fn random() -> f64;
+
+  #[wasm_bindgen(js_namespace = console)]
+  pub fn log(input: &str);
+}
 
 #[derive(Debug, Clone)]
 pub struct AppState {
@@ -27,6 +39,26 @@ impl Component for App {
     });
     let warning = state.counter >= 50;
 
+    let handle_increment = use_callback(
+      {
+        let state = state.clone();
+        let diff = self.diff;
+
+        move |_| state.update(move |state| state.counter += diff)
+      },
+      deps!(self.diff),
+    );
+
+    let handle_decrement = use_callback(
+      {
+        let state = state.clone();
+        let diff = self.diff;
+
+        move |_| state.update(move |state| state.counter -= diff)
+      },
+      deps!(self.diff),
+    );
+
     hooks::use_effect(
       {
         let state = state.clone();
@@ -42,7 +74,7 @@ impl Component for App {
           || ()
         }
       },
-      deps!(warning)
+      deps!(warning),
     );
 
     h!(div.["app-container"])
@@ -54,16 +86,8 @@ impl Component for App {
         //
         Counter {
           counter: state.counter,
-          on_increment: Some({
-            let state = state.clone();
-            let diff = self.diff;
-            move |_| state.update(move |state| state.counter += diff)
-          }),
-          on_decrement: Some({
-            let state = state.clone();
-            let diff = self.diff;
-            move |_| state.update(move |state| state.counter -= diff)
-          })
+          on_increment: Some(handle_increment),
+          on_decrement: Some(handle_decrement),
         },
         //
         h!(ul.["logs"]).build(children![
@@ -85,43 +109,48 @@ pub fn create_app() -> JsValue {
 }
 
 #[derive(Debug, Clone)]
-pub struct Counter<F, G>
-where
-  F: Fn(()) + Clone + 'static,
-  G: Fn(()) + Clone + 'static,
-{
+pub struct Counter {
   pub counter: i32,
-  pub on_increment: Option<F>,
-  pub on_decrement: Option<G>,
+  pub on_increment: Option<Callback<Void>>,
+  pub on_decrement: Option<Callback<Void>>,
 }
 
-impl<F, G> Component for Counter<F, G>
-where
-  F: Fn(()) + Clone + 'static,
-  G: Fn(()) + Clone + 'static,
-{
+impl Component for Counter {
   fn name() -> &'static str {
     "Counter"
   }
 
   fn render(&self) -> VNode {
-    h!(div.["counter-component"]).build(children![h!(form)
-      .on_submit(|evt| evt.prevent_default())
-      .build(children![
-        h!(button)
-          .on_click({
-            let on_decrement = self.on_decrement.clone();
-            move |_| on_decrement.call(())
-          })
-          .build(children!["Decrement"]),
-        " ",
-        h!(button.["default"])
-          .on_click({
-            let on_increment = self.on_increment.clone();
-            move |_| on_increment.call(())
-          })
-          .typ("submit")
-          .build(children!["Increment"])
-      ])])
+    let handle_decrement = use_callback(
+      {
+        let on_decrement = self.on_decrement.clone();
+        move |_| on_decrement.call(Void)
+      },
+      deps!(self.on_decrement.clone().map(JsValue::from)),
+    );
+
+    let handle_increment = use_callback(
+      {
+        let on_increment = self.on_increment.clone();
+        move |_| on_increment.call(Void)
+      },
+      deps!(self.on_increment.clone().map(JsValue::from)),
+    );
+
+    h!(div.["counter-component"]).build(children![
+      //
+      h!(form)
+        .on_submit(Callback::new(|evt: Event| evt.prevent_default()))
+        .build(children![
+          h!(button)
+            .on_click(handle_decrement)
+            .build(children!["Decrement"]),
+          " ",
+          h!(button.["default"])
+            .on_click(handle_increment)
+            .typ("submit")
+            .build(children!["Increment"])
+        ])
+    ])
   }
 }

@@ -1,6 +1,7 @@
 use js_sys::Array;
 use wasm_bindgen::JsValue;
 
+
 #[derive(Debug, Clone)]
 pub enum Deps {
   All,
@@ -8,7 +9,7 @@ pub enum Deps {
 }
 
 impl Deps {
-  pub fn push(&self, value: impl Into<JsValue>) {
+  pub fn push(&self, value: JsValue) {
     if let Deps::Some(arr) = self {
       arr.push(&value.into());
     }
@@ -30,7 +31,7 @@ macro_rules! deps {
   ($( $into_js:expr ),* $(,)?) => {
     {
       let deps = $crate::hooks::Deps::Some(js_sys::Array::new());
-      $( deps.push($into_js); )*
+      $( deps.push($into_js.into()); )*
       deps
     }
   }

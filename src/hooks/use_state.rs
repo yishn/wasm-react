@@ -9,16 +9,13 @@ impl<T: 'static> UseState<T> {
   pub fn update<'a>(&'a self, mutator: impl Fn(&'a mut T) + 'static) {
     let ptr = self.0;
 
-    self
-      .1
-      .call(
-        &Callback::new(move |_: JsValue| {
-          let state = Box::leak(unsafe { Box::from_raw(ptr) });
-          mutator(state);
-        })
-        .into(),
-      )
-      .unwrap();
+    self.1.call(
+      &Callback::new(move |_: JsValue| {
+        let state = Box::leak(unsafe { Box::from_raw(ptr) });
+        mutator(state);
+      })
+      .into(),
+    );
   }
 }
 

@@ -1,5 +1,5 @@
 use super::Props;
-use crate::{create_element, VNode, VNodeList};
+use crate::{create_element, Callback, VNode, VNodeList};
 use wasm_bindgen::{
   convert::{FromWasmAbi, IntoWasmAbi},
   JsValue,
@@ -31,7 +31,7 @@ impl<'a> H<'a> {
   pub fn attr_callback<T, U>(
     mut self,
     key: &str,
-    f: impl Fn(T) -> U + 'static,
+    f: Callback<T, U>,
   ) -> Self
   where
     T: FromWasmAbi + 'static,

@@ -1,9 +1,6 @@
 use crate::Callback;
 use js_sys::{Object, Reflect};
-use wasm_bindgen::{
-  convert::{FromWasmAbi, IntoWasmAbi},
-  JsValue,
-};
+use wasm_bindgen::JsValue;
 
 /// A convenience builder for JS objects. Mainly used for constructing props
 /// that are not controlled by Rust.
@@ -34,16 +31,8 @@ impl Props {
   }
 
   /// Equivalent to `props[key] = f;`.
-  pub fn insert_callback<T, U>(
-    self,
-    key: &str,
-    f: impl Fn(T) -> U + 'static,
-  ) -> Self
-  where
-    T: FromWasmAbi + 'static,
-    U: IntoWasmAbi + 'static,
-  {
-    self.insert(key, Callback::new(f))
+  pub fn insert_callback<T, U>(self, key: &str, f: Callback<T, U>) -> Self {
+    self.insert(key, f)
   }
 }
 

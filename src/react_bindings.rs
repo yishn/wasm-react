@@ -1,4 +1,4 @@
-use js_sys::Array;
+use js_sys::{Array, Function};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(module = "/js/react-bindings.js")]
@@ -37,4 +37,7 @@ extern "C" {
 
   #[wasm_bindgen(js_namespace = React, js_name = useEffect)]
   pub fn use_effect(f: JsValue, deps: JsValue);
+
+  #[wasm_bindgen(js_namespace = React, js_name = useCallback)]
+  pub fn use_callback(f: JsValue, deps: JsValue) -> Function;
 }
