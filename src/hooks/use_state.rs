@@ -1,9 +1,9 @@
 use crate::{react_bindings, Callable, Callback};
 use js_sys::Function;
-use std::ops::Deref;
+use std::{fmt::Debug, ops::Deref};
 use wasm_bindgen::{JsCast, JsValue};
 
-pub struct UseState<T>(*mut T, Function);
+pub struct UseState<T>(pub(crate) *mut T, pub(crate) Function);
 
 impl<T: 'static> UseState<T> {
   pub fn update(&self, mutator: impl Fn(&mut T) + 'static) {
@@ -33,6 +33,12 @@ impl<T> Deref for UseState<T> {
 
   fn deref(&self) -> &Self::Target {
     Box::leak(unsafe { Box::from_raw(self.0) })
+  }
+}
+
+impl<T: Debug> Debug for UseState<T> {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    self.deref().fmt(f)
   }
 }
 
