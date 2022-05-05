@@ -1,16 +1,16 @@
 //! This module provides convenience methods for building React props for
 //! JS consumption.
 
-mod attr;
+mod attrs;
 mod classnames;
-mod event;
+mod events;
 mod props;
 mod h;
 mod style;
 
 pub use h::*;
-pub use attr::*;
+pub use attrs::*;
 pub use classnames::*;
-pub use event::*;
+pub use events::*;
 pub use props::*;
 pub use style::*;

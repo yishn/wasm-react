@@ -40,14 +40,15 @@ impl<'a> H<'a> {
     self
   }
 
-  /// Builds the [`VNode`] and returns it with the given children.
+  /// Builds the [`VNode`] and returns it with the given children. Use
+  /// [`children!`] for easier construction of the children.
   pub fn build(self, children: Array) -> VNode {
     create_element(&self.tag.into(), self.props, children)
   }
 }
 
 /// This macro is to be used in conjunction with [`h!`]. It will take various
-/// objects of `Into<VNode>` and builds a JS array.
+/// objects of [`Into<VNode>`](VNode) and builds a JS array.
 ///
 /// # Example
 ///

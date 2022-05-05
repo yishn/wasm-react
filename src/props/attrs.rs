@@ -9,20 +9,23 @@ pub struct DangerousHtml {
 }
 
 macro_rules! impl_attr {
-  ($($attr:ident, $attr_str:expr, $T:ty);*;) => {
+  { $( $attr:ident, $attr_str:expr, $T:ty; )* } => {
     $(
-      pub fn $attr(self, value: $T) -> Self {
+      fn $attr(self, value: $T) -> Self {
         self.attr($attr_str, value)
       }
     )*
   };
 }
 
-impl<'a> H<'a> {
+/// Provides auto-completion for DOM attributes on [`H`].
+pub trait Attrs: Sized {
+  fn attr(self, key: &str, value: impl Into<JsValue>) -> Self;
+
   /// Sets the [React key][key].
   ///
   /// [key]: https://reactjs.org/docs/lists-and-keys.html
-  pub fn key(self, value: Option<&str>) -> Self {
+  fn key(self, value: Option<&str>) -> Self {
     self.attr("key", value)
   }
 
@@ -43,15 +46,16 @@ impl<'a> H<'a> {
   ///   .dangerously_set_inner_html(create_markup())
   ///   .build(children![])
   /// ```
-  pub fn dangerously_set_inner_html(self, value: DangerousHtml) -> Self {
+  fn dangerously_set_inner_html(self, value: DangerousHtml) -> Self {
     self.attr(
       "dangerouslySetInnerHTML",
       Props::new().insert("__html", value.__html),
     )
   }
 
-  /// Sets the class name. Use [`classnames!`] for easier construction.
-  pub fn class_name<'b>(self, value: impl Into<JsValue>) -> Self {
+  /// Overwrites the class name attribute. Use [`h!`](crate::h) for easier way
+  /// to set the class names.
+  fn class_name<'b>(self, value: impl Into<JsValue>) -> Self {
     self.attr("className", value)
   }
 
@@ -193,5 +197,11 @@ impl<'a> H<'a> {
     width, "width", impl Into<JsValue>;
     wmode, "wmode", &str;
     wrap, "wrap", &str;
+  }
+}
+
+impl<'a> Attrs for H<'a> {
+  fn attr(self, key: &str, value: impl Into<JsValue>) -> Self {
+    self.attr(key, value)
   }
 }

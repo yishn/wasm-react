@@ -1,7 +1,7 @@
 use crate::{
   children, classnames, h,
   hooks::{self, Deps},
-  props::Style,
+  props::{Attrs, Events, Style},
   Callable, Component, VNode,
 };
 use wasm_bindgen::prelude::*;

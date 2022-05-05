@@ -25,7 +25,7 @@ impl From<Style> for JsValue {
 }
 
 macro_rules! impl_style {
-  ($($attr:ident, $attr_str:expr);*;) => {
+  { $( $attr:ident, $attr_str:expr; )* } => {
     $(
       pub fn $attr(self, value: impl Into<JsValue>) -> Self {
         self.insert($attr_str, value)
