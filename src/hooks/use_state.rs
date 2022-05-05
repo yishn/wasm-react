@@ -3,10 +3,10 @@ use js_sys::Function;
 use std::{fmt::Debug, ops::Deref};
 use wasm_bindgen::{JsCast, JsValue};
 
-pub struct UseState<T>(pub(crate) *mut T, pub(crate) Function);
+pub struct UseState<T>(*mut T, Function);
 
 impl<T: 'static> UseState<T> {
-  pub fn update(&self, mutator: impl Fn(&mut T) + 'static) {
+  pub fn update<'a>(&'a self, mutator: impl Fn(&'a mut T) + 'static) {
     let ptr = self.0;
 
     self
@@ -39,6 +39,26 @@ impl<T> Deref for UseState<T> {
 impl<T: Debug> Debug for UseState<T> {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     self.deref().fmt(f)
+  }
+}
+
+impl<T: PartialEq> PartialEq for UseState<T> {
+  fn eq(&self, other: &Self) -> bool {
+    self.deref() == other.deref()
+  }
+}
+
+impl<T: Eq> Eq for UseState<T> {}
+
+impl<T: PartialOrd> PartialOrd for UseState<T> {
+  fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+    self.deref().partial_cmp(other.deref())
+  }
+}
+
+impl<T: Ord> Ord for UseState<T> {
+  fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+    self.deref().cmp(other.deref())
   }
 }
 

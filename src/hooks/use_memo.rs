@@ -1,7 +1,7 @@
 use super::{use_effect, use_state, Deps, UseState};
 use std::{fmt::Debug, ops::Deref};
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct UseMemo<T>(UseState<T>);
 
 impl<T> Deref for UseMemo<T> {
