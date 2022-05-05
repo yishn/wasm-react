@@ -1,5 +1,4 @@
 use super::H;
-use wasm_bindgen::convert::{FromWasmAbi, IntoWasmAbi};
 use web_sys::{
   AnimationEvent, DragEvent, Event, FocusEvent, KeyboardEvent, MouseEvent,
   PointerEvent, TransitionEvent, UiEvent, WheelEvent,
@@ -8,7 +7,7 @@ use web_sys::{
 macro_rules! impl_event {
   { $( $on_event:ident, $on_event_str:expr, $E:ty; )* } => {
     $(
-      fn $on_event(self, f: impl Fn($E) + 'static) -> Self {
+      pub fn $on_event(self, f: impl Fn($E) + 'static) -> Self {
         self.attr_callback($on_event_str, f)
       }
     )*
@@ -16,12 +15,7 @@ macro_rules! impl_event {
 }
 
 /// Provides auto-completion for DOM events on [`H`].
-pub trait Events: Sized {
-  fn attr_callback<T, U>(self, key: &str, f: impl Fn(T) -> U + 'static) -> Self
-  where
-    T: FromWasmAbi + 'static,
-    U: IntoWasmAbi + 'static;
-
+impl<'a> H<'a> {
   impl_event! {
     on_focus, "onFocus", FocusEvent;
     on_focus_capture, "onFocusCapture", FocusEvent;
@@ -170,15 +164,5 @@ pub trait Events: Sized {
     on_animation_iteration_capture, "onAnimationIterationCapture", AnimationEvent;
     on_transition_end, "onTransitionEnd", TransitionEvent;
     on_transition_end_capture, "onTransitionEndCapture", TransitionEvent;
-  }
-}
-
-impl<'a> Events for H<'a> {
-  fn attr_callback<T, U>(self, key: &str, f: impl Fn(T) -> U + 'static) -> Self
-  where
-    T: FromWasmAbi + 'static,
-    U: IntoWasmAbi + 'static,
-  {
-    self.attr_callback(key, f)
   }
 }

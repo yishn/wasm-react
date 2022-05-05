@@ -1,8 +1,8 @@
 use crate::{
   children, classnames, h,
   hooks::{self, Deps},
-  props::{Attrs, Events, Style},
-  Callable, Component, Fragment, VNode,
+  props::Style,
+  Callable, Component, VNode,
 };
 use wasm_bindgen::prelude::*;
 
@@ -29,48 +29,48 @@ pub struct App {
 }
 
 impl Component for App {
-  fn name() -> &'static str
-  where
-    Self: Sized + 'static,
-  {
+  fn name() -> &'static str {
     "App"
   }
 
   fn render(&self) -> VNode {
     let state = hooks::use_state(|| AppState::default());
+    let warning = state.counter >= 50;
 
     hooks::use_effect(
-      {
-        let state = state.clone();
+      move || {
+        log(if warning {
+          "Counter is now above 50 🎉"
+        } else {
+          "Counter is now below 50"
+        });
 
-        move || {
-          log(if state.counter >= 50 {
-            "Counter is now above 50 🎉"
-          } else {
-            "Counter is now below 50"
-          });
-
-          || ()
-        }
+        || ()
       },
-      Deps::None.push(state.counter >= 50),
+      Deps::None.push(warning),
     );
 
     h!(div.["app-container"])
       .attr("data-counter", state.counter)
-      .build(children![Counter {
-        counter: state.counter,
-        on_increment: Some({
-          let state = state.clone();
-          let diff = self.diff;
-          move |_| state.update(move |state| state.counter += diff)
-        }),
-        on_decrement: Some({
-          let state = state.clone();
-          let diff = self.diff;
-          move |_| state.update(move |state| state.counter -= diff)
-        })
-      }])
+      .build(children![
+        h!(h2)
+          .style(Style::new().color(if warning { Some("red") } else { None }))
+          .build(children!["Counter: ", state.counter]),
+        //
+        Counter {
+          counter: state.counter,
+          on_increment: Some({
+            let state = state.clone();
+            let diff = self.diff;
+            move |_| state.update(move |state| state.counter += diff)
+          }),
+          on_decrement: Some({
+            let state = state.clone();
+            let diff = self.diff;
+            move |_| state.update(move |state| state.counter -= diff)
+          })
+        }
+      ])
   }
 }
 
@@ -96,21 +96,14 @@ where
   F: Fn(()) + Clone + 'static,
   G: Fn(()) + Clone + 'static,
 {
-  fn name() -> &'static str
-  where
-    Self: Sized + 'static,
-  {
+  fn name() -> &'static str {
     "Counter"
   }
 
   fn render(&self) -> VNode {
-    let warning = self.counter >= 50;
-
-    h!(div.["counter-component", ("warning", warning)]).build(children![
-      h!(h2)
-        .style(Style::new().color(if warning { Some("red") } else { None }))
-        .build(children!["Counter: ", self.counter]),
-      Fragment.build(children![
+    h!(div.["counter-component"]).build(children![h!(form)
+      .on_submit(|evt| evt.prevent_default())
+      .build(children![
         h!(button)
           .on_click({
             let on_decrement = self.on_decrement.clone();
@@ -123,8 +116,8 @@ where
             let on_increment = self.on_increment.clone();
             move |_| on_increment.call(())
           })
+          .typ("submit")
           .build(children!["Increment"])
-      ])
-    ])
+      ])])
   }
 }

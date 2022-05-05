@@ -8,7 +8,6 @@ pub mod hooks;
 pub mod props;
 
 use js_sys::Array;
-use react_bindings::create_fragment;
 use wasm_bindgen::prelude::*;
 
 pub use callback::*;
@@ -74,6 +73,6 @@ impl Fragment {
   ///
   /// [fragment]: https://reactjs.org/docs/fragments.html
   pub fn build(&self, children: Array) -> VNode {
-    VNode(create_fragment(children.into()))
+    VNode(react_bindings::create_fragment(&children))
   }
 }

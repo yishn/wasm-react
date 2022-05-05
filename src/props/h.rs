@@ -13,6 +13,8 @@ pub struct H<'a> {
 }
 
 impl<'a> H<'a> {
+  /// Creates a new instance of [`H`]. It is recommended to use the [`h!`]
+  /// macro instead.
   pub fn new(tag: &'a str) -> Self {
     Self {
       tag,
@@ -56,7 +58,7 @@ impl<'a> H<'a> {
 /// h!(div).build(children![
 ///   "Counter: ", 5,
 ///   SomeComponent {
-///     some_prop:
+///     some_prop,
 ///   },
 ///   h!(h1).build(children!["Hello World"]),
 /// ])

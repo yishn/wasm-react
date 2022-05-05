@@ -34,7 +34,8 @@ pub trait Component {
 
   /// The render function.
   ///
-  /// **Do not** call this method in another render function.
+  /// **Do not** call this method in another render function. Instead, use the
+  /// [`children!`](crate::children) macro to include your component.
   fn render(&self) -> VNode;
 
   /// Override this method to provide a [React key][key] when rendering.
