@@ -15,6 +15,9 @@ extern "C" {
   #[wasm_bindgen(js_name = createComponent)]
   pub fn create_component(name: &str, props: JsValue) -> JsValue;
 
+  #[wasm_bindgen(js_name = createFragment)]
+  pub fn create_fragment(props: JsValue) -> JsValue;
+
   #[wasm_bindgen(js_name = useRustState)]
   pub fn use_rust_state(create: &dyn Fn() -> usize, on_free: JsValue) -> Array;
 

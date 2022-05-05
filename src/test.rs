@@ -2,7 +2,7 @@ use crate::{
   children, classnames, h,
   hooks::{self, Deps},
   props::{Attrs, Events, Style},
-  Callable, Component, VNode,
+  Callable, Component, Fragment, VNode,
 };
 use wasm_bindgen::prelude::*;
 
@@ -69,7 +69,7 @@ impl Component for App {
           let state = state.clone();
           let diff = self.diff;
           move |_| state.update(move |state| state.counter -= diff)
-        }),
+        })
       }])
   }
 }
@@ -104,25 +104,27 @@ where
   }
 
   fn render(&self) -> VNode {
-    let above_fifty = self.counter >= 50;
+    let warning = self.counter >= 50;
 
-    h!(div.["counter-component", ("warning", above_fifty)]).build(children![
+    h!(div.["counter-component", ("warning", warning)]).build(children![
       h!(h2)
-        .style(Style::new().color(if above_fifty { Some("red") } else { None }))
+        .style(Style::new().color(if warning { Some("red") } else { None }))
         .build(children!["Counter: ", self.counter]),
-      h!(button)
-        .on_click({
-          let on_decrement = self.on_decrement.clone();
-          move |_| on_decrement.call(())
-        })
-        .build(children!["Decrement"]),
-      " ",
-      h!(button.["default"])
-        .on_click({
-          let on_increment = self.on_increment.clone();
-          move |_| on_increment.call(())
-        })
-        .build(children!["Increment"])
+      Fragment.build(children![
+        h!(button)
+          .on_click({
+            let on_decrement = self.on_decrement.clone();
+            move |_| on_decrement.call(())
+          })
+          .build(children!["Decrement"]),
+        " ",
+        h!(button.["default"])
+          .on_click({
+            let on_increment = self.on_increment.clone();
+            move |_| on_increment.call(())
+          })
+          .build(children!["Increment"])
+      ])
     ])
   }
 }

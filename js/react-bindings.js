@@ -47,6 +47,10 @@ export function createComponent(name, props) {
   return React.createElement(getComponent(name), props);
 }
 
+export function createFragment(children) {
+  return React.createElement(React.Fragment, {}, children);
+}
+
 export function useRustState(create, onFree) {
   // We only maintain a pointer to the state struct
   let [state, setState] = React.useState(() => ({ ptr: create() }));
