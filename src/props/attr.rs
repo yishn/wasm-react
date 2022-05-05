@@ -1,5 +1,5 @@
 use super::H;
-use super::{Classnames, Props, Style};
+use super::{Props, Style};
 use wasm_bindgen::JsValue;
 
 /// To be used with [`H::dangerously_set_inner_html()`].
@@ -39,9 +39,9 @@ impl<'a> H<'a> {
   ///   }
   /// }
   ///
-  /// h("div")
+  /// h!(div)
   ///   .dangerously_set_inner_html(create_markup())
-  ///   .build()
+  ///   .build(children![])
   /// ```
   pub fn dangerously_set_inner_html(self, value: DangerousHtml) -> Self {
     self.attr(
@@ -50,25 +50,9 @@ impl<'a> H<'a> {
     )
   }
 
-  /// Constructs the `className` based on the given [`Classnames`] value.
-  ///
-  /// # Example
-  ///
-  /// ```
-  /// h("div").class_name("button").build()
-  /// // createElement("div", { className: "button" })
-  ///
-  /// h("div").class_name(["button", "blue"]).build()
-  /// // createElement("div", { className: "button blue" })
-  ///
-  /// h("div").class_name([("button", true), ("blue", false), ("disabled", true)]).build()
-  /// // createElement("div", { className: "button disabled" })
-  ///
-  /// h("div").class_name([Some("button"), Some("blue"), None]).build()
-  /// // createElement("div", { className: "button blue" })
-  /// ```
-  pub fn class_name<'b>(self, value: impl Classnames<'b>) -> Self {
-    self.attr("className", value.to_value().into_owned())
+  /// Sets the class name. Use [`classnames!`] for easier construction.
+  pub fn class_name<'b>(self, value: impl Into<JsValue>) -> Self {
+    self.attr("className", value)
   }
 
   impl_attr! {

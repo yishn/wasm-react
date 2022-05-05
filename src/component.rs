@@ -20,7 +20,7 @@ use wasm_bindgen::prelude::*;
 ///   }
 ///
 ///   fn render(&self) -> VNode {
-///     h("div").build_with(children!["Counter: ", self.0])
+///     h!(div).build(children!["Counter: ", self.0])
 ///   }
 /// }
 /// ```

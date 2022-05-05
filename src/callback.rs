@@ -21,8 +21,14 @@ use wasm_bindgen::{
 pub struct Callback<T, U = ()>(Rc<dyn Fn(T) -> U>);
 
 impl<T, U> Callback<T, U> {
+  /// Constructs a new [`Callback`] from a Rust closure.
   pub fn new<F: Fn(T) -> U + 'static>(f: F) -> Self {
     Self(Rc::new(f))
+  }
+
+  /// Returns a new [`Callback`] which does nothing.
+  pub fn noop() -> Callback<T> {
+    Callback::new(|_: T| ())
   }
 }
 

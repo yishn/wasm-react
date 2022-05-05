@@ -8,7 +8,6 @@ pub mod hooks;
 pub mod props;
 
 use js_sys::Array;
-use props::{Props, H};
 use wasm_bindgen::prelude::*;
 
 pub use callback::*;
@@ -40,18 +39,7 @@ impl WasmReact {
   }
 }
 
-#[macro_export]
-macro_rules! children {
-  ($($into_vnode:expr),*$(,)?) => {
-    {
-      let arr = js_sys::Array::new();
-      $( arr.push(&$crate::VNode::from($into_vnode).into()); )*
-      arr
-    }
-  };
-}
-
-/// The Rust equivalent to `React.createElement`. Use [`h()`] for a more
+/// The Rust equivalent to `React.createElement`. Use [`h!`] for a more
 /// convenient way to create HTML elements. To create Rust components, use
 /// [`VNode::from()`].
 pub fn create_element(
@@ -64,25 +52,4 @@ pub fn create_element(
     &props.into(),
     &children.into(),
   ))
-}
-
-/// A convenience function to [`create_element()`] for creating HTML elements.
-/// This returns a builder [`H`] which provides auto-completion for HTML
-/// attributes and events.
-///
-/// # Example
-///
-/// ```
-/// h("div")
-///   .attr("id", "app")
-///   .attr("className", "info")
-///   .build_with(children![
-///     h("h1").build_with(children!["Hello World!"])
-///   ])
-/// ```
-pub fn h<'a>(tag: &'a str) -> H<'a> {
-  H {
-    tag,
-    props: Props::new(),
-  }
 }

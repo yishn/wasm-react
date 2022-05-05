@@ -1,5 +1,5 @@
 use crate::{
-  children, h,
+  children, classnames, h,
   hooks::{self, Deps},
   props::Style,
   Callable, Component, VNode,
@@ -56,10 +56,9 @@ impl Component for App {
       Deps::None.push(state.counter >= 50),
     );
 
-    h("div")
-      .class_name("app")
+    h!(div.["app-container"])
       .attr("data-counter", state.counter)
-      .build_with(children![Counter {
+      .build(children![Counter {
         counter: state.counter,
         on_increment: Some({
           let state = state.clone();
@@ -105,27 +104,25 @@ where
   }
 
   fn render(&self) -> VNode {
-    h("div").class_name("counter").build_with(children![
-      h("h2")
-        .style(Style::new().color(if self.counter >= 50 {
-          Some("red")
-        } else {
-          None
-        }))
-        .build_with(children!["Counter: ", self.counter]),
-      h("button")
+    let above_fifty = self.counter >= 50;
+
+    h!(div.["counter-component", ("warning", above_fifty)]).build(children![
+      h!(h2)
+        .style(Style::new().color(if above_fifty { Some("red") } else { None }))
+        .build(children!["Counter: ", self.counter]),
+      h!(button)
         .on_click({
           let on_decrement = self.on_decrement.clone();
           move |_| on_decrement.call(())
         })
-        .build_with(children!["Decrement"]),
+        .build(children!["Decrement"]),
       " ",
-      h("button")
+      h!(button.["default"])
         .on_click({
           let on_increment = self.on_increment.clone();
           move |_| on_increment.call(())
         })
-        .build_with(children!["Increment"])
+        .build(children!["Increment"])
     ])
   }
 }
