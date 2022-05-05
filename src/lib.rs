@@ -53,7 +53,7 @@ macro_rules! children {
 
 /// The Rust equivalent to `React.createElement`. Use [`h()`] for a more
 /// convenient way to create HTML elements. To create Rust components, use
-/// [`Component::into_vnode()`].
+/// [`VNode::from()`].
 pub fn create_element(
   typ: &JsValue,
   props: impl Into<JsValue>,

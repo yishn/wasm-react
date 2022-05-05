@@ -1,4 +1,4 @@
-use crate::{props::Props, react_bindings, VNode};
+use crate::VNode;
 use wasm_bindgen::prelude::*;
 
 /// Implement this trait on a struct to create a component with the struct as
@@ -9,7 +9,7 @@ use wasm_bindgen::prelude::*;
 /// constructed in JS, these components cannot be exposed to JS. This means only
 /// components written in Rust can render a `Component`.
 ///
-/// **Warning:** Do not multiple components with the same name!
+/// **Warning:** Do not create multiple components with the same name!
 ///
 /// # Example
 ///
@@ -29,8 +29,7 @@ use wasm_bindgen::prelude::*;
 pub trait Component {
   /// The render function.
   ///
-  /// **Do not** use this method in another render function. Instead, use one
-  /// of the [`Component::into_vnode()`] methods.
+  /// **Do not** call this method in another render function.
   fn render(&self) -> VNode;
 
   /// Override this method to provide a [React key][key] when rendering.
@@ -39,26 +38,11 @@ pub trait Component {
   fn key(&self) -> Option<String> {
     None
   }
-
-  /// Returns a [`VNode`] of the component to be included in a
-  /// [`Component::render()`] function.
-  fn into_vnode(self) -> VNode
-  where
-    Self: Sized + 'static,
-  {
-    VNode(react_bindings::create_component(
-      stringify!(Self),
-      Props::new()
-        .insert("key", self.key())
-        .insert("component", ComponentWrapper(Box::new(self)))
-        .into(),
-    ))
-  }
 }
 
 #[doc(hidden)]
 #[wasm_bindgen(js_name = __WasmReact_ComponentWrapper)]
-pub struct ComponentWrapper(Box<dyn Component>);
+pub struct ComponentWrapper(pub(crate) Box<dyn Component>);
 
 #[wasm_bindgen(js_class = __WasmReact_ComponentWrapper)]
 impl ComponentWrapper {

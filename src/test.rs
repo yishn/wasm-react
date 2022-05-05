@@ -12,7 +12,6 @@ extern "C" {
   fn log(input: &str);
 }
 
-#[doc(hidden)]
 #[derive(Debug, Clone)]
 pub struct AppState {
   pub counter: i32,
@@ -24,7 +23,6 @@ impl Default for AppState {
   }
 }
 
-#[doc(hidden)]
 #[derive(Debug, Clone)]
 pub struct App {
   diff: i32,
@@ -66,19 +64,16 @@ impl Component for App {
           let diff = self.diff;
           move |_| state.update(move |state| state.counter -= diff)
         }),
-      }
-      .into_vnode()])
+      }])
   }
 }
 
-#[doc(hidden)]
 #[allow(dead_code)]
 #[wasm_bindgen(js_name = createApp)]
 pub fn create_app() -> JsValue {
-  App { diff: 5 }.into_vnode().into()
+  VNode::from(App { diff: 5 }).into()
 }
 
-#[doc(hidden)]
 #[derive(Debug, Clone)]
 pub struct Counter<F, G>
 where
