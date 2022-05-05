@@ -3,7 +3,7 @@ use crate::{react_bindings, Callback};
 use wasm_bindgen::convert::{FromWasmAbi, IntoWasmAbi};
 
 pub fn use_callback<T, U>(
-  f: impl Fn(T) -> U + Clone + 'static,
+  f: impl Fn(T) -> U + 'static,
   deps: Deps,
 ) -> Callback<T, U>
 where
