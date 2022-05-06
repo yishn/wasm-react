@@ -21,8 +21,8 @@ impl Fragment {
   pub fn build(&self, children: VNodeList) -> VNode {
     VNode(react_bindings::create_builtin_component(
       "Fragment",
-      Props::new().into(),
-      children.into(),
+      &Props::new().into(),
+      &children.into(),
     ))
   }
 }

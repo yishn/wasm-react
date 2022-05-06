@@ -67,13 +67,13 @@ pub fn use_state<T: 'static>(value: impl Fn() -> T) -> UseState<T> {
   let result = react_bindings::use_rust_state(
     &|| Box::into_raw(Box::new(value())) as usize,
     // This callback will be called when the component unmounts
-    Callback::new(|ptr: usize| unsafe {
+    &Callback::new(|ptr: usize| unsafe {
       drop(Box::from_raw(ptr as *mut T));
     })
     .into(),
   );
   let update_state = result.get(1).dyn_into::<Function>().unwrap_throw();
-  let ptr = react_bindings::cast_into_usize(result.get(0)) as *mut T;
+  let ptr = react_bindings::cast_into_usize(&result.get(0)) as *mut T;
 
   UseState(ptr, update_state)
 }

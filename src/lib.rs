@@ -35,7 +35,7 @@ impl WasmReact {
   /// WasmReact.setReact(React);
   /// ```
   #[wasm_bindgen(js_name = setReact)]
-  pub fn set_react(value: JsValue) {
+  pub fn set_react(value: &JsValue) {
     react_bindings::set_react(value);
   }
 }

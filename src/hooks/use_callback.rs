@@ -11,7 +11,7 @@ where
   U: IntoWasmAbi + 'static,
 {
   Callback::from_function(react_bindings::use_callback(
-    Callback::new(f).into(),
-    deps.into(),
+    &Callback::new(f).into(),
+    &deps.into(),
   ))
 }

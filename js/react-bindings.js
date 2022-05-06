@@ -13,7 +13,7 @@ export function setReact(value) {
   }
 }
 
-export function registerComponent(name) {
+export function createRustComponent(name, props) {
   if (components[name] == null) {
     // This curious construction is needed to ensure that the components show up
     // with their names correctly in the React Developer Tools
@@ -30,21 +30,13 @@ export function registerComponent(name) {
 
           return __WasmReact_ComponentWrapper.render(component);
         } else {
-          // TODO: This is a component not implemented using the Component trait
-          return WasmExports[name].render(props);
+          throw new Error("Cannot create non-Rust component");
         }
       },
     });
   }
-}
 
-export function getComponent(name) {
-  registerComponent(name);
-  return components[name];
-}
-
-export function createComponent(name, props) {
-  return React.createElement(getComponent(name), props);
+  return React.createElement(components[name], props);
 }
 
 export function createBuiltinComponent(name, props, children) {
