@@ -44,12 +44,12 @@ impl WasmReact {
 /// convenient way to create HTML elements. To create Rust components, use
 /// [`VNode::from()`].
 pub fn create_element(
-  typ: &JsValue,
+  typ: impl Into<JsValue>,
   props: impl Into<JsValue>,
   children: VNodeList,
 ) -> VNode {
   VNode(react_bindings::create_element(
-    typ,
+    &typ.into(),
     &props.into(),
     &children.into(),
   ))

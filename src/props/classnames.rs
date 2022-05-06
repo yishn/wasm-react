@@ -16,14 +16,6 @@ impl<'a> Classnames<'a> for String {
   }
 }
 
-impl<'a, T: Classnames<'a>> Classnames<'a> for (T, bool) {
-  fn append_to(&self, string: &mut String) {
-    if self.1 {
-      self.0.append_to(string);
-    }
-  }
-}
-
 impl<'a, T: Classnames<'a>> Classnames<'a> for Option<T> {
   fn append_to(&self, string: &mut String) {
     if let Some(value) = self {
@@ -40,11 +32,8 @@ impl<'a, T: Classnames<'a>> Classnames<'a> for Option<T> {
 /// classnames!["button", "blue"]
 /// // Yields "button blue "
 ///
-/// classnames!["button", ("blue", false), ("disabled", true)]
+/// classnames!["button", false.then(|| "blue"), true.then(|| "disabled")]
 /// // Yields "button disabled "
-///
-/// classnames!["button", Some("blue"), None]
-/// // Yields "button blue "
 /// ```
 #[macro_export]
 macro_rules! classnames {
