@@ -18,22 +18,24 @@ impl<T: Debug, D: Eq> Debug for UseMemo<T, D> {
   }
 }
 
-pub fn use_memo<T: 'static, D: Eq + 'static>(
+pub fn use_memo<T, D>(
   f: impl Fn() -> T + 'static,
   deps: Deps<D>,
-) -> UseMemo<T, D> {
-  let rc_f = Rc::new(f);
+) -> UseMemo<T, D>
+where
+  T: 'static,
+  D: Eq + 'static,
+{
+  let f = Rc::new(f);
   let memo = use_state({
-    let f = rc_f.clone();
+    let f = f.clone();
     let deps = deps.clone();
     move || (f(), deps)
   });
 
-  if deps != memo.1 {
-    memo.update({
-      let f = rc_f.clone();
-      move |memo| *memo = (f(), deps)
-    });
+  let old_deps = &memo.1;
+  if deps == Deps::All || &deps != old_deps {
+    memo.update(move |memo| *memo = (f(), deps));
   }
 
   UseMemo(memo)

@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-#[derive(PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum Deps<T: Eq> {
   All,
   None,
@@ -24,6 +24,9 @@ macro_rules! deps {
   };
   () => {
     Deps::None
+  };
+  ($expr:expr) => {
+    Deps::Some(Rc::new($expr))
   };
   ($( $expr:expr ),+ $(,)?) => {
     Deps::Some(Rc::new(($( $expr ),+)))
