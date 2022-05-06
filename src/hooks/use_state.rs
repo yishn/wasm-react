@@ -1,21 +1,20 @@
-use crate::{react_bindings, Callable, Callback};
+use crate::{
+  callback::{Callback, Void},
+  react_bindings, Callable,
+};
 use js_sys::Function;
 use std::{fmt::Debug, ops::Deref};
-use wasm_bindgen::{JsCast, JsValue, UnwrapThrowExt};
+use wasm_bindgen::{prelude::Closure, JsCast, UnwrapThrowExt};
 
 pub struct UseState<T>(*mut T, Function);
 
 impl<T: 'static> UseState<T> {
-  pub fn update<'a>(&'a self, mutator: impl Fn(&'a mut T) + 'static) {
+  pub fn update<'a>(&'a self, mutator: impl FnOnce(&'a mut T)) {
     let ptr = self.0;
+    let state = Box::leak(unsafe { Box::from_raw(ptr) });
+    mutator(state);
 
-    self.1.call(
-      &Callback::new(move |_: JsValue| {
-        let state = Box::leak(unsafe { Box::from_raw(ptr) });
-        mutator(state);
-      })
-      .into(),
-    );
+    self.1.call(&Void.into());
   }
 }
 
@@ -59,19 +58,24 @@ impl<T: Ord> Ord for UseState<T> {
   }
 }
 
-pub fn use_state<T: 'static>(value: impl Fn() -> T) -> UseState<T> {
+pub fn use_state<T: 'static>(
+  default_value: impl FnOnce() -> T + 'static,
+) -> UseState<T> {
   // The lifetime of the state (`T`) is completely managed by the React
   // component, meaning whenever the component is unmounted by React, the state
   // will also be dropped.
 
   let result = react_bindings::use_rust_state(
-    &|| Box::into_raw(Box::new(value())) as usize,
-    // This callback will be called when the component unmounts
-    &Callback::new(|ptr: usize| unsafe {
-      drop(Box::from_raw(ptr as *mut T));
+    Callback::once(move |_: Void| {
+      Box::into_raw(Box::new(default_value())) as usize
     })
-    .into(),
+    .as_ref(),
+    // This callback will be called when the component unmounts
+    &Closure::once_into_js(|ptr: usize| unsafe {
+      drop(Box::from_raw(ptr as *mut T));
+    }),
   );
+
   let update_state = result.get(1).dyn_into::<Function>().unwrap_throw();
   let ptr = react_bindings::cast_into_usize(&result.get(0)) as *mut T;
 

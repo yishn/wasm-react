@@ -13,7 +13,7 @@ use wasm_bindgen::{JsValue, UnwrapThrowExt};
 /// ```
 /// Props::new()
 ///   .insert("id", "app")
-///   .insert_callback("onClick", |_| console::log("Hello"))
+///   .insert_callback("onClick", handle_click)
 /// ```
 #[derive(Debug, Default, Clone)]
 pub struct Props(Object);
@@ -32,7 +32,8 @@ impl Props {
 
   /// Equivalent to `props[key] = f;`.
   pub fn insert_callback<T, U>(self, key: &str, f: Callback<T, U>) -> Self {
-    self.insert(key, f)
+    Reflect::set(&self.0, &key.into(), f.as_ref()).unwrap_throw();
+    self
   }
 }
 

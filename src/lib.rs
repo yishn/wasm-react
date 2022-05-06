@@ -1,7 +1,7 @@
 mod builtin_components;
 mod component;
 mod react_bindings;
-mod test;
+// mod test;
 mod vnode;
 
 pub mod callback;

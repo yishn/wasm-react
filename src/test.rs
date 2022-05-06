@@ -126,7 +126,7 @@ impl Component for Counter {
         let on_decrement = self.on_decrement.clone();
         move |_| on_decrement.call(Void)
       },
-      deps!(self.on_decrement.clone().map(JsValue::from)),
+      deps!(self.on_decrement.as_ref().map(AsRef::<JsValue>::as_ref)),
     );
 
     let handle_increment = use_callback(
@@ -134,7 +134,7 @@ impl Component for Counter {
         let on_increment = self.on_increment.clone();
         move |_| on_increment.call(Void)
       },
-      deps!(self.on_increment.clone().map(JsValue::from)),
+      deps!(self.on_increment.as_ref().map(AsRef::<JsValue>::as_ref)),
     );
 
     h!(div.["counter-component"]).build(children![

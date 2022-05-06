@@ -1,38 +1,31 @@
-use js_sys::Array;
-use wasm_bindgen::JsValue;
+use std::rc::Rc;
 
-
-#[derive(Debug, Clone)]
-pub enum Deps {
+#[derive(PartialEq, Eq)]
+pub enum Deps<T: Eq> {
   All,
-  Some(Array),
+  None,
+  Some(Rc<T>),
 }
 
-impl Deps {
-  pub fn push(&self, value: JsValue) {
-    if let Deps::Some(arr) = self {
-      arr.push(&value.into());
-    }
-  }
-}
-
-impl From<Deps> for JsValue {
-  fn from(value: Deps) -> Self {
-    match value {
-      Deps::All => JsValue::undefined(),
-      Deps::Some(deps) => deps.into(),
+impl<T: Eq> Clone for Deps<T> {
+  fn clone(&self) -> Self {
+    match self {
+      Self::All => Self::All,
+      Self::None => Self::None,
+      Self::Some(deps) => Self::Some(deps.clone()),
     }
   }
 }
 
 #[macro_export]
 macro_rules! deps {
-  (*) => { $crate::hooks::Deps::All };
-  ($( $into_js:expr ),* $(,)?) => {
-    {
-      let deps = $crate::hooks::Deps::Some(js_sys::Array::new());
-      $( deps.push($into_js.into()); )*
-      deps
-    }
-  }
+  (*) => {
+    Deps::All;
+  };
+  () => {
+    Deps::None
+  };
+  ($( $expr:expr ),+ $(,)?) => {
+    Deps::Some(Rc::new(($( $expr ),+)))
+  };
 }

@@ -51,11 +51,7 @@ export function useRustState(create, onFree) {
 
   return [
     state.ptr,
-    (mutator) =>
-      setState((state) => {
-        mutator();
-        return { ...state };
-      }),
+    () => setState({ ...state }),
   ];
 }
 

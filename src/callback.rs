@@ -1,5 +1,7 @@
+//! This module provides structs to pass Rust closures to JS.
+
 use js_sys::Function;
-use std::{fmt::Debug, marker::PhantomData};
+use std::{fmt::Debug, rc::Rc};
 use wasm_bindgen::{
   convert::{FromWasmAbi, IntoWasmAbi},
   describe::WasmDescribe,
@@ -36,39 +38,45 @@ impl From<Void> for JsValue {
   }
 }
 
-/// This is a typed wrapper around a JS [`Function`] that represents a callback
-/// with one and only one input argument and some return value.
+/// This is a simplified wrapper around a [`Closure`] which represents a Rust
+/// closure that can be called from JS.
 ///
-/// When constructed from a Rust closure, memory management of the closure will
-/// be transferred to the JS garbage collection. This is facilitated through
-/// [`FinalizationRegistry`][FinalizationRegistry].
+/// It only supports closures with one and only one input argument and some
+/// return value. Memory management is handled by Rust. Whenever Rust drops
+/// the [`Callback`], the function cannot be called from JS anymore.
 ///
-/// **Remember** to set `WASM_BINDGEN_WEAKREF=1` before building with
-/// `wasm-bindgen`, otherwise you will get memory leaks.
-///
-/// [FinalizationRegistry]: https://developer.mozilla.org/en-US/docs/Web/JS/Reference/Global_Objects/FinalizationRegistry
-#[derive(Default, Clone)]
-pub struct Callback<T, U = ()>(Function, PhantomData<(T, U)>);
+/// This can be used in conjunction with the [`use_callback`](crate::hooks::use_callback())
+/// hook to make the callback valid for the entire lifetime of a component.
+pub struct Callback<T, U = ()>(Rc<Closure<dyn FnMut(T) -> U>>);
 
 impl<T, U> Callback<T, U> {
-  /// Constructs a new [`Callback`] from a Rust closure.
-  pub fn new(f: impl Fn(T) -> U + 'static) -> Self
+  /// Constructs a new [`Callback`] from a [`FnMut`].
+  pub fn new(mut f: impl FnMut(T) -> U + 'static) -> Self
   where
     T: FromWasmAbi + 'static,
     U: IntoWasmAbi + 'static,
   {
-    Self(
-      Closure::wrap(Box::new(move |arg| f(arg)) as Box<dyn Fn(T) -> U>)
-        .into_js_value()
-        .dyn_into::<Function>()
-        .unwrap_throw(),
-      PhantomData,
-    )
+    Self(Rc::new(Closure::wrap(
+      Box::new(move |arg| f(arg)) as Box<dyn FnMut(T) -> U>
+    )))
   }
 
-  /// Wraps the [`Callback`] struct around a JS [`Function`].
-  pub fn from_function(f: Function) -> Self {
-    Self(f, PhantomData)
+  /// Constructs a new [`Callback`] from a [`FnOnce`].
+  pub fn once(f: impl FnOnce(T) -> U + 'static) -> Self
+  where
+    T: FromWasmAbi + 'static,
+    U: IntoWasmAbi + 'static,
+  {
+    Self(Rc::new(Closure::once(move |arg| f(arg))))
+  }
+}
+
+impl<T> Default for Callback<T, ()>
+where
+  T: FromWasmAbi + 'static,
+{
+  fn default() -> Self {
+    Self::new(|_| ())
   }
 }
 
@@ -78,25 +86,31 @@ impl<T, U> Debug for Callback<T, U> {
   }
 }
 
-impl<T, U> From<Callback<T, U>> for JsValue {
-  fn from(value: Callback<T, U>) -> Self {
-    value.0.into()
-  }
-}
-
-impl<T, U> From<Callback<T, U>> for Function {
-  fn from(value: Callback<T, U>) -> Self {
-    value.0
-  }
-}
-
 impl<T, U> PartialEq for Callback<T, U> {
   fn eq(&self, other: &Self) -> bool {
-    self.0 == other.0
+    Rc::ptr_eq(&self.0, &other.0)
   }
 }
 
 impl<T, U> Eq for Callback<T, U> {}
+
+impl<T, U> Clone for Callback<T, U> {
+  fn clone(&self) -> Self {
+    Self(self.0.clone())
+  }
+}
+
+impl<T, U> AsRef<JsValue> for Callback<T, U> {
+  fn as_ref(&self) -> &JsValue {
+    (*self.0).as_ref()
+  }
+}
+
+impl<T, U> AsRef<Function> for Callback<T, U> {
+  fn as_ref(&self) -> &Function {
+    (*self.0).as_ref().dyn_ref::<Function>().unwrap_throw()
+  }
+}
 
 /// A trait for callable structs with one and only one input argument and some
 /// return value.
@@ -116,8 +130,7 @@ where
   T: Into<JsValue>,
 {
   fn call(&self, arg: T) {
-    self
-      .0
+    (self.as_ref() as &Function)
       .call1(&JsValue::undefined(), &arg.into())
       .unwrap_throw();
   }
@@ -128,8 +141,7 @@ where
   T: Into<JsValue>,
 {
   fn call(&self, arg: T) -> JsValue {
-    self
-      .0
+    (self.as_ref() as &Function)
       .call1(&JsValue::undefined(), &arg.into())
       .unwrap_throw()
   }
@@ -138,12 +150,6 @@ where
 impl Callable<&JsValue, JsValue> for Function {
   fn call(&self, arg: &JsValue) -> JsValue {
     self.call1(&JsValue::undefined(), arg).unwrap_throw()
-  }
-}
-
-impl Callable<JsValue, JsValue> for Function {
-  fn call(&self, arg: JsValue) -> JsValue {
-    self.call1(&JsValue::undefined(), &arg).unwrap_throw()
   }
 }
 
