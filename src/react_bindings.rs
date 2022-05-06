@@ -19,7 +19,10 @@ extern "C" {
   ) -> JsValue;
 
   #[wasm_bindgen(js_name = useRustState)]
-  pub fn use_rust_state(default_value: &JsValue, on_free: &JsValue) -> Array;
+  pub fn use_rust_state(create: &JsValue, on_free: &JsValue) -> Array;
+
+  #[wasm_bindgen(js_name = useRustRef)]
+  pub fn use_rust_ref(create: &JsValue, on_free: &JsValue) -> usize;
 
   #[wasm_bindgen(js_name = cast)]
   pub fn cast_into_usize(value: &JsValue) -> usize;

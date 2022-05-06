@@ -48,10 +48,30 @@ export function useRustState(create, onFree) {
   // Let Rust free up the memory whenever the component unmounts
   React.useEffect(() => () => onFree(state.ptr), []);
 
-  return [
-    state.ptr,
-    () => setState({ ...state }),
-  ];
+  return [state.ptr, () => setState({ ...state })];
+}
+
+export function useRustRef(create, onFree) {
+  let ref = React.useRef(null);
+
+  // Create ref struct if called for the first time
+  if (ref.current == null) {
+    // We only maintain a pointer to the ref struct
+    let ptr = create();
+    ref.current = ptr;
+  } else {
+    // The closure `onFree` has to be called exactly one time so the Rust memory
+    // of its corresponding closure will be freed. If this function has been
+    // called for the first time, the `useEffect` below will ensure that `onFree`
+    // will be called when the component unmounts. But if not, we have to call
+    // `onFree` manually, so the closure can be dropped on Rust side.
+    onFree(undefined);
+  }
+
+  // Let Rust free up the memory whenever the component unmounts
+  React.useEffect(() => () => onFree(ref.current), []);
+
+  return ref.current;
 }
 
 export function cast(x) {
