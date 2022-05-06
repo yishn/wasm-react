@@ -1,6 +1,6 @@
 use crate::Callback;
 use js_sys::{Object, Reflect};
-use wasm_bindgen::JsValue;
+use wasm_bindgen::{JsValue, UnwrapThrowExt};
 
 /// A convenience builder for JS objects. Mainly used for constructing props
 /// that are not controlled by Rust.
@@ -26,7 +26,7 @@ impl Props {
 
   /// Equivalent to `props[key] = value;`.
   pub fn insert(self, key: &str, value: impl Into<JsValue>) -> Self {
-    Reflect::set(&self.0, &key.into(), &value.into()).unwrap();
+    Reflect::set(&self.0, &key.into(), &value.into()).unwrap_throw();
     self
   }
 

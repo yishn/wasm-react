@@ -1,7 +1,7 @@
 use crate::{react_bindings, Callable, Callback};
 use js_sys::Function;
 use std::{fmt::Debug, ops::Deref};
-use wasm_bindgen::{JsCast, JsValue};
+use wasm_bindgen::{JsCast, JsValue, UnwrapThrowExt};
 
 pub struct UseState<T>(*mut T, Function);
 
@@ -72,7 +72,7 @@ pub fn use_state<T: 'static>(value: impl Fn() -> T) -> UseState<T> {
     })
     .into(),
   );
-  let update_state = result.get(1).dyn_into::<Function>().unwrap();
+  let update_state = result.get(1).dyn_into::<Function>().unwrap_throw();
   let ptr = react_bindings::cast_into_usize(result.get(0)) as *mut T;
 
   UseState(ptr, update_state)

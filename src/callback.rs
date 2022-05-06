@@ -4,7 +4,7 @@ use wasm_bindgen::{
   convert::{FromWasmAbi, IntoWasmAbi},
   describe::WasmDescribe,
   prelude::Closure,
-  JsCast, JsValue,
+  JsCast, JsValue, UnwrapThrowExt,
 };
 
 /// A helper struct to simulate a [`Callback`] with no input arguments.
@@ -61,7 +61,7 @@ impl<T, U> Callback<T, U> {
       Closure::wrap(Box::new(move |arg| f(arg)) as Box<dyn Fn(T) -> U>)
         .into_js_value()
         .dyn_into::<Function>()
-        .unwrap(),
+        .unwrap_throw(),
       PhantomData,
     )
   }
@@ -139,7 +139,7 @@ where
   T: Into<JsValue>,
 {
   fn call(&self, arg: T) {
-    self.0.call1(&JsValue::undefined(), &arg.into()).unwrap();
+    self.0.call1(&JsValue::undefined(), &arg.into()).unwrap_throw();
   }
 }
 
@@ -148,19 +148,19 @@ where
   T: Into<JsValue>,
 {
   fn call(&self, arg: T) -> JsValue {
-    self.0.call1(&JsValue::undefined(), &arg.into()).unwrap()
+    self.0.call1(&JsValue::undefined(), &arg.into()).unwrap_throw()
   }
 }
 
 impl Callable<&JsValue, JsValue> for Function {
   fn call(&self, arg: &JsValue) -> JsValue {
-    self.call1(&JsValue::undefined(), arg).unwrap()
+    self.call1(&JsValue::undefined(), arg).unwrap_throw()
   }
 }
 
 impl Callable<JsValue, JsValue> for Function {
   fn call(&self, arg: JsValue) -> JsValue {
-    self.call1(&JsValue::undefined(), &arg).unwrap()
+    self.call1(&JsValue::undefined(), &arg).unwrap_throw()
   }
 }
 
