@@ -1,17 +1,17 @@
-use crate::{
-  callback::{Callback, Void},
-  react_bindings, Callable,
-};
+use super::{use_ref, UseRef};
+use crate::{callback::Void, react_bindings, Callable};
 use js_sys::Function;
-use std::{fmt::Debug, ops::Deref};
-use wasm_bindgen::{prelude::Closure, JsCast, UnwrapThrowExt};
+use std::{
+  fmt::Debug,
+  ops::{Deref, DerefMut},
+};
+use wasm_bindgen::UnwrapThrowExt;
 
-pub struct UseState<T>(*mut T, Function);
+pub struct UseState<T>(UseRef<Option<T>>, Function);
 
 impl<T: 'static> UseState<T> {
-  pub fn update(&self, mutator: impl FnOnce(&mut T)) {
-    let state = unsafe { Box::from_raw(self.0) };
-    mutator(Box::leak(state));
+  pub fn update(&mut self, mutator: impl FnOnce(&mut T)) {
+    mutator(self.0.deref_mut().current.as_mut().unwrap_throw());
 
     self.1.call(&Void.into());
   }
@@ -19,7 +19,7 @@ impl<T: 'static> UseState<T> {
 
 impl<T> Clone for UseState<T> {
   fn clone(&self) -> Self {
-    Self(self.0, self.1.clone())
+    Self(self.0.clone(), self.1.clone())
   }
 }
 
@@ -27,7 +27,7 @@ impl<T> Deref for UseState<T> {
   type Target = T;
 
   fn deref(&self) -> &Self::Target {
-    Box::leak(unsafe { Box::from_raw(self.0) })
+    self.0.deref().current.as_ref().unwrap_throw()
   }
 }
 
@@ -37,26 +37,14 @@ impl<T: Debug> Debug for UseState<T> {
   }
 }
 
-pub fn use_state<T: 'static>(
-  default_value: impl FnOnce() -> T + 'static,
-) -> UseState<T> {
-  // The lifetime of the state (`T`) is completely managed by the React
-  // component, meaning whenever the component is unmounted by React, the state
-  // will also be dropped.
+pub fn use_state<T: 'static>(init: impl FnOnce() -> T) -> UseState<T> {
+  let mut inner_ref = use_ref(None);
 
-  let result = react_bindings::use_rust_state(
-    Callback::once(move |_: Void| {
-      Box::into_raw(Box::new(default_value())) as usize
-    })
-    .as_ref(),
-    // This callback will be called when the component unmounts
-    &Closure::once_into_js(|ptr: usize| unsafe {
-      drop(Box::from_raw(ptr as *mut T));
-    }),
-  );
+  if inner_ref.current.is_none() {
+    inner_ref.current = Some(init());
+  }
 
-  let update_state = result.get(1).dyn_into::<Function>().unwrap_throw();
-  let ptr = react_bindings::cast_into_usize(&result.get(0)) as *mut T;
+  let update = react_bindings::use_update();
 
-  UseState(ptr, update_state)
+  UseState(inner_ref, update)
 }

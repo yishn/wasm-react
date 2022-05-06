@@ -42,13 +42,11 @@ export function createBuiltinComponent(name, props, children) {
   return React.createElement(React[name], props, children);
 }
 
-export function useRustState(create, onFree) {
-  // We only maintain a pointer to the state struct
-  let [state, setState] = React.useState(() => ({ ptr: create() }));
-  // Let Rust free up the memory whenever the component unmounts
-  React.useEffect(() => () => onFree(state.ptr), []);
+export function useUpdate() {
+  // This only returns a function that can trigger a component update
+  let [, setState] = React.useState(() => []);
 
-  return [state.ptr, () => setState({ ...state })];
+  return () => setState([]);
 }
 
 export function useRustRef(create, onFree) {

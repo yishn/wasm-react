@@ -1,4 +1,4 @@
-use js_sys::{Array, Function};
+use js_sys::Function;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(module = "/js/react-bindings.js")]
@@ -18,8 +18,8 @@ extern "C" {
     children: &JsValue,
   ) -> JsValue;
 
-  #[wasm_bindgen(js_name = useRustState)]
-  pub fn use_rust_state(create: &JsValue, on_free: &JsValue) -> Array;
+  #[wasm_bindgen(js_name = useUpdate)]
+  pub fn use_update() -> Function;
 
   #[wasm_bindgen(js_name = useRustRef)]
   pub fn use_rust_ref(create: &JsValue, on_free: &JsValue) -> usize;
