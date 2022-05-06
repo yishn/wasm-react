@@ -66,7 +66,7 @@ impl<T, U> Callback<T, U> {
     )
   }
 
-  /// Returns a [`Callback`] from a JS [`Function`].
+  /// Wraps the [`Callback`] struct around a JS [`Function`].
   pub fn from_function(f: Function) -> Self {
     Self(f, PhantomData)
   }
@@ -75,18 +75,6 @@ impl<T, U> Callback<T, U> {
 impl<T, U> Debug for Callback<T, U> {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     f.write_str("Callback(|_| { ... })")
-  }
-}
-
-impl<T, U> AsRef<Function> for Callback<T, U> {
-  fn as_ref(&self) -> &Function {
-    &self.0
-  }
-}
-
-impl<T, U> AsRef<JsValue> for Callback<T, U> {
-  fn as_ref(&self) -> &JsValue {
-    self.0.as_ref()
   }
 }
 
@@ -99,17 +87,6 @@ impl<T, U> From<Callback<T, U>> for JsValue {
 impl<T, U> From<Callback<T, U>> for Function {
   fn from(value: Callback<T, U>) -> Self {
     value.0
-  }
-}
-
-impl<T, U, F> From<F> for Callback<T, U>
-where
-  T: FromWasmAbi + 'static,
-  U: IntoWasmAbi + 'static,
-  F: Fn(T) -> U + 'static,
-{
-  fn from(value: F) -> Self {
-    Callback::new(value)
   }
 }
 
@@ -139,7 +116,10 @@ where
   T: Into<JsValue>,
 {
   fn call(&self, arg: T) {
-    self.0.call1(&JsValue::undefined(), &arg.into()).unwrap_throw();
+    self
+      .0
+      .call1(&JsValue::undefined(), &arg.into())
+      .unwrap_throw();
   }
 }
 
@@ -148,7 +128,10 @@ where
   T: Into<JsValue>,
 {
   fn call(&self, arg: T) -> JsValue {
-    self.0.call1(&JsValue::undefined(), &arg.into()).unwrap_throw()
+    self
+      .0
+      .call1(&JsValue::undefined(), &arg.into())
+      .unwrap_throw()
   }
 }
 
