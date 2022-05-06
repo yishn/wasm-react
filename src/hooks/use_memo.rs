@@ -1,8 +1,13 @@
 use super::{use_state, Deps, UseState};
 use std::{fmt::Debug, ops::Deref, rc::Rc};
 
-#[derive(Clone)]
 pub struct UseMemo<T, D: Eq>(UseState<(T, Deps<D>)>);
+
+impl<T, D: Eq> Clone for UseMemo<T, D> {
+  fn clone(&self) -> Self {
+    Self(self.0.clone())
+  }
+}
 
 impl<T, D: Eq> Deref for UseMemo<T, D> {
   type Target = T;

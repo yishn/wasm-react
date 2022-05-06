@@ -9,10 +9,9 @@ use wasm_bindgen::{prelude::Closure, JsCast, UnwrapThrowExt};
 pub struct UseState<T>(*mut T, Function);
 
 impl<T: 'static> UseState<T> {
-  pub fn update<'a>(&'a self, mutator: impl FnOnce(&'a mut T)) {
-    let ptr = self.0;
-    let state = Box::leak(unsafe { Box::from_raw(ptr) });
-    mutator(state);
+  pub fn update(&self, mutator: impl FnOnce(&mut T)) {
+    let state = unsafe { Box::from_raw(self.0) };
+    mutator(Box::leak(state));
 
     self.1.call(&Void.into());
   }
@@ -35,26 +34,6 @@ impl<T> Deref for UseState<T> {
 impl<T: Debug> Debug for UseState<T> {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     self.deref().fmt(f)
-  }
-}
-
-impl<T: PartialEq> PartialEq for UseState<T> {
-  fn eq(&self, other: &Self) -> bool {
-    self.deref() == other.deref()
-  }
-}
-
-impl<T: Eq> Eq for UseState<T> {}
-
-impl<T: PartialOrd> PartialOrd for UseState<T> {
-  fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-    self.deref().partial_cmp(other.deref())
-  }
-}
-
-impl<T: Ord> Ord for UseState<T> {
-  fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-    self.deref().cmp(other.deref())
   }
 }
 

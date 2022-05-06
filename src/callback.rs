@@ -50,7 +50,7 @@ impl From<Void> for JsValue {
 pub struct Callback<T, U = ()>(Rc<Closure<dyn FnMut(T) -> U>>);
 
 impl<T, U> Callback<T, U> {
-  /// Constructs a new [`Callback`] from a [`FnMut`].
+  /// Constructs a new [`Callback`] from an [`FnMut`].
   pub fn new(mut f: impl FnMut(T) -> U + 'static) -> Self
   where
     T: FromWasmAbi + 'static,
@@ -61,7 +61,7 @@ impl<T, U> Callback<T, U> {
     )))
   }
 
-  /// Constructs a new [`Callback`] from a [`FnOnce`].
+  /// Constructs a new [`Callback`] from an [`FnOnce`].
   pub fn once(f: impl FnOnce(T) -> U + 'static) -> Self
   where
     T: FromWasmAbi + 'static,
