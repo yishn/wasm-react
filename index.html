@@ -16,7 +16,7 @@
 
       async function main() {
         await init();
-        WasmReact.setReact(React);
+        WasmReact.useReact(React);
 
         ReactDOM.render(createApp(), document.getElementById("root"));
       }

@@ -5,8 +5,8 @@ use wasm_bindgen::prelude::*;
 extern "C" {
   // wasm-react functions:
 
-  #[wasm_bindgen(js_name = setReact)]
-  pub fn set_react(value: &JsValue);
+  #[wasm_bindgen(js_name = useReact)]
+  pub fn use_react(value: &JsValue);
 
   #[wasm_bindgen(js_name = createRustComponent)]
   pub fn create_rust_component(name: &str, props: &JsValue) -> JsValue;

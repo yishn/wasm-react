@@ -1,11 +1,10 @@
 import { __WasmReact_ComponentWrapper } from "../../../wasm_react.js";
-import * as WasmExports from "../../../wasm_react.js";
 
 let components = {};
 
 export let React = undefined;
 
-export function setReact(value) {
+export function useReact(value) {
   if (React == null) {
     React = value;
   } else {

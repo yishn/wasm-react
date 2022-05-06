@@ -32,11 +32,11 @@ impl WasmReact {
   /// import React from "https://cdn.skypack.dev/react";
   ///
   /// await init();
-  /// WasmReact.setReact(React);
+  /// WasmReact.useReact(React);
   /// ```
-  #[wasm_bindgen(js_name = setReact)]
-  pub fn set_react(value: &JsValue) {
-    react_bindings::set_react(value);
+  #[wasm_bindgen(js_name = useReact)]
+  pub fn use_react(value: &JsValue) {
+    react_bindings::use_react(value);
   }
 }
 
