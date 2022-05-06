@@ -44,7 +44,7 @@ pub fn use_state<T: 'static>(init: impl FnOnce() -> T) -> UseState<T> {
     inner_ref.current = Some(init());
   }
 
-  let update = react_bindings::use_update();
+  let update = react_bindings::use_rust_state();
 
   UseState(inner_ref, update)
 }

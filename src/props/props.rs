@@ -31,7 +31,7 @@ impl Props {
   }
 
   /// Equivalent to `props[key] = f;`.
-  pub fn insert_callback<T, U>(self, key: &str, f: Callback<T, U>) -> Self {
+  pub fn insert_callback<T, U>(self, key: &str, f: &Callback<T, U>) -> Self {
     Reflect::set(&self.0, &key.into(), f.as_ref()).unwrap_throw();
     self
   }

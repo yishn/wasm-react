@@ -31,7 +31,7 @@ impl<'a> H<'a> {
   pub fn attr_callback<T, U>(
     mut self,
     key: &str,
-    f: Callback<T, U>,
+    f: &Callback<T, U>,
   ) -> Self
   where
     T: FromWasmAbi + 'static,

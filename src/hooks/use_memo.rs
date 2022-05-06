@@ -1,15 +1,9 @@
 use super::{use_ref, Deps, UseRef};
 use std::{fmt::Debug, ops::Deref, rc::Rc};
 
-pub struct UseMemo<T, D: Eq>(UseRef<(T, Deps<D>)>);
+pub struct UseMemo<T, D: PartialEq>(UseRef<(T, Deps<D>)>);
 
-impl<T, D: Eq> Clone for UseMemo<T, D> {
-  fn clone(&self) -> Self {
-    Self(self.0.clone())
-  }
-}
-
-impl<T, D: Eq> Deref for UseMemo<T, D> {
+impl<T, D: PartialEq> Deref for UseMemo<T, D> {
   type Target = T;
 
   fn deref(&self) -> &Self::Target {
@@ -17,7 +11,7 @@ impl<T, D: Eq> Deref for UseMemo<T, D> {
   }
 }
 
-impl<T: Debug, D: Eq> Debug for UseMemo<T, D> {
+impl<T: Debug, D: PartialEq> Debug for UseMemo<T, D> {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     self.0.deref().current.0.fmt(f)
   }
@@ -29,7 +23,7 @@ pub fn use_memo<T, D>(
 ) -> UseMemo<T, D>
 where
   T: 'static,
-  D: Eq + 'static,
+  D: PartialEq + 'static,
 {
   let f = Rc::new(f);
   let mut memo = use_ref((f(), deps.clone()));

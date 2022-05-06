@@ -1,13 +1,13 @@
 use std::rc::Rc;
 
-#[derive(Debug, PartialEq, Eq)]
-pub enum Deps<T: Eq> {
+#[derive(Debug, PartialEq)]
+pub enum Deps<T: PartialEq> {
   All,
   None,
   Some(Rc<T>),
 }
 
-impl<T: Eq> Clone for Deps<T> {
+impl<T: PartialEq> Clone for Deps<T> {
   fn clone(&self) -> Self {
     match self {
       Self::All => Self::All,
@@ -20,15 +20,15 @@ impl<T: Eq> Clone for Deps<T> {
 #[macro_export]
 macro_rules! deps {
   (*) => {
-    Deps::All;
+    $crate::hooks::Deps::All;
   };
   () => {
-    Deps::None
+    $crate::hooks::Deps::None
   };
   ($expr:expr) => {
-    Deps::Some(Rc::new($expr))
+    $crate::hooks::Deps::Some(std::rc::Rc::new($expr))
   };
   ($( $expr:expr ),+ $(,)?) => {
-    Deps::Some(Rc::new(($( $expr ),+)))
+    $crate::hooks::Deps::Some(std::rc::Rc::new(($( $expr ),+)))
   };
 }

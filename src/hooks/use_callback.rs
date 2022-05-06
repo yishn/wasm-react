@@ -11,7 +11,7 @@ pub fn use_callback<T, U, D>(
 where
   T: FromWasmAbi + 'static,
   U: IntoWasmAbi + 'static,
-  D: Eq + 'static,
+  D: PartialEq + 'static,
 {
   let callback = Callback::new(f);
 

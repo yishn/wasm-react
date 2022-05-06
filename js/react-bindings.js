@@ -42,7 +42,7 @@ export function createBuiltinComponent(name, props, children) {
   return React.createElement(React[name], props, children);
 }
 
-export function useUpdate() {
+export function useRustState() {
   // This only returns a function that can trigger a component update
   let [, setState] = React.useState(() => []);
 
@@ -70,8 +70,4 @@ export function useRustRef(create, onFree) {
   React.useEffect(() => () => onFree(ref.current), []);
 
   return ref.current;
-}
-
-export function cast(x) {
-  return x;
 }

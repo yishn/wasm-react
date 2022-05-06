@@ -5,7 +5,6 @@ use crate::{
   Callable, Callback, Component, VNode, VNodeList, Void,
 };
 use wasm_bindgen::prelude::*;
-use web_sys::Event;
 
 #[wasm_bindgen]
 extern "C" {
@@ -41,7 +40,7 @@ impl Component for App {
 
     let handle_increment = use_callback(
       {
-        let state = state.clone();
+        let mut state = state.clone();
         let diff = self.diff;
 
         move |_| state.update(move |state| state.counter += diff)
@@ -51,7 +50,7 @@ impl Component for App {
 
     let handle_decrement = use_callback(
       {
-        let state = state.clone();
+        let mut state = state.clone();
         let diff = self.diff;
 
         move |_| state.update(move |state| state.counter -= diff)
@@ -59,23 +58,23 @@ impl Component for App {
       deps!(self.diff),
     );
 
-    hooks::use_effect(
-      {
-        let state = state.clone();
-        move || {
-          state.update(move |state| {
-            state.logs.push(if warning {
-              "Counter is now above 50 🎉"
-            } else {
-              "Counter is now below 50"
-            })
-          });
+    // hooks::use_effect(
+    //   {
+    //     let state = state.clone();
+    //     move || {
+    //       state.update(move |state| {
+    //         state.logs.push(if warning {
+    //           "Counter is now above 50 🎉"
+    //         } else {
+    //           "Counter is now below 50"
+    //         })
+    //       });
 
-          || ()
-        }
-      },
-      deps!(warning),
-    );
+    //       || ()
+    //     }
+    //   },
+    //   deps!(warning),
+    // );
 
     h!(div.["app-container", warning.then(|| "warning")])
       .attr("data-counter", state.counter)
@@ -86,8 +85,8 @@ impl Component for App {
         //
         Counter {
           counter: state.counter,
-          on_increment: Some(handle_increment),
-          on_decrement: Some(handle_decrement),
+          on_increment: Some(handle_increment.clone()),
+          on_decrement: Some(handle_decrement.clone()),
         },
         //
         h!(ul.["logs"]).build(children![
@@ -126,7 +125,7 @@ impl Component for Counter {
         let on_decrement = self.on_decrement.clone();
         move |_| on_decrement.call(Void)
       },
-      deps!(self.on_decrement.as_ref().map(AsRef::<JsValue>::as_ref)),
+      deps!(self.on_decrement.clone()),
     );
 
     let handle_increment = use_callback(
@@ -134,23 +133,18 @@ impl Component for Counter {
         let on_increment = self.on_increment.clone();
         move |_| on_increment.call(Void)
       },
-      deps!(self.on_increment.as_ref().map(AsRef::<JsValue>::as_ref)),
+      deps!(self.on_increment.clone()),
     );
 
     h!(div.["counter-component"]).build(children![
-      //
-      h!(form)
-        .on_submit(Callback::new(|evt: Event| evt.prevent_default()))
-        .build(children![
-          h!(button)
-            .on_click(handle_decrement)
-            .build(children!["Decrement"]),
-          " ",
-          h!(button.["default"])
-            .on_click(handle_increment)
-            .html_type("submit")
-            .build(children!["Increment"])
-        ])
+      h!(button)
+        .on_click(&handle_decrement)
+        .build(children!["Decrement"]),
+      " ",
+      h!(button.["default"])
+        .on_click(&handle_increment)
+        .html_type("submit")
+        .build(children!["Increment"])
     ])
   }
 }
