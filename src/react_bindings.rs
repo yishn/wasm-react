@@ -38,4 +38,7 @@ extern "C" {
 
   #[wasm_bindgen(js_namespace = React, js_name = useCallback)]
   pub fn use_callback(f: &JsValue, deps: &JsValue) -> Function;
+
+  #[wasm_bindgen(js_namespace = React, js_name = useRef)]
+  pub fn use_ref(init: &JsValue) -> JsValue;
 }

@@ -47,35 +47,28 @@ impl From<Void> for JsValue {
 /// cannot be called from JS anymore.
 ///
 /// This can be used in conjunction with the [`use_callback`](crate::hooks::use_callback())
-/// hook to make the callback valid for the entire lifetime of a component.
+/// hook to make the callback persist for the entire lifetime of a component.
 pub struct Callback<T, U = ()>(Rc<Closure<dyn FnMut(T) -> U>>);
 
-impl<T, U> Callback<T, U> {
+impl<T, U> Callback<T, U>
+where
+  T: FromWasmAbi + 'static,
+  U: IntoWasmAbi + 'static,
+{
   /// Constructs a new [`Callback`] from an [`FnMut`].
-  pub fn new(mut f: impl FnMut(T) -> U + 'static) -> Self
-  where
-    T: FromWasmAbi + 'static,
-    U: IntoWasmAbi + 'static,
-  {
+  pub fn new(mut f: impl FnMut(T) -> U + 'static) -> Self {
     Self(Rc::new(Closure::wrap(
       Box::new(move |arg| f(arg)) as Box<dyn FnMut(T) -> U>
     )))
   }
 
   /// Constructs a new [`Callback`] from an [`FnOnce`].
-  pub fn once(f: impl FnOnce(T) -> U + 'static) -> Self
-  where
-    T: FromWasmAbi + 'static,
-    U: IntoWasmAbi + 'static,
-  {
+  pub fn once(f: impl FnOnce(T) -> U + 'static) -> Self {
     Self(Rc::new(Closure::once(move |arg| f(arg))))
   }
 
   /// Returns a new [`Callback`] that does nothing.
-  pub fn noop() -> Callback<T, ()>
-  where
-    T: FromWasmAbi + 'static,
-  {
+  pub fn noop() -> Callback<T, ()> {
     Callback::new(|_: T| ())
   }
 }

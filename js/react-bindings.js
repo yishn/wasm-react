@@ -63,7 +63,7 @@ export function useRustRef(create, onFree) {
     // called for the first time, the `useEffect` below will ensure that `onFree`
     // will be called when the component unmounts. But if not, we have to call
     // `onFree` manually, so the closure can be dropped on Rust side.
-    onFree(undefined);
+    onFree(null);
   }
 
   // Let Rust free up the memory whenever the component unmounts

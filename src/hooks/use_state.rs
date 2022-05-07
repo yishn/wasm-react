@@ -11,7 +11,7 @@ pub struct UseState<T>(UseRef<Option<T>>, Function);
 
 impl<T: 'static> UseState<T> {
   pub fn update(&mut self, mutator: impl FnOnce(&mut T)) {
-    mutator(self.0.deref_mut().current.as_mut().unwrap_throw());
+    mutator(self.0.deref_mut().current_mut().as_mut().unwrap_throw());
 
     self.1.call(&Void.into()).unwrap_throw();
   }
@@ -27,7 +27,7 @@ impl<T> Deref for UseState<T> {
   type Target = T;
 
   fn deref(&self) -> &Self::Target {
-    self.0.deref().current.as_ref().unwrap_throw()
+    self.0.deref().current().as_ref().unwrap_throw()
   }
 }
 
@@ -38,13 +38,13 @@ impl<T: Debug> Debug for UseState<T> {
 }
 
 pub fn use_state<T: 'static>(init: impl FnOnce() -> T) -> UseState<T> {
-  let mut inner_ref = use_ref(None);
+  let mut ref_container = use_ref(None);
 
-  if inner_ref.current.is_none() {
-    inner_ref.current = Some(init());
+  if ref_container.current().is_none() {
+    ref_container.set_current(Some(init()));
   }
 
   let update = react_bindings::use_rust_state();
 
-  UseState(inner_ref, update)
+  UseState(ref_container, update)
 }

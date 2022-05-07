@@ -7,17 +7,17 @@ where
 {
   let mut effect = use_ref(None::<(G, Deps<D>)>);
 
-  match effect.current.take() {
+  match effect.current_mut().take() {
     Some((destructor, old_deps)) => {
       if deps == Deps::All || old_deps != deps {
         destructor();
-        effect.current = Some((f(), deps));
+        effect.set_current(Some((f(), deps)));
       } else {
-        effect.current = Some((destructor, old_deps));
+        effect.set_current(Some((destructor, old_deps)));
       }
     }
     None => {
-      effect.current = Some((f(), deps));
+      effect.set_current(Some((f(), deps)));
     }
   }
 }
