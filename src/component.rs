@@ -28,8 +28,7 @@ use wasm_bindgen::prelude::*;
 /// ```
 pub trait Component {
   /// The name of the component that will be displayed in the React Developer
-  /// Tools, usually the struct name. It has to be unique among all components
-  /// defined in Rust.
+  /// Tools, should be the struct name.
   fn name() -> &'static str
   where
     Self: Sized + 'static;

@@ -14,13 +14,14 @@ export function useReact(value) {
 
 function registerRustComponent(name) {
   if (components[name] == null) {
-    // This curious construction is needed to ensure that the components show up
-    // with their names correctly in the React Developer Tools
+    // All Rust components have the same implementation in JS, but we need to
+    // define them separately, so the names show up correctly in the React
+    // Developer Tools.
+    //
+    // It shouldn't be a problem if two Rust components share the same name.
     Object.assign(components, {
       [name]: (props = {}) => {
         if (props.component instanceof __WasmReact_ComponentWrapper) {
-          // This is a component implemented using the Component trait, i.e.
-          // with a Rust struct as props
           let component = props.component;
 
           // We need to free up the memory on Rust side whenever the old props
