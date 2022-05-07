@@ -89,18 +89,23 @@ macro_rules! children {
 /// // <div id="app"><h1>Hello World!</h1></div>
 /// ```
 ///
-/// It is also possible to add classes to the element using an array notation.
-/// You can use the same syntax as [`classnames!`](crate::classnames).
+/// It is also possible to add an id and classes to the element using an array
+/// notation. You can use the same syntax as [`classnames!`](crate::classnames).
 ///
 /// ```
-/// h!(div.["some-class", "warning"])
+/// h!(div[#"app"."some-class"."warning"])
 ///   .build(children!["This is a warning!"])
 ///
-/// // <div class="some-class warning">This is a warning!</div>
+/// // <div id="app" class="some-class warning">This is a warning!</div>
 /// ```
 #[macro_export]
 macro_rules! h {
-  ($tag:ident $( .[$( $tt:tt )*] )?) => {
+  ($tag:ident[#$id:literal $( $( $tt:tt )+ )?]) => {
+    $crate::props::H::new(stringify!($tag))
+      .id($id)
+      $( .class_name(classnames![$( $tt )*]) )?
+  };
+  ($tag:ident $( [$( $tt:tt )*] )?) => {
     $crate::props::H::new(stringify!($tag))
       $( .class_name(classnames![$( $tt )*]) )?
   };

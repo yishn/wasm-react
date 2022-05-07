@@ -29,20 +29,48 @@ impl<'a, T: Classnames<'a>> Classnames<'a> for Option<T> {
 /// # Example
 ///
 /// ```
-/// classnames!["button", "blue"]
+/// classnames![."button"."blue"]
 /// // Yields "button blue "
 ///
-/// classnames!["button", false.then(|| "blue"), true.then(|| "disabled")]
+/// let blue = false;
+/// let disabled = true;
+/// classnames![."button".blue.disabled]
 /// // Yields "button disabled "
+///
+/// let is_blue = Some("blue");
+/// let disabled = true;
+/// classnames![."button".{is_blue}.disabled]
+/// // Yields "button blue disabled "
 /// ```
 #[macro_export]
 macro_rules! classnames {
-  [$( $impl_classnames:expr ),* $(,)?] => {
+  [@single $result:ident <<] => {};
+
+  // Handle string literals
+  [@single $result:ident << .$str:literal $( $tt:tt )*] => {
+    $crate::props::Classnames::append_to(&$str, &mut $result);
+    classnames![@single $result << $( $tt ) *];
+  };
+
+  // Handle boolean variables
+  [@single $result:ident << .$bool:ident $( $tt:tt )*] => {
+    $crate::props::Classnames::append_to(
+      &$bool.then(|| stringify!($bool)),
+      &mut $result
+    );
+    classnames![@single $result << $( $tt ) *];
+  };
+
+  // Handle block expressions
+  [@single $result:ident << .$block:block $( $tt:tt )*] => {
+    $crate::props::Classnames::append_to(&$block, &mut $result);
+    classnames![@single $result << $( $tt ) *];
+  };
+
+  [$( $tt:tt )*] => {
     {
       let mut result = String::new();
-      $(
-        $crate::props::Classnames::append_to(&$impl_classnames, &mut result);
-      )*
+      classnames![@single result << $( $tt )*];
       result
     }
   };

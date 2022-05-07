@@ -73,7 +73,7 @@ impl Component for App {
       deps!(warning),
     );
 
-    h!(div.["app-container", warning.then(|| "warning")])
+    h!(div[#"app-container".warning])
       .attr("data-counter", state.counter)
       .build(children![
         h!(h2)
@@ -86,7 +86,7 @@ impl Component for App {
           on_decrement: Some(handle_decrement),
         },
         //
-        h!(ul.["logs"]).build(children![
+        h!(ul[."logs"]).build(children![
           h!(li).build(children!["Started..."]),
           state
             .logs
@@ -133,12 +133,12 @@ impl Component for Counter {
       deps!(self.on_increment.clone()),
     );
 
-    h!(div.["counter-component"]).build(children![
+    h!(div[."counter-component"]).build(children![
       h!(button)
         .on_click(&handle_decrement)
         .build(children!["Decrement"]),
       " ",
-      h!(button.["default"])
+      h!(button[."default"])
         .on_click(&handle_increment)
         .html_type("submit")
         .build(children!["Increment"])
