@@ -10,7 +10,7 @@
     <div id="root"></div>
 
     <script type="module">
-      import init, { WasmReact, createApp } from "./pkg/wasm_react.js";
+      import init, { WasmReact, App } from "./pkg/wasm_react.js";
       import React from "https://cdn.skypack.dev/react";
       import ReactDOM from "https://cdn.skypack.dev/react-dom";
 
@@ -18,7 +18,10 @@
         await init();
         WasmReact.useReact(React);
 
-        ReactDOM.render(createApp(), document.getElementById("root"));
+        ReactDOM.render(
+          React.createElement(App, { diff: 3 }),
+          document.getElementById("root")
+        );
       }
 
       main();

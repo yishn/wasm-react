@@ -7,7 +7,9 @@ use wasm_bindgen::prelude::*;
 /// The props will be completely controlled by Rust, which makes rendering them
 /// relatively simple in Rust. However, since the props struct cannot be
 /// constructed in JS, these components cannot be exposed to JS. This means only
-/// components written in Rust can render a `Component`.
+/// components written in Rust can render a `Component` by default.
+///
+/// See [`export_component!`] for how to expose components for JS consumption.
 ///
 /// # Example
 ///
@@ -56,4 +58,68 @@ impl ComponentWrapper {
   pub fn render(props: &ComponentWrapper) -> JsValue {
     props.0.render().into()
   }
+}
+
+/// This macro can be used to expose your [`Component`] for JS consumption via
+/// `wasm-bindgen`.
+///
+/// Requirement is that you implement the [`TryFrom<JsValue, Error = JsValue>`](core::convert::TryFrom)
+/// trait on your component and that you do not export anything else that has
+/// the same name as your component.
+///
+/// # Example
+///
+/// Implement [`TryFrom<JsValue, Error = JsValue>`](core::convert::TryFrom) on
+/// your component and export it:
+///
+/// ```
+/// pub struct Counter {
+///   counter: i32,
+/// }
+///
+/// impl Component for Counter { /* ... */ }
+///
+/// impl TryFrom<JsValue> for Counter {
+///   type Error = JsValue;
+///
+///   fn try_from(value: JsValue) -> Result<Self, Self::Error> {
+///     let diff = Reflect::get(&value, &"counter".into())?
+///       .as_f64()
+///       .ok_or(JsError::new("`counter` property not found"))?;
+///
+///     Ok(Counter { counter: counter as i32 })
+///   }
+/// }
+///
+/// export_component!(Counter);
+/// ```
+///
+/// In JS, you can use it like any other component:
+///
+/// ```js
+/// import React from "react";
+/// import init, { Counter } from "./path/to/wasm.js";
+///
+/// function SomeOtherJsComponent(props) {
+///   return (
+///     <div>
+///       <Counter counter={0} />
+///     </div>
+///   );
+/// }
+/// ```
+#[macro_export]
+macro_rules! export_component {
+  ($component:ident) => {
+    #[allow(non_snake_case)]
+    #[allow(dead_code)]
+    #[wasm_bindgen]
+    pub fn $component(props: JsValue) -> Result<JsValue, JsValue>
+    where
+      $component: $crate::Component + TryFrom<JsValue, Error = JsValue>,
+    {
+      let component = $component::try_from(props)?;
+      Ok(component.render().into())
+    }
+  };
 }

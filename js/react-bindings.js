@@ -12,7 +12,7 @@ export function useReact(value) {
   }
 }
 
-export function createRustComponent(name, props) {
+function registerRustComponent(name) {
   if (components[name] == null) {
     // This curious construction is needed to ensure that the components show up
     // with their names correctly in the React Developer Tools
@@ -34,8 +34,15 @@ export function createRustComponent(name, props) {
       },
     });
   }
+}
 
-  return React.createElement(components[name], props);
+export function getRustComponent(name) {
+  registerRustComponent(name);
+  return components[name];
+}
+
+export function createRustComponent(name, props) {
+  return React.createElement(getRustComponent(name), props);
 }
 
 export function createBuiltinComponent(name, props, children) {

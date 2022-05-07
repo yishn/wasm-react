@@ -1,9 +1,10 @@
 use crate::{
-  children, classnames, deps, h,
+  children, classnames, deps, export_component, h,
   hooks::{self, use_callback},
   props::Style,
   Callable, Callback, Component, VNode, VNodeList, Void,
 };
+use js_sys::Reflect;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
@@ -25,6 +26,20 @@ pub struct AppState {
 pub struct App {
   diff: i32,
 }
+
+impl TryFrom<JsValue> for App {
+  type Error = JsValue;
+
+  fn try_from(value: JsValue) -> Result<Self, Self::Error> {
+    let diff = Reflect::get(&value, &"diff".into())?
+      .as_f64()
+      .ok_or(JsError::new("`diff` property not found"))?;
+
+    Ok(App { diff: diff as i32 })
+  }
+}
+
+export_component!(App);
 
 impl Component for App {
   fn name() -> &'static str {
@@ -96,12 +111,6 @@ impl Component for App {
         ])
       ])
   }
-}
-
-#[allow(dead_code)]
-#[wasm_bindgen(js_name = createApp)]
-pub fn create_app() -> JsValue {
-  VNode::from(App { diff: 5 }).into()
 }
 
 #[derive(Debug, Clone)]
