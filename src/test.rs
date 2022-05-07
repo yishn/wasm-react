@@ -32,7 +32,7 @@ impl Component for App {
   }
 
   fn render(&self) -> VNode {
-    let state = hooks::use_state(|| AppState {
+    let mut state = hooks::use_state(|| AppState {
       counter: 11,
       logs: vec![],
     });
@@ -58,23 +58,20 @@ impl Component for App {
       deps!(self.diff),
     );
 
-    // hooks::use_effect(
-    //   {
-    //     let state = state.clone();
-    //     move || {
-    //       state.update(move |state| {
-    //         state.logs.push(if warning {
-    //           "Counter is now above 50 🎉"
-    //         } else {
-    //           "Counter is now below 50"
-    //         })
-    //       });
+    hooks::use_effect(
+      || {
+        state.update(|state| {
+          state.logs.push(if warning {
+            "Counter is now above 50 🎉"
+          } else {
+            "Counter is now below 50"
+          })
+        });
 
-    //       || ()
-    //     }
-    //   },
-    //   deps!(warning),
-    // );
+        || ()
+      },
+      deps!(warning),
+    );
 
     h!(div.["app-container", warning.then(|| "warning")])
       .attr("data-counter", state.counter)
@@ -85,8 +82,8 @@ impl Component for App {
         //
         Counter {
           counter: state.counter,
-          on_increment: Some(handle_increment.clone()),
-          on_decrement: Some(handle_decrement.clone()),
+          on_increment: Some(handle_increment),
+          on_decrement: Some(handle_decrement),
         },
         //
         h!(ul.["logs"]).build(children![

@@ -13,7 +13,7 @@ impl<T: 'static> UseState<T> {
   pub fn update(&mut self, mutator: impl FnOnce(&mut T)) {
     mutator(self.0.deref_mut().current.as_mut().unwrap_throw());
 
-    self.1.call(&Void.into());
+    self.1.call(&Void.into()).unwrap_throw();
   }
 }
 

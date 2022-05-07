@@ -38,12 +38,13 @@ impl From<Void> for JsValue {
   }
 }
 
-/// This is a simplified wrapper around a [`Closure`] which represents a Rust
-/// closure that can be called from JS.
+/// This is a simplified, reference-counted wrapper around a [`Closure`] which
+/// represents a Rust closure that can be called from JS.
 ///
-/// It only supports closures with one and only one input argument and some
-/// return value. Memory management is handled by Rust. Whenever Rust drops
-/// the [`Callback`], the function cannot be called from JS anymore.
+/// It only supports closures with exactly one input argument and some return
+/// value. Memory management is handled by Rust. Whenever Rust drops all
+/// references of the [`Callback`], the closure will be dropped and the function
+/// cannot be called from JS anymore.
 ///
 /// This can be used in conjunction with the [`use_callback`](crate::hooks::use_callback())
 /// hook to make the callback valid for the entire lifetime of a component.
@@ -68,6 +69,14 @@ impl<T, U> Callback<T, U> {
     U: IntoWasmAbi + 'static,
   {
     Self(Rc::new(Closure::once(move |arg| f(arg))))
+  }
+
+  /// Returns a new [`Callback`] that does nothing.
+  pub fn noop() -> Callback<T, ()>
+  where
+    T: FromWasmAbi + 'static,
+  {
+    Callback::new(|_: T| ())
   }
 }
 
@@ -147,9 +156,9 @@ where
   }
 }
 
-impl Callable<&JsValue, JsValue> for Function {
-  fn call(&self, arg: &JsValue) -> JsValue {
-    self.call1(&JsValue::undefined(), arg).unwrap_throw()
+impl Callable<&JsValue, Result<JsValue, JsValue>> for Function {
+  fn call(&self, arg: &JsValue) -> Result<JsValue, JsValue> {
+    self.call1(&JsValue::undefined(), arg)
   }
 }
 

@@ -18,17 +18,14 @@ impl<T: Debug, D: PartialEq> Debug for UseMemo<T, D> {
   }
 }
 
-pub fn use_memo<T, D>(
-  f: impl Fn() -> T + 'static,
-  deps: Deps<D>,
-) -> UseMemo<T, D>
+pub fn use_memo<T, D>(mut f: impl FnMut() -> T, deps: Deps<D>) -> UseMemo<T, D>
 where
   T: 'static,
   D: PartialEq + 'static,
 {
   let mut memo = use_ref(None::<(T, Deps<D>)>);
-
   let old_deps = memo.current.as_ref().map(|memo| &memo.1);
+
   if deps == Deps::All || Some(&deps) != old_deps {
     memo.current = Some((f(), deps));
   }
