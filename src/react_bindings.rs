@@ -3,10 +3,8 @@ use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(module = "/js/react-bindings.js")]
 extern "C" {
-  // wasm-react functions:
-
-  #[wasm_bindgen(js_name = useReact)]
-  pub fn use_react(value: &JsValue);
+  #[wasm_bindgen(js_name = useReact, catch)]
+  pub fn use_react(value: &JsValue) -> Result<(), JsValue>;
 
   #[wasm_bindgen(js_name = getRustComponent)]
   pub fn get_rust_component(name: &str) -> Function;
@@ -27,7 +25,7 @@ extern "C" {
   #[wasm_bindgen(js_name = useRustRef)]
   pub fn use_rust_ref(create: &JsValue, on_free: &JsValue) -> usize;
 
-  // From React namespace:
+  // From the React namespace:
 
   #[wasm_bindgen(js_namespace = React, js_name = createElement)]
   pub fn create_element(

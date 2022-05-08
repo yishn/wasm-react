@@ -97,7 +97,7 @@ impl ComponentWrapper {
 ///
 /// ```js
 /// import React from "react";
-/// import init, { Counter } from "./path/to/wasm.js";
+/// import init, { Counter } from "./path/to/wasm-bindings.js";
 ///
 /// function SomeOtherJsComponent(props) {
 ///   return (

@@ -15,7 +15,8 @@ pub use builtin_components::*;
 pub use component::*;
 pub use vnode::*;
 
-/// Contains all functions exported to JS by `wasm-react`.
+/// Contains all functions exported to JS by `wasm-react`. These functions should
+/// be called from JS only.
 #[wasm_bindgen]
 pub struct WasmReact;
 
@@ -28,15 +29,19 @@ impl WasmReact {
   /// # Example
   ///
   /// ```js
+  /// import React from "react";
   /// import init, { WasmReact } from "./path/to/wasm-bindings.js";
-  /// import React from "https://cdn.skypack.dev/react";
   ///
-  /// await init();
-  /// WasmReact.useReact(React);
+  /// async function main() {
+  ///   await init();
+  ///   WasmReact.useReact(React);
+  /// }
+  ///
+  /// main();
   /// ```
   #[wasm_bindgen(js_name = useReact)]
-  pub fn use_react(value: &JsValue) {
-    react_bindings::use_react(value);
+  pub fn use_react(value: &JsValue) -> Result<(), JsValue> {
+    react_bindings::use_react(value)
   }
 }
 
@@ -44,13 +49,13 @@ impl WasmReact {
 /// convenient way to create HTML elements. To create Rust components, use
 /// [`VNode::from()`].
 pub fn create_element(
-  typ: impl Into<JsValue>,
-  props: impl Into<JsValue>,
-  children: VNodeList,
+  typ: &JsValue,
+  props: &JsValue,
+  children: &VNodeList,
 ) -> VNode {
   VNode(react_bindings::create_element(
-    &typ.into(),
-    &props.into(),
-    &children.into(),
+    typ,
+    props,
+    children.as_ref(),
   ))
 }

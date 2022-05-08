@@ -37,6 +37,12 @@ impl Props {
   }
 }
 
+impl AsRef<JsValue> for Props {
+  fn as_ref(&self) -> &JsValue {
+    &self.0
+  }
+}
+
 impl From<Props> for JsValue {
   fn from(style: Props) -> Self {
     style.0.into()

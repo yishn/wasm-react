@@ -101,15 +101,15 @@ impl<T> Clone for JsRefContainer<T> {
   }
 }
 
-impl<T> From<JsRefContainer<T>> for JsValue {
-  fn from(value: JsRefContainer<T>) -> Self {
-    value.0
-  }
-}
-
 impl<T> AsRef<JsValue> for JsRefContainer<T> {
   fn as_ref(&self) -> &JsValue {
     &self.0
+  }
+}
+
+impl<T> From<JsRefContainer<T>> for JsValue {
+  fn from(value: JsRefContainer<T>) -> Self {
+    value.0
   }
 }
 

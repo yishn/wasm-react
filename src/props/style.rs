@@ -18,6 +18,12 @@ impl Style {
   }
 }
 
+impl AsRef<JsValue> for Style {
+  fn as_ref(&self) -> &JsValue {
+    self.0.as_ref()
+  }
+}
+
 impl From<Style> for JsValue {
   fn from(style: Style) -> Self {
     style.0.into()

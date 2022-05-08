@@ -6,6 +6,12 @@ use wasm_bindgen::JsValue;
 #[derive(Clone)]
 pub struct VNode(pub(crate) JsValue);
 
+impl AsRef<JsValue> for VNode {
+  fn as_ref(&self) -> &JsValue {
+    &self.0
+  }
+}
+
 impl From<VNode> for JsValue {
   fn from(value: VNode) -> Self {
     value.0
@@ -63,6 +69,12 @@ impl VNodeList {
   /// Adds the given node to the list.
   pub fn push(&self, node: VNode) {
     self.0.push(&node.into());
+  }
+}
+
+impl AsRef<JsValue> for VNodeList {
+  fn as_ref(&self) -> &JsValue {
+    &self.0
   }
 }
 

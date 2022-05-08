@@ -44,7 +44,7 @@ impl<'a> H<'a> {
   /// Builds the [`VNode`] and returns it with the given children. Use
   /// [`children!`] for easier construction of the children.
   pub fn build(self, children: VNodeList) -> VNode {
-    create_element(self.tag, self.props, children)
+    create_element(&self.tag.into(), self.props.as_ref(), &children)
   }
 }
 
@@ -103,7 +103,7 @@ macro_rules! h {
   ($tag:ident[#$id:literal $( $( $tt:tt )+ )?]) => {
     $crate::props::H::new(stringify!($tag))
       .id($id)
-      $( .class_name(classnames![$( $tt )*]) )?
+      $( .class_name(classnames![$( $tt )+]) )?
   };
   ($tag:ident $( [$( $tt:tt )*] )?) => {
     $crate::props::H::new(stringify!($tag))
