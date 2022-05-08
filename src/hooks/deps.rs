@@ -1,34 +1,37 @@
-use std::rc::Rc;
-
-#[derive(Debug, PartialEq)]
+/// This specifies dependencies for certain hooks.
+///
+/// # Example
+///
+/// ```
+/// # use wasm_react::{*, hooks::*};
+/// # fn log(s: &str) {}
+/// # struct State { counter: () }
+/// # struct F { id: () };
+/// # impl F {
+/// #   fn f(&self, state: State) {
+/// use_effect(|| {
+///   log("This effect will be called whenever this component renders.");
+///
+///   || ()
+/// }, Deps::All::<()>);
+///
+/// use_effect(|| {
+///   log("This effect will only be called once.");
+///
+///   || ()
+/// }, Deps::None::<()>);
+///
+/// use_effect(|| {
+///   log("This effect will be called every time `self.id` or `state.counter` changes.");
+///
+///   || ()
+/// }, Deps::Some((self.id, state.counter)));
+/// #   }
+/// # }
+/// ```
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Deps<T: PartialEq> {
   All,
   None,
-  Some(Rc<T>),
-}
-
-impl<T: PartialEq> Clone for Deps<T> {
-  fn clone(&self) -> Self {
-    match self {
-      Self::All => Self::All,
-      Self::None => Self::None,
-      Self::Some(deps) => Self::Some(deps.clone()),
-    }
-  }
-}
-
-#[macro_export]
-macro_rules! deps {
-  (*) => {
-    $crate::hooks::Deps::All;
-  };
-  () => {
-    $crate::hooks::Deps::None
-  };
-  ($expr:expr) => {
-    $crate::hooks::Deps::Some(std::rc::Rc::new($expr))
-  };
-  ($( $expr:expr ),+ $(,)?) => {
-    $crate::hooks::Deps::Some(std::rc::Rc::new(($( $expr ),+)))
-  };
+  Some(T),
 }

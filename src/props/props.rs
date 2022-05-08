@@ -11,9 +11,13 @@ use wasm_bindgen::{JsValue, UnwrapThrowExt};
 /// # Example
 ///
 /// ```
+/// # use wasm_react::{callback::*, props::*};
+/// # use wasm_bindgen::prelude::*;
+/// # fn f(handle_click: Callback<Void>) -> Props {
 /// Props::new()
-///   .insert("id", "app")
-///   .insert_callback("onClick", handle_click)
+///   .insert("id", &"app".into())
+///   .insert_callback("onClick", &handle_click)
+/// # }
 /// ```
 #[derive(Debug, Default, Clone)]
 pub struct Props(Object);
@@ -35,7 +39,7 @@ impl Props {
   /// [`use_js_ref()`](crate::hooks::use_js_ref()) hook.
   ///
   /// [ref]: https://reactjs.org/docs/refs-and-the-dom.html
-  pub fn ref_container<T>(self, ref_container: JsRefContainer<T>) -> Self {
+  pub fn ref_container<T>(self, ref_container: &JsRefContainer<T>) -> Self {
     self.insert("ref", ref_container.as_ref())
   }
 

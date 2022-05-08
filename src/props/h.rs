@@ -36,9 +36,9 @@ impl<'a> H<'a> {
   /// [`use_js_ref()`](crate::hooks::use_js_ref()) hook.
   ///
   /// [ref]: https://reactjs.org/docs/refs-and-the-dom.html
-  pub fn ref_container<T>(
+  pub fn ref_container(
     mut self,
-    ref_container: JsRefContainer<Option<Element>>,
+    ref_container: &JsRefContainer<Option<Element>>,
   ) -> Self {
     self.props = self.props.ref_container(ref_container);
     self
@@ -78,31 +78,6 @@ impl<'a> H<'a> {
   }
 }
 
-/// This macro will take various objects of [`Into<VNode>`](VNode) and builds a
-/// [`VNodeList`].
-///
-/// # Example
-///
-/// ```
-/// h!(div).build(children![
-///   "Counter: ", 5,
-///   SomeComponent {
-///     some_prop,
-///   },
-///   h!(h1).build(children!["Hello World"]),
-/// ])
-/// ```
-#[macro_export]
-macro_rules! children {
-  [$( $into_vnode:expr ),* $(,)?] => {
-    {
-      let arr = $crate::VNodeList::new();
-      $( arr.push($into_vnode.into()); )*
-      arr
-    }
-  };
-}
-
 /// A convenience macro to [`create_element()`] for creating HTML elements.
 /// This macro returns a builder [`H`] which provides auto-completion for HTML
 /// attributes and events.
@@ -110,11 +85,14 @@ macro_rules! children {
 /// # Example
 ///
 /// ```
+/// # use wasm_react::*;
+/// # fn f() -> VNode {
 /// h!(div)
-///   .attr("id", "app")
+///   .attr("id", &"app".into())
 ///   .build(children![
 ///     h!(h1).build(children!["Hello World!"])
 ///   ])
+/// # }
 ///
 /// // <div id="app"><h1>Hello World!</h1></div>
 /// ```
@@ -123,8 +101,11 @@ macro_rules! children {
 /// notation. You can use the same syntax as [`classnames!`](crate::classnames).
 ///
 /// ```
+/// # use wasm_react::*;
+/// # fn f() -> VNode {
 /// h!(div[#"app"."some-class"."warning"])
 ///   .build(children!["This is a warning!"])
+/// # }
 ///
 /// // <div id="app" class="some-class warning">This is a warning!</div>
 /// ```

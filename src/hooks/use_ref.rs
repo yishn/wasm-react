@@ -6,17 +6,21 @@ use js_sys::Reflect;
 use std::{fmt::Debug, marker::PhantomData};
 use wasm_bindgen::{prelude::Closure, JsCast, JsValue, UnwrapThrowExt};
 
+/// Allows access to the underlying data persisted with [`use_ref()`].
 pub struct RefContainer<T>(*mut T);
 
 impl<T> RefContainer<T> {
+  /// Returns a reference to the underlying data.
   pub fn current(&self) -> &T {
     Box::leak(unsafe { Box::from_raw(self.0) })
   }
 
+  /// Returns a mutable reference to the underlying data.
   pub fn current_mut(&mut self) -> &mut T {
     Box::leak(unsafe { Box::from_raw(self.0) })
   }
 
+  /// Sets the underlying data to the given value.
   pub fn set_current(&mut self, value: T) {
     *self.current_mut() = value;
   }
@@ -42,10 +46,43 @@ impl<T> Clone for RefContainer<T> {
   }
 }
 
+/// This is the main hook to persist Rust data through the entire lifetime of
+/// the component.
+///
+/// Whenever the component is unmounted by React, the data will also be dropped.
+/// Keep in mind that [`use_ref()`] can only be mutated in Rust. If you need a
+/// ref to hold a DOM element, use [`use_js_ref()`] instead.
+///
+/// The component will not rerender when you mutate the underlying data.
+///
+/// # Example
+///
+/// ```
+/// # use wasm_react::{*, hooks::*};
+/// # struct MyData { value: &'static str };
+/// # struct MyComponent { value: &'static str };
+/// impl Component for MyComponent {
+///   /* ... */
+///   # fn name() -> &'static str { "" }
+///
+///   fn render(&self) -> VNode {
+///     let mut ref_container = use_ref(MyData {
+///       value: "Hello World!"
+///     });
+///
+///     use_effect(|| {
+///       ref_container.current_mut().value = self.value;
+///
+///       || ()
+///     }, Deps::Some(self.value));
+///
+///     h!(div).build(children![
+///       ref_container.current().value
+///     ])
+///   }
+/// }
+/// ```
 pub fn use_ref<T: 'static>(init: T) -> RefContainer<T> {
-  // The lifetime of the ref (`UseRefInner<T>`) is completely managed by the
-  // React component. Whenever the component is unmounted by React, the state
-  // will also be dropped.
   let ptr = react_bindings::use_rust_ref(
     Callback::once(move |_: Void| Box::into_raw(Box::new(init))).as_ref(),
     // This callback will always be called exactly one time. Either with
@@ -61,17 +98,21 @@ pub fn use_ref<T: 'static>(init: T) -> RefContainer<T> {
   RefContainer(ptr as *mut T)
 }
 
+/// Allows access to the underlying data persisted with [`use_js_ref()`].
 pub struct JsRefContainer<T>(JsValue, PhantomData<T>);
 
 impl<T: JsCast> JsRefContainer<Option<T>> {
+  /// Returns the underlying typed JS data.
   pub fn current(&self) -> Option<T> {
-    Reflect::get(&self.0, &"current".into())
-      .unwrap_throw()
-      .dyn_into::<T>()
-      .map(|t| Some(t))
-      .unwrap_or(None)
+    self.current_untyped().dyn_into::<T>().ok()
   }
 
+  /// Returns the underlying JS data as [`JsValue`].
+  pub fn current_untyped(&self) -> JsValue {
+    Reflect::get(&self.0, &"current".into()).unwrap_throw()
+  }
+
+  /// Sets the underlying JS data.
   pub fn set_current(&self, value: Option<&T>) {
     Reflect::set(
       &self.0,
@@ -112,6 +153,30 @@ impl<T> From<JsRefContainer<T>> for JsValue {
   }
 }
 
+/// The Rust equivalent to `React.useRef()`. This hook can persist JS data
+/// through the entire lifetime of the component.
+///
+/// Use this if you need JS to set the ref value. If you only need to mutate the
+/// data from Rust, use [`use_ref()`] instead.
+///
+/// # Example
+///
+/// ```
+/// # use wasm_react::{*, hooks::*};
+/// # struct MyComponent;
+/// impl Component for MyComponent {
+///   /* ... */
+///   # fn name() -> &'static str { "" }
+///
+///   fn render(&self) -> VNode {
+///     let div_element = use_js_ref(None);
+///
+///     h!(div)
+///       .ref_container(&div_element)
+///       .build(children!["Hello World!"])
+///   }
+/// }
+/// ```
 pub fn use_js_ref<T: JsCast>(init: Option<T>) -> JsRefContainer<Option<T>> {
   let ref_container = react_bindings::use_ref(
     &init.map(|init| init.into()).unwrap_or(JsValue::null()),

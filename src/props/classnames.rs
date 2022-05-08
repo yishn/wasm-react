@@ -29,18 +29,27 @@ impl<'a, T: Classnames<'a>> Classnames<'a> for Option<T> {
 /// # Example
 ///
 /// ```
-/// classnames![."button"."blue"]
-/// // Yields "button blue "
+/// # use wasm_react::*;
+/// assert_eq!(
+///   classnames![."button"."blue"],
+///   "button blue ".to_string(),
+/// );
 ///
 /// let blue = false;
 /// let disabled = true;
-/// classnames![."button".blue.disabled]
-/// // Yields "button disabled "
+///
+/// assert_eq!(
+///   classnames![."button".blue.disabled],
+///   "button disabled ".to_string(),
+/// );
 ///
 /// let is_blue = Some("blue");
 /// let disabled = true;
-/// classnames![."button".{is_blue}.disabled]
-/// // Yields "button blue disabled "
+///
+/// assert_eq!(
+///   classnames![."button".{is_blue}.disabled],
+///   "button blue disabled ",
+/// );
 /// ```
 #[macro_export]
 macro_rules! classnames {

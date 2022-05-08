@@ -1,3 +1,5 @@
+//! This module contains bindings to React hooks.
+
 mod deps;
 mod use_callback;
 mod use_effect;

@@ -1,11 +1,12 @@
 use crate::{
-  children, classnames, deps, export_component, h,
-  hooks::{self, use_callback},
+  children, classnames, export_component, h,
+  hooks::{self, use_callback, use_effect, use_js_ref, Deps},
   props::Style,
   Callable, Callback, Component, VNode, VNodeList, Void,
 };
 use js_sys::Reflect;
 use wasm_bindgen::prelude::*;
+use web_sys::Element;
 
 #[wasm_bindgen]
 extern "C" {
@@ -14,6 +15,9 @@ extern "C" {
 
   #[wasm_bindgen(js_namespace = console)]
   pub fn log(input: &str);
+
+  #[wasm_bindgen(js_namespace = console, js_name = log)]
+  pub fn log_js(input: &JsValue);
 }
 
 #[derive(Debug, Clone)]
@@ -60,7 +64,7 @@ impl Component for App {
 
         move |_| state.update(move |state| state.counter += diff)
       },
-      deps!(self.diff),
+      Deps::Some(self.diff),
     );
 
     let handle_decrement = use_callback(
@@ -70,7 +74,7 @@ impl Component for App {
 
         move |_| state.update(move |state| state.counter -= diff)
       },
-      deps!(self.diff),
+      Deps::Some(self.diff),
     );
 
     hooks::use_effect(
@@ -85,7 +89,7 @@ impl Component for App {
 
         || ()
       },
-      deps!(warning),
+      Deps::Some(warning),
     );
 
     h!(div[#"app-container".warning])
@@ -126,12 +130,13 @@ impl Component for Counter {
   }
 
   fn render(&self) -> VNode {
+    let element_ref = use_js_ref(None::<Element>);
     let handle_decrement = use_callback(
       {
         let on_decrement = self.on_decrement.clone();
         move |_| on_decrement.call(Void)
       },
-      deps!(self.on_decrement.clone()),
+      Deps::Some(self.on_decrement.clone()),
     );
 
     let handle_increment = use_callback(
@@ -139,18 +144,34 @@ impl Component for Counter {
         let on_increment = self.on_increment.clone();
         move |_| on_increment.call(Void)
       },
-      deps!(self.on_increment.clone()),
+      Deps::Some(self.on_increment.clone()),
     );
 
-    h!(div[."counter-component"]).build(children![
-      h!(button)
-        .on_click(&handle_decrement)
-        .build(children!["Decrement"]),
-      " ",
-      h!(button[."default"])
-        .on_click(&handle_increment)
-        .html_type("submit")
-        .build(children!["Increment"])
-    ])
+    use_effect(
+      || {
+        log_js(
+          &element_ref
+            .current()
+            .map(|x| x.into())
+            .unwrap_or(JsValue::undefined()),
+        );
+
+        || ()
+      },
+      Deps::Some(element_ref.current_untyped()),
+    );
+
+    h!(div[."counter-component"])
+      .ref_container(&element_ref)
+      .build(children![
+        h!(button)
+          .on_click(&handle_decrement)
+          .build(children!["Decrement"]),
+        " ",
+        h!(button[."default"])
+          .on_click(&handle_increment)
+          .html_type("submit")
+          .build(children!["Increment"])
+      ])
   }
 }

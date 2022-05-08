@@ -28,15 +28,18 @@ impl<'a> H<'a> {
   /// # Example
   ///
   /// ```
+  /// # use wasm_react::{*, props::*};
   /// fn create_markup() -> DangerousHtml<'static> {
   ///   DangerousHtml {
   ///     __html: "First &middot; Second".into()
   ///   }
   /// }
   ///
+  /// # fn f() -> VNode {
   /// h!(div)
   ///   .dangerously_set_inner_html(&create_markup())
   ///   .build(children![])
+  /// # }
   /// ```
   pub fn dangerously_set_inner_html(self, value: &DangerousHtml) -> Self {
     self.attr(

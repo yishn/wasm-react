@@ -14,6 +14,7 @@ use wasm_bindgen::prelude::*;
 /// # Example
 ///
 /// ```
+/// # use wasm_react::*;
 /// struct Counter(i32);
 ///
 /// impl Component for Counter {
@@ -77,11 +78,18 @@ impl ComponentWrapper {
 /// your component and export it:
 ///
 /// ```
+/// # use wasm_react::*;
+/// # use wasm_bindgen::prelude::*;
+/// # use js_sys::Reflect;
 /// pub struct Counter {
 ///   counter: i32,
 /// }
 ///
-/// impl Component for Counter { /* ... */ }
+/// impl Component for Counter {
+/// # fn name() -> &'static str { "" }
+/// # fn render(&self) -> VNode { h!(div).build(children![]) }
+///   /* ... */
+/// }
 ///
 /// impl TryFrom<JsValue> for Counter {
 ///   type Error = JsValue;
@@ -91,7 +99,7 @@ impl ComponentWrapper {
 ///       .as_f64()
 ///       .ok_or(JsError::new("`counter` property not found"))?;
 ///
-///     Ok(Counter { counter: counter as i32 })
+///     Ok(Counter { counter: diff as i32 })
 ///   }
 /// }
 ///
@@ -115,6 +123,8 @@ impl ComponentWrapper {
 #[macro_export]
 macro_rules! export_component {
   ($component:ident) => {
+    use wasm_bindgen::JsValue;
+
     #[allow(non_snake_case)]
     #[allow(dead_code)]
     #[wasm_bindgen]

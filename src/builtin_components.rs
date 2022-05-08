@@ -7,10 +7,13 @@ use crate::{create_element, props::Props, react_bindings, VNode, VNodeList};
 /// # Example
 ///
 /// ```
+/// # use wasm_react::*;
+/// # fn f() -> VNode {
 /// Fragment.build(children![
 ///   h!(h1).build(children!["Hello World!"]),
 ///   h!(div).build(children!["No wrapper element"]),
 /// ])
+/// # }
 /// ```
 pub struct Fragment;
 

@@ -3,6 +3,17 @@ use wasm_bindgen::JsValue;
 
 /// A convenience wrapper around [`Props`] that provides auto-completion for
 /// style-related properties.
+///
+/// # Example
+///
+/// ```
+/// # use wasm_react::props::*;
+/// # fn f() -> Style {
+/// Style::new()
+///   .display("grid")
+///   .grid("1fr 1fr / 1fr 1fr")
+/// # }
+/// ```
 #[derive(Debug, Default, Clone)]
 pub struct Style(Props);
 

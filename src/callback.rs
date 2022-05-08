@@ -1,5 +1,6 @@
 //! This module provides structs to pass Rust closures to JS.
 
+use crate::{Persisted, PersistedOrigin};
 use js_sys::Function;
 use std::{fmt::Debug, ops::Deref, rc::Rc};
 use wasm_bindgen::{
@@ -9,12 +10,13 @@ use wasm_bindgen::{
   JsCast, JsValue, UnwrapThrowExt,
 };
 
-use crate::{Persisted, PersistedOrigin};
-
 /// A helper struct to simulate a [`Callback`] with no input arguments.
 ///
 /// ```
+/// # use wasm_react::callback::*;
+/// # fn f() {
 /// let callback: Callback<Void> = Callback::new(|_: Void| ());
+/// # }
 /// ```
 #[derive(Debug, Default, PartialEq, Eq, Clone, Copy)]
 pub struct Void;

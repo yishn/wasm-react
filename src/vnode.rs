@@ -57,6 +57,20 @@ impl_into_vnode! {
 }
 
 /// Represents a list of nodes in the virtual DOM of React.
+///
+/// Use the [`children!`] macro to build a [`VNodeList`] more conveniently. You
+/// can also collect an iterator of [`VNode`] into a [`VNodeList`]:
+///
+/// ```
+/// # use wasm_react::*;
+/// #
+/// # fn f() -> VNodeList {
+/// vec!["first item", "second item", "third item"]
+///   .iter()
+///   .map(|&x| h!(li).build(children![x]))
+///   .collect::<VNodeList>()
+/// # }
+/// ```
 #[derive(Default, Clone)]
 pub struct VNodeList(Array);
 
@@ -108,4 +122,39 @@ impl FromIterator<VNode> for VNodeList {
 
     result
   }
+}
+
+/// This macro will take various objects of [`Into<VNode>`](VNode) and builds a
+/// [`VNodeList`].
+///
+/// # Example
+///
+/// ```
+/// # use wasm_react::*;
+/// #
+/// # struct SomeComponent { some_prop: () }
+/// # impl Component for SomeComponent {
+/// #   fn name() -> &'static str { "" }
+/// #   fn render(&self) -> VNode { h!(div).build(children![]) }
+/// # }
+/// #
+/// # fn f(some_prop: ()) -> VNode {
+/// h!(div).build(children![
+///   "Counter: ", 5,
+///   SomeComponent {
+///     some_prop,
+///   },
+///   h!(h1).build(children!["Hello World"]),
+/// ])
+/// # }
+/// ```
+#[macro_export]
+macro_rules! children {
+  [$( $into_vnode:expr ),* $(,)?] => {
+    {
+      let arr = $crate::VNodeList::new();
+      $( arr.push($into_vnode.into()); )*
+      arr
+    }
+  };
 }
