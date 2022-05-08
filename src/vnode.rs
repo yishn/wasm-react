@@ -6,6 +6,19 @@ use wasm_bindgen::JsValue;
 #[derive(Clone)]
 pub struct VNode(pub(crate) JsValue);
 
+impl VNode {
+  /// An empty node that doesn't render anything.
+  pub fn empty() -> VNode {
+    VNode(JsValue::null())
+  }
+}
+
+impl Default for VNode {
+  fn default() -> Self {
+    Self::empty()
+  }
+}
+
 impl AsRef<JsValue> for VNode {
   fn as_ref(&self) -> &JsValue {
     &self.0
@@ -135,7 +148,7 @@ impl FromIterator<VNode> for VNodeList {
 /// # struct SomeComponent { some_prop: () }
 /// # impl Component for SomeComponent {
 /// #   fn name() -> &'static str { "" }
-/// #   fn render(&self) -> VNode { h!(div).build(children![]) }
+/// #   fn render(&self) -> VNode { VNode::empty() }
 /// # }
 /// #
 /// # fn f(some_prop: ()) -> VNode {

@@ -87,7 +87,7 @@ impl ComponentWrapper {
 ///
 /// impl Component for Counter {
 /// # fn name() -> &'static str { "" }
-/// # fn render(&self) -> VNode { h!(div).build(children![]) }
+/// # fn render(&self) -> VNode { VNode::empty() }
 ///   /* ... */
 /// }
 ///

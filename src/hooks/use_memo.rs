@@ -1,8 +1,12 @@
 use super::{use_ref, Deps, RefContainer};
 use crate::{Persisted, PersistedOrigin};
-use std::{fmt::Debug, ops::Deref};
+use std::{
+  fmt::Debug,
+  ops::{Deref, DerefMut},
+};
 use wasm_bindgen::UnwrapThrowExt;
 
+/// Allows access to the underlying memoized data persisted with [`use_memo()`].
 pub struct Memo<T, D: PartialEq>(RefContainer<Option<(T, Deps<D>)>>);
 
 impl<T, D: PartialEq> Persisted for Memo<T, D> {
@@ -31,7 +35,36 @@ impl<T, D: PartialEq> Deref for Memo<T, D> {
   }
 }
 
-pub fn use_memo<T, D>(f: impl FnOnce() -> T, deps: Deps<D>) -> Memo<T, D>
+impl<T, D: PartialEq> DerefMut for Memo<T, D> {
+  fn deref_mut(&mut self) -> &mut Self::Target {
+    &mut self.0.current_mut().as_mut().unwrap_throw().0
+  }
+}
+
+/// Returns a persisted, memoized value.
+///
+/// This will recompute the value with the given closure whenever the given
+/// dependencies has changed from last render. This optimization helps to avoid
+/// expensive calculations on every render.
+///
+/// # Example
+///
+/// ```
+/// # use wasm_react::{*, hooks::*};
+/// #
+/// # fn compute_expensive_value(a: (), b: ()) -> &'static str { "" }
+/// # struct C { a: (), b:() };
+/// # impl C {
+/// fn render(&self) -> VNode {
+///   let a = self.a;
+///   let b = self.b;
+///   let memo = use_memo(|| compute_expensive_value(a, b), Deps::Some((a, b)));
+///
+///   h!(div).build(children![*memo])
+/// }
+/// # }
+/// ```
+pub fn use_memo<T, D>(create: impl FnOnce() -> T, deps: Deps<D>) -> Memo<T, D>
 where
   T: 'static,
   D: PartialEq + 'static,
@@ -40,7 +73,7 @@ where
   let old_deps = ref_container.current().as_ref().map(|memo| &memo.1);
 
   if deps == Deps::All || Some(&deps) != old_deps {
-    ref_container.set_current(Some((f(), deps)));
+    ref_container.set_current(Some((create(), deps)));
   }
 
   Memo(ref_container)

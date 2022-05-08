@@ -98,7 +98,7 @@ pub fn use_ref<T: 'static>(init: T) -> RefContainer<T> {
   RefContainer(ptr as *mut T)
 }
 
-/// Allows access to the underlying data persisted with [`use_js_ref()`].
+/// Allows access to the underlying JS data persisted with [`use_js_ref()`].
 pub struct JsRefContainer<T>(JsValue, PhantomData<T>);
 
 impl<T: JsCast> JsRefContainer<Option<T>> {
@@ -153,8 +153,8 @@ impl<T> From<JsRefContainer<T>> for JsValue {
   }
 }
 
-/// The Rust equivalent to `React.useRef()`. This hook can persist JS data
-/// through the entire lifetime of the component.
+/// A binding to `React.useRef()`. This hook can persist JS data through the
+/// entire lifetime of the component.
 ///
 /// Use this if you need JS to set the ref value. If you only need to mutate the
 /// data from Rust, use [`use_ref()`] instead.

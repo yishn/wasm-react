@@ -6,9 +6,12 @@ use js_sys::Function;
 use std::{fmt::Debug, ops::Deref};
 use wasm_bindgen::UnwrapThrowExt;
 
+/// Allows access to the underlying state data persisted with [`use_state()`].
 pub struct State<T>(RefContainer<Option<T>>, Function);
 
 impl<T: 'static> State<T> {
+  /// Updates the underlying state with the given mutator closure and rerenders
+  /// the component.
   pub fn update(&mut self, mutator: impl FnOnce(&mut T)) {
     mutator(self.0.current_mut().as_mut().unwrap_throw());
 
@@ -42,6 +45,32 @@ impl<T> Deref for State<T> {
   }
 }
 
+/// Persist stateful data of the component.
+///
+/// Unlike the [`use_ref()`] hook, updating the state will automatically trigger
+/// a rerender of the component.
+///
+/// # Example
+///
+/// ```
+/// # use wasm_react::{*, hooks::*};
+/// #
+/// # struct State { value: &'static str }
+/// # struct C;
+/// # impl C {
+/// fn render(&self) -> VNode {
+///   let mut state = use_state(|| State { value: "Hello!" });
+///
+///   use_effect(|| {
+///     state.update(|state| state.value = "Welcome!");
+///
+///     || ()
+///   }, Deps::Some(( /* ... */ )));
+///
+///   h!(div).build(children![state.value])
+/// }
+/// # }
+/// ```
 pub fn use_state<T: 'static>(init: impl FnOnce() -> T) -> State<T> {
   let mut ref_container = use_ref(None);
 

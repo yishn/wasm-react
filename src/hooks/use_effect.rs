@@ -1,5 +1,6 @@
 use super::{use_ref, Deps};
 
+// FIXME: Currently does not call destructor when component unmounts.
 pub fn use_effect<G, D>(f: impl FnOnce() -> G, deps: Deps<D>)
 where
   G: FnOnce() + 'static,

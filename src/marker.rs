@@ -9,6 +9,7 @@
 /// only a pointer, so cloning is a fast way to make the underlying data
 /// available for a closure, by moving a clone of the pointer inside it.
 pub trait Persisted: Clone {
+  #[doc(hidden)]
   fn ptr(&self) -> PersistedOrigin;
 }
 

@@ -8,6 +8,7 @@ use web_sys::{
 macro_rules! impl_event {
   { $( $on_event:ident, $on_event_str:expr, $E:ty; )* } => {
     $(
+      #[allow(missing_docs)]
       pub fn $on_event(self, f: &PersistedCallback<$E>) -> Self {
         self.attr_callback($on_event_str, f)
       }

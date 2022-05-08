@@ -6,12 +6,14 @@ use wasm_bindgen::JsValue;
 /// To be used with [`H::dangerously_set_inner_html()`].
 #[derive(Debug, Default, PartialEq, Eq, Clone)]
 pub struct DangerousHtml<'a> {
+  /// The HTML content to be rendered.
   pub __html: Cow<'a, str>,
 }
 
 macro_rules! impl_attr {
   { $( $attr:ident, $attr_str:expr, $T:ty; )* } => {
     $(
+      #[allow(missing_docs)]
       pub fn $attr(self, value: $T) -> Self {
         self.attr($attr_str, &Into::<JsValue>::into(value))
       }

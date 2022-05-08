@@ -1,9 +1,17 @@
+#![warn(missing_docs)]
+#![doc = include_str!("../README.md")]
+
+// This hack is needed to let the doctests run for our README file
+#[cfg(doctest)]
+#[doc = include_str!("../README.md")]
+extern "C" {}
+
 mod builtin_components;
 mod component;
+mod marker;
 mod react_bindings;
 mod test;
 mod vnode;
-mod marker;
 
 pub mod callback;
 pub mod hooks;
@@ -14,8 +22,8 @@ use wasm_bindgen::prelude::*;
 
 pub use builtin_components::*;
 pub use component::*;
-pub use vnode::*;
 pub use marker::*;
+pub use vnode::*;
 
 /// Contains all functions exported to JS by `wasm-react`. These functions should
 /// be called from JS only.
