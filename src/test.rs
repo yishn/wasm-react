@@ -97,8 +97,8 @@ impl Component for App {
         //
         Counter {
           counter: state.counter,
-          on_increment: Some(handle_increment),
-          on_decrement: Some(handle_decrement),
+          on_increment: Some(handle_increment.into()),
+          on_decrement: Some(handle_decrement.into()),
         },
         //
         h!(ul[."logs"]).build(children![

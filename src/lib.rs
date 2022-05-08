@@ -3,6 +3,7 @@ mod component;
 mod react_bindings;
 mod test;
 mod vnode;
+mod marker;
 
 pub mod callback;
 pub mod hooks;
@@ -14,6 +15,7 @@ use wasm_bindgen::prelude::*;
 pub use builtin_components::*;
 pub use component::*;
 pub use vnode::*;
+pub use marker::*;
 
 /// Contains all functions exported to JS by `wasm-react`. These functions should
 /// be called from JS only.

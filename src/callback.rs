@@ -1,13 +1,15 @@
 //! This module provides structs to pass Rust closures to JS.
 
 use js_sys::Function;
-use std::{fmt::Debug, rc::Rc};
+use std::{fmt::Debug, ops::Deref, rc::Rc};
 use wasm_bindgen::{
   convert::{FromWasmAbi, IntoWasmAbi},
   describe::WasmDescribe,
   prelude::Closure,
   JsCast, JsValue, UnwrapThrowExt,
 };
+
+use crate::{Persisted, PersistedOrigin};
 
 /// A helper struct to simulate a [`Callback`] with no input arguments.
 ///
@@ -111,6 +113,40 @@ impl<T, U> AsRef<JsValue> for Callback<T, U> {
 impl<T, U> AsRef<Function> for Callback<T, U> {
   fn as_ref(&self) -> &Function {
     (*self.0).as_ref().dyn_ref::<Function>().unwrap_throw()
+  }
+}
+
+pub struct PersistedCallback<T, U = ()>(pub(crate) Callback<T, U>);
+
+impl<T, U> Debug for PersistedCallback<T, U> {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    f.write_str("PersistedCallback(|_| { ... })")
+  }
+}
+
+impl<T, U> Clone for PersistedCallback<T, U> {
+  fn clone(&self) -> Self {
+    Self(self.0.clone())
+  }
+}
+
+impl<T, U> Deref for PersistedCallback<T, U> {
+  type Target = Callback<T, U>;
+
+  fn deref(&self) -> &Self::Target {
+    &self.0
+  }
+}
+
+impl<T, U> From<PersistedCallback<T, U>> for Callback<T, U> {
+  fn from(value: PersistedCallback<T, U>) -> Self {
+    value.0
+  }
+}
+
+impl<T, U> Persisted for PersistedCallback<T, U> {
+  fn ptr(&self) -> PersistedOrigin {
+    PersistedOrigin
   }
 }
 

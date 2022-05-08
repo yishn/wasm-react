@@ -1,9 +1,12 @@
 use super::Props;
-use crate::{create_element, Callback, VNode, VNodeList, hooks::JsRefContainer};
+use crate::{
+  create_element, hooks::JsRefContainer, Callback, VNode, VNodeList,
+};
 use wasm_bindgen::{
   convert::{FromWasmAbi, IntoWasmAbi},
   JsValue,
 };
+use web_sys::Element;
 
 /// The builder that powers [`h!`].
 pub struct H<'a> {
@@ -33,7 +36,10 @@ impl<'a> H<'a> {
   /// [`use_js_ref()`](crate::hooks::use_js_ref()) hook.
   ///
   /// [ref]: https://reactjs.org/docs/refs-and-the-dom.html
-  pub fn ref_container<T>(mut self, ref_container: JsRefContainer<T>) -> Self {
+  pub fn ref_container<T>(
+    mut self,
+    ref_container: JsRefContainer<Option<Element>>,
+  ) -> Self {
     self.props = self.props.ref_container(ref_container);
     self
   }
@@ -41,7 +47,10 @@ impl<'a> H<'a> {
   /// Sets the [React ref][ref] to the given ref callback.
   ///
   /// [ref]: https://reactjs.org/docs/refs-and-the-dom.html
-  pub fn ref_callback<T>(mut self, ref_callback: &Callback<T, ()>) -> Self {
+  pub fn ref_callback(
+    mut self,
+    ref_callback: &Callback<Option<Element>, ()>,
+  ) -> Self {
     self.props = self.props.ref_callback(ref_callback);
     self
   }
@@ -53,11 +62,7 @@ impl<'a> H<'a> {
   }
 
   /// Sets a callback value to an attribute on the [`VNode`].
-  pub fn attr_callback<T, U>(
-    mut self,
-    key: &str,
-    f: &Callback<T, U>,
-  ) -> Self
+  pub fn attr_callback<T, U>(mut self, key: &str, f: &Callback<T, U>) -> Self
   where
     T: FromWasmAbi + 'static,
     U: IntoWasmAbi + 'static,

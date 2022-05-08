@@ -1,61 +1,48 @@
 use crate::{
   callback::{Callback, Void},
-  react_bindings,
+  react_bindings, Persisted, PersistedOrigin,
 };
 use js_sys::Reflect;
-use std::{
-  fmt::{Debug, Pointer},
-  marker::PhantomData,
-  ops::{Deref, DerefMut},
-};
+use std::{fmt::Debug, marker::PhantomData};
 use wasm_bindgen::{prelude::Closure, JsCast, JsValue, UnwrapThrowExt};
 
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone)]
-pub struct RefContainer<T>(T);
+pub struct RefContainer<T>(*mut T);
 
 impl<T> RefContainer<T> {
   pub fn current(&self) -> &T {
-    &self.0
+    Box::leak(unsafe { Box::from_raw(self.0) })
   }
 
   pub fn current_mut(&mut self) -> &mut T {
-    &mut self.0
+    Box::leak(unsafe { Box::from_raw(self.0) })
   }
 
   pub fn set_current(&mut self, value: T) {
-    self.0 = value;
+    *self.current_mut() = value;
   }
 }
 
-pub struct UseRef<T>(*mut RefContainer<T>);
+impl<T> Persisted for RefContainer<T> {
+  fn ptr(&self) -> PersistedOrigin {
+    PersistedOrigin
+  }
+}
 
-impl<T> Debug for UseRef<T> {
+impl<T: Debug> Debug for RefContainer<T> {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    self.deref().fmt(f)
+    f.debug_struct("RefContainer")
+      .field("current", self.current())
+      .finish()
   }
 }
 
-impl<T> Clone for UseRef<T> {
+impl<T> Clone for RefContainer<T> {
   fn clone(&self) -> Self {
     Self(self.0.clone())
   }
 }
 
-impl<T> Deref for UseRef<T> {
-  type Target = RefContainer<T>;
-
-  fn deref(&self) -> &Self::Target {
-    Box::leak(unsafe { Box::from_raw(self.0) })
-  }
-}
-
-impl<T> DerefMut for UseRef<T> {
-  fn deref_mut(&mut self) -> &mut Self::Target {
-    Box::leak(unsafe { Box::from_raw(self.0) })
-  }
-}
-
-pub fn use_ref<T: 'static>(init: T) -> UseRef<T> {
+pub fn use_ref<T: 'static>(init: T) -> RefContainer<T> {
   // The lifetime of the ref (`UseRefInner<T>`) is completely managed by the
   // React component. Whenever the component is unmounted by React, the state
   // will also be dropped.
@@ -66,17 +53,17 @@ pub fn use_ref<T: 'static>(init: T) -> UseRef<T> {
     // drop the inner value, or with `None` where we should do nothing.
     &Closure::once_into_js(move |ptr: Option<usize>| {
       if let Some(ptr) = ptr {
-        drop(unsafe { Box::from_raw(ptr as *mut RefContainer<T>) });
+        drop(unsafe { Box::from_raw(ptr as *mut T) });
       }
     }),
   );
 
-  UseRef(ptr as *mut RefContainer<T>)
+  RefContainer(ptr as *mut T)
 }
 
 pub struct JsRefContainer<T>(JsValue, PhantomData<T>);
 
-impl<T: JsCast> JsRefContainer<T> {
+impl<T: JsCast> JsRefContainer<Option<T>> {
   pub fn current(&self) -> Option<T> {
     Reflect::get(&self.0, &"current".into())
       .unwrap_throw()
@@ -92,6 +79,18 @@ impl<T: JsCast> JsRefContainer<T> {
       value.map(|t| t.as_ref()).unwrap_or(&JsValue::null()),
     )
     .unwrap_throw();
+  }
+}
+
+impl<T> Persisted for JsRefContainer<T> {
+  fn ptr(&self) -> PersistedOrigin {
+    PersistedOrigin
+  }
+}
+
+impl<T> Debug for JsRefContainer<T> {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    f.debug_tuple("JsRefContainer").field(&self.0).finish()
   }
 }
 
@@ -113,7 +112,7 @@ impl<T> From<JsRefContainer<T>> for JsValue {
   }
 }
 
-pub fn use_js_ref<T: JsCast>(init: Option<T>) -> JsRefContainer<T> {
+pub fn use_js_ref<T: JsCast>(init: Option<T>) -> JsRefContainer<Option<T>> {
   let ref_container = react_bindings::use_ref(
     &init.map(|init| init.into()).unwrap_or(JsValue::null()),
   );

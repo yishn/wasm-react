@@ -20,5 +20,6 @@ js-sys = "0.3.57"
 version = "0.3.57"
 features = [
   "Event", "MouseEvent", "FocusEvent", "KeyboardEvent", "DragEvent",
-  "PointerEvent", "WheelEvent", "AnimationEvent", "TransitionEvent"
+  "PointerEvent", "WheelEvent", "AnimationEvent", "TransitionEvent",
+  "Element"
 ]

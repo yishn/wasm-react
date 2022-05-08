@@ -1,5 +1,5 @@
 use super::H;
-use crate::Callback;
+use crate::callback::PersistedCallback;
 use web_sys::{
   AnimationEvent, DragEvent, Event, FocusEvent, KeyboardEvent, MouseEvent,
   PointerEvent, TransitionEvent, UiEvent, WheelEvent,
@@ -8,7 +8,7 @@ use web_sys::{
 macro_rules! impl_event {
   { $( $on_event:ident, $on_event_str:expr, $E:ty; )* } => {
     $(
-      pub fn $on_event(self, f: &Callback<$E>) -> Self {
+      pub fn $on_event(self, f: &PersistedCallback<$E>) -> Self {
         self.attr_callback($on_event_str, f)
       }
     )*
