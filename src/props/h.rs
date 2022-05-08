@@ -78,8 +78,8 @@ impl<'a> H<'a> {
   }
 }
 
-/// This macro is to be used in conjunction with [`h!`]. It will take various
-/// objects of [`Into<VNode>`](VNode) and builds a JS array.
+/// This macro will take various objects of [`Into<VNode>`](VNode) and builds a
+/// [`VNodeList`].
 ///
 /// # Example
 ///
@@ -119,7 +119,7 @@ macro_rules! children {
 /// // <div id="app"><h1>Hello World!</h1></div>
 /// ```
 ///
-/// It is also possible to add an id and classes to the element using an array
+/// It is also possible to add an id and/or classes to the element using a terse
 /// notation. You can use the same syntax as [`classnames!`](crate::classnames).
 ///
 /// ```

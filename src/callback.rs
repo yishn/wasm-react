@@ -44,12 +44,11 @@ impl From<Void> for JsValue {
 /// represents a Rust closure that can be called from JS.
 ///
 /// It only supports closures with exactly one input argument and some return
-/// value. Memory management is handled by Rust. Whenever Rust drops all
-/// references of the [`Callback`], the closure will be dropped and the function
-/// cannot be called from JS anymore.
+/// value. Memory management is handled by Rust. Whenever Rust drops all clones
+/// of the [`Callback`], the closure will be dropped and the function cannot be
+/// called from JS anymore.
 ///
-/// This can be used in conjunction with the [`use_callback`](crate::hooks::use_callback())
-/// hook to make the callback persist for the entire lifetime of a component.
+/// Use [`Void`] to simulate a callback with no arguments.
 pub struct Callback<T, U = ()>(Rc<Closure<dyn FnMut(T) -> U>>);
 
 impl<T, U> Callback<T, U>
@@ -57,14 +56,14 @@ where
   T: FromWasmAbi + 'static,
   U: IntoWasmAbi + 'static,
 {
-  /// Constructs a new [`Callback`] from an [`FnMut`].
+  /// Creates a new [`Callback`] from an [`FnMut`].
   pub fn new(mut f: impl FnMut(T) -> U + 'static) -> Self {
     Self(Rc::new(Closure::wrap(
       Box::new(move |arg| f(arg)) as Box<dyn FnMut(T) -> U>
     )))
   }
 
-  /// Constructs a new [`Callback`] from an [`FnOnce`].
+  /// Creates a new [`Callback`] from an [`FnOnce`] that can only be called once.
   pub fn once(f: impl FnOnce(T) -> U + 'static) -> Self {
     Self(Rc::new(Closure::once(move |arg| f(arg))))
   }
@@ -116,6 +115,22 @@ impl<T, U> AsRef<Function> for Callback<T, U> {
   }
 }
 
+/// This is a wrapper around a [`Callback`] which can persist through the
+/// lifetime of a component.
+///
+/// Usually, this struct is created by using the
+/// [`use_callback()`](crate::hooks::use_callback()) hook.
+///
+/// As with [`Callback`], this only supports closures with exactly one input
+/// argument and some return value. The underlying Rust closure will be dropped
+/// when all of the following conditions are met:
+///
+/// - All clones have been dropped.
+/// - All clones to the underlying [`Callback`] have been dropped.
+/// - The React component has unmounted.
+///
+/// It can be dropped earlier, e.g. when the underlying [`Callback`] has been
+/// replaced by another and no more clones exist.
 pub struct PersistedCallback<T, U = ()>(pub(crate) Callback<T, U>);
 
 impl<T, U> Debug for PersistedCallback<T, U> {
@@ -129,6 +144,14 @@ impl<T, U> Clone for PersistedCallback<T, U> {
     Self(self.0.clone())
   }
 }
+
+impl<T, U> PartialEq for PersistedCallback<T, U> {
+  fn eq(&self, other: &Self) -> bool {
+    self.0 == other.0
+  }
+}
+
+impl<T, U> Eq for PersistedCallback<T, U> {}
 
 impl<T, U> Deref for PersistedCallback<T, U> {
   type Target = Callback<T, U>;

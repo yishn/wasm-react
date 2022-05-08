@@ -2,7 +2,7 @@ use crate::VNode;
 use wasm_bindgen::prelude::*;
 
 /// Implement this trait on a struct to create a component with the struct as
-/// props. The props struct has to be `'static`.
+/// props.
 ///
 /// The props will be completely controlled by Rust, which makes rendering them
 /// relatively simple in Rust. However, since the props struct cannot be
@@ -26,12 +26,12 @@ use wasm_bindgen::prelude::*;
 ///   }
 /// }
 /// ```
-pub trait Component {
+pub trait Component: 'static {
   /// The name of the component that will be displayed in the React Developer
   /// Tools, should be the struct name.
   fn name() -> &'static str
   where
-    Self: Sized + 'static;
+    Self: Sized;
 
   /// The render function.
   ///
@@ -65,6 +65,11 @@ impl ComponentWrapper {
 /// Requirement is that you implement the [`TryFrom<JsValue, Error = JsValue>`](core::convert::TryFrom)
 /// trait on your component and that you do not export anything else that has
 /// the same name as your component.
+///
+/// Therefore, it is only recommended to use this macro if you're writing a
+/// library for JS consumption only, or if you're writing a standalone
+/// application, since this will pollute the export namespace, which isn't
+/// desirable if you're writing a library for Rust consumption only.
 ///
 /// # Example
 ///

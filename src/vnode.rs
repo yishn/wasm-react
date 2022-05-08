@@ -18,7 +18,7 @@ impl From<VNode> for JsValue {
   }
 }
 
-impl<T: Component + 'static> From<T> for VNode {
+impl<T: Component> From<T> for VNode {
   fn from(value: T) -> Self {
     VNode(react_bindings::create_rust_component(
       T::name(),
