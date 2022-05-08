@@ -89,7 +89,7 @@ impl Component for App {
     );
 
     h!(div[#"app-container".warning])
-      .attr("data-counter", state.counter)
+      .attr("data-counter", &state.counter.into())
       .build(children![
         h!(h2)
           .style(Style::new().color(warning.then(|| "red")))

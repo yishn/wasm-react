@@ -1,4 +1,4 @@
-use crate::Callback;
+use crate::{Callback, hooks::JsRefContainer};
 use js_sys::{Object, Reflect};
 use wasm_bindgen::{JsValue, UnwrapThrowExt};
 
@@ -24,15 +24,37 @@ impl Props {
     Self::default()
   }
 
+  /// Sets the [React key][key].
+  ///
+  /// [key]: https://reactjs.org/docs/lists-and-keys.html
+  pub fn key(self, value: Option<&str>) -> Self {
+    self.insert("key", &value.into())
+  }
+
+  /// Sets the [React ref][ref] to the given ref container created with the
+  /// [`use_js_ref()`](crate::hooks::use_js_ref()) hook.
+  ///
+  /// [ref]: https://reactjs.org/docs/refs-and-the-dom.html
+  pub fn ref_container<T>(self, ref_container: JsRefContainer<T>) -> Self {
+    self.insert("ref", ref_container.as_ref())
+  }
+
+  /// Sets the [React ref][ref] to the given ref callback.
+  ///
+  /// [ref]: https://reactjs.org/docs/refs-and-the-dom.html
+  pub fn ref_callback<T>(self, ref_callback: &Callback<T, ()>) -> Self {
+    self.insert_callback("ref", ref_callback)
+  }
+
   /// Equivalent to `props[key] = value;`.
-  pub fn insert(self, key: &str, value: &JsValue) -> Self {
-    Reflect::set(&self.0, &key.into(), value).unwrap_throw();
+  pub fn insert(self, prop: &str, value: &JsValue) -> Self {
+    Reflect::set(&self.0, &prop.into(), value).unwrap_throw();
     self
   }
 
   /// Equivalent to `props[key] = f;`.
-  pub fn insert_callback<T, U>(self, key: &str, f: &Callback<T, U>) -> Self {
-    Reflect::set(&self.0, &key.into(), f.as_ref()).unwrap_throw();
+  pub fn insert_callback<T, U>(self, prop: &str, f: &Callback<T, U>) -> Self {
+    Reflect::set(&self.0, &prop.into(), f.as_ref()).unwrap_throw();
     self
   }
 }

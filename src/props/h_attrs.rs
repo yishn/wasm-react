@@ -21,13 +21,6 @@ macro_rules! impl_attr {
 
 /// Provides auto-completion for DOM attributes on [`H`].
 impl<'a> H<'a> {
-  /// Sets the [React key][key].
-  ///
-  /// [key]: https://reactjs.org/docs/lists-and-keys.html
-  pub fn key(self, value: Option<&str>) -> Self {
-    self.attr("key", &value.into())
-  }
-
   /// Equivalent to `props.dangerouslySetInnerHTML = { __html: value.__html };`.
   ///
   /// See also [React documentation](https://reactjs.org/docs/dom-elements.html#dangerouslysetinnerhtml).

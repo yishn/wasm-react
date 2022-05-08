@@ -1,5 +1,5 @@
 use super::Props;
-use crate::{create_element, Callback, VNode, VNodeList};
+use crate::{create_element, Callback, VNode, VNodeList, hooks::JsRefContainer};
 use wasm_bindgen::{
   convert::{FromWasmAbi, IntoWasmAbi},
   JsValue,
@@ -19,6 +19,31 @@ impl<'a> H<'a> {
       tag,
       props: Props::new(),
     }
+  }
+
+  /// Sets the [React key][key].
+  ///
+  /// [key]: https://reactjs.org/docs/lists-and-keys.html
+  pub fn key(mut self, value: Option<&str>) -> Self {
+    self.props = self.props.key(value);
+    self
+  }
+
+  /// Sets the [React ref][ref] to the given ref container created with the
+  /// [`use_js_ref()`](crate::hooks::use_js_ref()) hook.
+  ///
+  /// [ref]: https://reactjs.org/docs/refs-and-the-dom.html
+  pub fn ref_container<T>(mut self, ref_container: JsRefContainer<T>) -> Self {
+    self.props = self.props.ref_container(ref_container);
+    self
+  }
+
+  /// Sets the [React ref][ref] to the given ref callback.
+  ///
+  /// [ref]: https://reactjs.org/docs/refs-and-the-dom.html
+  pub fn ref_callback<T>(mut self, ref_callback: &Callback<T, ()>) -> Self {
+    self.props = self.props.ref_callback(ref_callback);
+    self
   }
 
   /// Sets an attribute on the [`VNode`].
