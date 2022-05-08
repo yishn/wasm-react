@@ -50,12 +50,12 @@ impl WasmReact {
 /// [`VNode::from()`].
 pub fn create_element(
   typ: &JsValue,
-  props: &JsValue,
-  children: &VNodeList,
+  props: impl AsRef<JsValue>,
+  children: VNodeList,
 ) -> VNode {
   VNode(react_bindings::create_element(
     typ,
-    props,
+    props.as_ref(),
     children.as_ref(),
   ))
 }

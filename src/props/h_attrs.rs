@@ -1,18 +1,19 @@
 use super::H;
 use super::{Props, Style};
+use std::borrow::Cow;
 use wasm_bindgen::JsValue;
 
 /// To be used with [`H::dangerously_set_inner_html()`].
 #[derive(Debug, Default, PartialEq, Eq, Clone)]
-pub struct DangerousHtml {
-  pub __html: String,
+pub struct DangerousHtml<'a> {
+  pub __html: Cow<'a, str>,
 }
 
 macro_rules! impl_attr {
   { $( $attr:ident, $attr_str:expr, $T:ty; )* } => {
     $(
       pub fn $attr(self, value: $T) -> Self {
-        self.attr($attr_str, value)
+        self.attr($attr_str, &Into::<JsValue>::into(value))
       }
     )*
   };
@@ -24,7 +25,7 @@ impl<'a> H<'a> {
   ///
   /// [key]: https://reactjs.org/docs/lists-and-keys.html
   pub fn key(self, value: Option<&str>) -> Self {
-    self.attr("key", value)
+    self.attr("key", &value.into())
   }
 
   /// Equivalent to `props.dangerouslySetInnerHTML = { __html: value.__html };`.
@@ -41,20 +42,20 @@ impl<'a> H<'a> {
   /// }
   ///
   /// h!(div)
-  ///   .dangerously_set_inner_html(create_markup())
+  ///   .dangerously_set_inner_html(&create_markup())
   ///   .build(children![])
   /// ```
-  pub fn dangerously_set_inner_html(self, value: DangerousHtml) -> Self {
+  pub fn dangerously_set_inner_html(self, value: &DangerousHtml) -> Self {
     self.attr(
       "dangerouslySetInnerHTML",
-      Props::new().insert("__html", value.__html),
+      Props::new().insert("__html", &value.__html[..].into()).as_ref(),
     )
   }
 
   /// Overwrites the class name attribute. Use [`h!`](crate::h) for easier way
   /// to set the class names.
-  pub fn class_name<'b>(self, value: impl Into<JsValue>) -> Self {
-    self.attr("className", value)
+  pub fn class_name<'b>(self, value: &str) -> Self {
+    self.attr("className", &value.into())
   }
 
   impl_attr! {

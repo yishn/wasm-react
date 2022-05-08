@@ -25,8 +25,8 @@ impl Props {
   }
 
   /// Equivalent to `props[key] = value;`.
-  pub fn insert(self, key: &str, value: impl Into<JsValue>) -> Self {
-    Reflect::set(&self.0, &key.into(), &value.into()).unwrap_throw();
+  pub fn insert(self, key: &str, value: &JsValue) -> Self {
+    Reflect::set(&self.0, &key.into(), value).unwrap_throw();
     self
   }
 

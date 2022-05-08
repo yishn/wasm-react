@@ -23,8 +23,8 @@ impl<T: Component + 'static> From<T> for VNode {
     VNode(react_bindings::create_rust_component(
       T::name(),
       &Props::new()
-        .insert("key", value.key())
-        .insert("component", ComponentWrapper(Box::new(value)))
+        .insert("key", &value.key().into())
+        .insert("component", &ComponentWrapper(Box::new(value)).into())
         .into(),
     ))
   }

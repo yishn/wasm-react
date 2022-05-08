@@ -13,8 +13,8 @@ impl Style {
   }
 
   /// Equivalent to `props[key] = value;`.
-  pub fn insert(self, key: &str, value: impl Into<JsValue>) -> Self {
-    Self(self.0.insert(key, value.into()))
+  pub fn insert(self, key: &str, value: &JsValue) -> Self {
+    Self(self.0.insert(key, value))
   }
 }
 
@@ -34,7 +34,7 @@ macro_rules! impl_style {
   { $( $attr:ident, $attr_str:expr; )* } => {
     $(
       pub fn $attr(self, value: impl Into<JsValue>) -> Self {
-        self.insert($attr_str, value)
+        self.insert($attr_str, &value.into())
       }
     )*
   };

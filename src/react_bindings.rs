@@ -12,13 +12,6 @@ extern "C" {
   #[wasm_bindgen(js_name = createRustComponent)]
   pub fn create_rust_component(name: &str, props: &JsValue) -> JsValue;
 
-  #[wasm_bindgen(js_name = createBuiltinComponent)]
-  pub fn create_builtin_component(
-    name: &str,
-    props: &JsValue,
-    children: &JsValue,
-  ) -> JsValue;
-
   #[wasm_bindgen(js_name = useRustState)]
   pub fn use_rust_state() -> Function;
 
@@ -26,6 +19,9 @@ extern "C" {
   pub fn use_rust_ref(create: &JsValue, on_free: &JsValue) -> usize;
 
   // From the React namespace:
+
+  #[wasm_bindgen(js_namespace = React, js_name = Fragment)]
+  pub static FRAGMENT: JsValue;
 
   #[wasm_bindgen(js_namespace = React, js_name = createElement)]
   pub fn create_element(

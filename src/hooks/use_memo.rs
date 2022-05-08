@@ -18,7 +18,7 @@ impl<T: Debug, D: PartialEq> Debug for UseMemo<T, D> {
   }
 }
 
-pub fn use_memo<T, D>(mut f: impl FnMut() -> T, deps: Deps<D>) -> UseMemo<T, D>
+pub fn use_memo<T, D>(f: impl FnOnce() -> T, deps: Deps<D>) -> UseMemo<T, D>
 where
   T: 'static,
   D: PartialEq + 'static,

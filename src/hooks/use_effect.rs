@@ -1,6 +1,6 @@
 use super::{use_ref, Deps};
 
-pub fn use_effect<G, D>(mut f: impl FnMut() -> G, deps: Deps<D>)
+pub fn use_effect<G, D>(f: impl FnOnce() -> G, deps: Deps<D>)
 where
   G: FnOnce() + 'static,
   D: PartialEq + 'static,

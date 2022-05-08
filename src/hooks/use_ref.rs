@@ -64,9 +64,9 @@ pub fn use_ref<T: 'static>(init: T) -> UseRef<T> {
     // This callback will always be called exactly one time. Either with
     // `Some(ptr)` when the component unmounts, at which point we should also
     // drop the inner value, or with `None` where we should do nothing.
-    &Closure::once_into_js(move |ptr: Option<usize>| unsafe {
+    &Closure::once_into_js(move |ptr: Option<usize>| {
       if let Some(ptr) = ptr {
-        drop(Box::from_raw(ptr as *mut RefContainer<T>));
+        drop(unsafe { Box::from_raw(ptr as *mut RefContainer<T>) });
       }
     }),
   );

@@ -1,4 +1,4 @@
-use crate::{props::Props, react_bindings, VNode, VNodeList};
+use crate::{create_element, props::Props, react_bindings, VNode, VNodeList};
 
 /// Can be used to create a [React fragment][fragment].
 ///
@@ -19,10 +19,6 @@ impl Fragment {
   ///
   /// [fragment]: https://reactjs.org/docs/fragments.html
   pub fn build(&self, children: VNodeList) -> VNode {
-    VNode(react_bindings::create_builtin_component(
-      "Fragment",
-      &Props::new().into(),
-      &children.into(),
-    ))
+    create_element(&react_bindings::FRAGMENT, Props::new().as_ref(), children)
   }
 }
