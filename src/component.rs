@@ -81,13 +81,14 @@ impl ComponentWrapper {
 /// # use wasm_react::*;
 /// # use wasm_bindgen::prelude::*;
 /// # use js_sys::Reflect;
+/// #
 /// pub struct Counter {
 ///   counter: i32,
 /// }
 ///
 /// impl Component for Counter {
-/// # fn name() -> &'static str { "" }
-/// # fn render(&self) -> VNode { VNode::empty() }
+///   # fn name() -> &'static str { "" }
+///   # fn render(&self) -> VNode { VNode::empty() }
 ///   /* ... */
 /// }
 ///
@@ -124,6 +125,7 @@ impl ComponentWrapper {
 macro_rules! export_component {
   ($component:ident) => {
     use wasm_bindgen::JsValue;
+    use wasm_bindgen::prelude::wasm_bindgen;
 
     #[allow(non_snake_case)]
     #[allow(dead_code)]

@@ -11,11 +11,13 @@ use std::fmt::Debug;
 /// # struct F { id: () };
 /// # impl F {
 /// #   fn f(&self, state: State) {
+/// #
 /// use_effect(|| {
 ///   log("This effect will be called every time `self.id` or `state.counter` changes.");
 ///
 ///   || ()
 /// }, Deps::some((self.id, state.counter)));
+/// #
 /// #   }
 /// # }
 /// ```
