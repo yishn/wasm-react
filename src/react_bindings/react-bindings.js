@@ -1,5 +1,3 @@
-import { __WasmReact_ComponentWrapper } from "../../../../wasm_react.js";
-
 let components = {};
 
 export let React = undefined;
@@ -12,6 +10,17 @@ export function useReact(value) {
   }
 }
 
+function renderRustComponent(props) {
+  // `component` is a `ComponentWrapper`
+  let component = props.component;
+
+  // We need to free up the memory on Rust side whenever the old props
+  // are replaced with new ones.
+  React.useEffect(() => () => component.free(), [component]);
+
+  return component.render();
+}
+
 function registerRustComponent(name) {
   if (components[name] == null) {
     // All Rust components have the same implementation in JS, but we need to
@@ -20,19 +29,7 @@ function registerRustComponent(name) {
     //
     // It shouldn't be a problem if two Rust components share the same name.
     Object.assign(components, {
-      [name]: (props = {}) => {
-        if (props.component instanceof __WasmReact_ComponentWrapper) {
-          let component = props.component;
-
-          // We need to free up the memory on Rust side whenever the old props
-          // are replaced with new ones.
-          React.useEffect(() => () => component.free(), [component]);
-
-          return __WasmReact_ComponentWrapper.render(component);
-        } else {
-          throw new Error("Cannot create non-Rust component");
-        }
-      },
+      [name]: (props = {}) => renderRustComponent(props),
     });
   }
 }

@@ -55,8 +55,8 @@ pub struct ComponentWrapper(pub(crate) Box<dyn Component>);
 #[wasm_bindgen(js_class = __WasmReact_ComponentWrapper)]
 impl ComponentWrapper {
   #[wasm_bindgen]
-  pub fn render(props: &ComponentWrapper) -> JsValue {
-    props.0.render().into()
+  pub fn render(&self) -> JsValue {
+    self.0.render().into()
   }
 }
 
