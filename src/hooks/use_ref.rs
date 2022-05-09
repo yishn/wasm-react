@@ -46,6 +46,27 @@ impl<T> Clone for RefContainer<T> {
   }
 }
 
+pub(crate) fn use_ref_with_unmount_handler<T: 'static>(
+  init: T,
+  unmount_handler: impl FnOnce(&mut RefContainer<T>) + 'static,
+) -> RefContainer<T> {
+  let ptr = react_bindings::use_rust_ref(
+    Callback::once(move |_: Void| Box::into_raw(Box::new(init))).as_ref(),
+  ) as *mut T;
+
+  // This callback will always be called exactly one time.
+  react_bindings::use_unmount_handler(&Closure::once_into_js(
+    move |unmounted: bool| {
+      if unmounted {
+        unmount_handler(&mut RefContainer(ptr));
+        drop(unsafe { Box::from_raw(ptr) });
+      }
+    },
+  ));
+
+  RefContainer(ptr)
+}
+
 /// This is the main hook to persist Rust data through the entire lifetime of
 /// the component.
 ///
@@ -84,20 +105,7 @@ impl<T> Clone for RefContainer<T> {
 /// }
 /// ```
 pub fn use_ref<T: 'static>(init: T) -> RefContainer<T> {
-  let ptr = react_bindings::use_rust_ref(
-    Callback::once(move |_: Void| Box::into_raw(Box::new(init))).as_ref(),
-  ) as *mut T;
-
-  // This callback will always be called exactly one time.
-  react_bindings::use_unmount_handler(&Closure::once_into_js(
-    move |unmounted: bool| {
-      if unmounted {
-        drop(unsafe { Box::from_raw(ptr) });
-      }
-    },
-  ));
-
-  RefContainer(ptr)
+  use_ref_with_unmount_handler(init, |_| ())
 }
 
 /// Allows access to the underlying JS data persisted with [`use_js_ref()`].

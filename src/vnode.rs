@@ -43,6 +43,12 @@ impl<T: Component> From<T> for VNode {
   }
 }
 
+impl<T: Into<VNode>> From<Option<T>> for VNode {
+  fn from(value: Option<T>) -> Self {
+    value.map(|value| value.into()).unwrap_or_default()
+  }
+}
+
 impl<'a> From<&'a str> for VNode {
   fn from(value: &'a str) -> Self {
     VNode(value.into())
