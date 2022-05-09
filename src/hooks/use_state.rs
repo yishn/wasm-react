@@ -7,6 +7,9 @@ use std::{fmt::Debug, ops::Deref};
 use wasm_bindgen::UnwrapThrowExt;
 
 /// Allows access to the underlying state data persisted with [`use_state()`].
+///
+/// When the component unmounts, the underlying data is dropped. After that,
+/// trying to access the data will result in a panic.
 pub struct State<T>(RefContainer<Option<T>>, Function);
 
 impl<T: 'static> State<T> {

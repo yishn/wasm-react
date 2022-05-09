@@ -9,10 +9,13 @@ use wasm_bindgen::{
 };
 
 /// Allows access to the underlying data persisted with [`use_ref()`].
+///
+/// When the component unmounts, the underlying data is dropped. After that,
+/// trying to access the data will result in a panic.
 pub struct RefContainer<T>(*mut T, JsValue);
 
 impl<T> RefContainer<T> {
-  fn data_dropped_check(&self) {
+  fn throw_if_data_dropped(&self) {
     // Memory safety: Only yield underlying data if data has not been dropped
     // already!
 
@@ -24,7 +27,7 @@ impl<T> RefContainer<T> {
     if dropped {
       throw_val(
         JsError::new(
-          "Trying to use a hook on a component that has already been unmounted!",
+          "You're trying to use a hook on a component that has already been unmounted!",
         )
         .into(),
       );
@@ -33,19 +36,19 @@ impl<T> RefContainer<T> {
 
   /// Returns a reference to the underlying data.
   pub fn current(&self) -> &T {
-    self.data_dropped_check();
+    self.throw_if_data_dropped();
     Box::leak(unsafe { Box::from_raw(self.0) })
   }
 
   /// Returns a mutable reference to the underlying data.
   pub fn current_mut(&mut self) -> &mut T {
-    self.data_dropped_check();
+    self.throw_if_data_dropped();
     Box::leak(unsafe { Box::from_raw(self.0) })
   }
 
   /// Sets the underlying data to the given value.
   pub fn set_current(&mut self, value: T) {
-    self.data_dropped_check();
+    self.throw_if_data_dropped();
     *self.current_mut() = value;
   }
 }

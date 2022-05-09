@@ -1,7 +1,7 @@
 use crate::{
-  c, classnames, export_component, h,
+  c, classnames, create_element, export_component, h,
   hooks::{self, use_callback, use_effect, use_js_ref, Deps},
-  props::Style,
+  props::{Props, Style},
   Callable, Callback, Component, VNode, VNodeList, Void,
 };
 use js_sys::Reflect;
@@ -95,6 +95,11 @@ impl Component for App {
     h!(div[#"app-container".warning])
       .attr("data-counter", &state.counter.into())
       .build(c![
+        create_element(
+          &WELCOME,
+          Props::new().insert("welcome", &"Welcome!".into()),
+          c![]
+        ),
         h!(h2)
           .style(Style::new().color(warning.then(|| "red")))
           .build(c!["Counter: ", state.counter]),
@@ -174,4 +179,18 @@ impl Component for Counter {
           .build(c!["Increment"])
       ])
   }
+}
+
+#[wasm_bindgen(
+  inline_js = "
+    import React from 'https://cdn.skypack.dev/react';
+
+    export function Welcome(props) {
+      return React.createElement('h1', {}, props.welcome);
+    }
+  "
+)]
+extern "C" {
+  #[wasm_bindgen(js_name = Welcome)]
+  static WELCOME: JsValue;
 }
