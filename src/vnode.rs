@@ -77,8 +77,8 @@ impl_into_vnode! {
 
 /// Represents a list of nodes in the virtual DOM of React.
 ///
-/// Use the [`c!`] macro to build a [`VNodeList`] more conveniently. You
-/// can also collect an iterator of [`VNode`] into a [`VNodeList`]:
+/// Use the [`c!`](crate::c!) macro to build a [`VNodeList`] more conveniently.
+/// You can also collect an iterator of [`VNode`] into a [`VNodeList`]:
 ///
 /// ```
 /// # use wasm_react::*;

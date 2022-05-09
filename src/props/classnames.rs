@@ -1,4 +1,4 @@
-/// A trait for types to be used in [`classnames!`].
+/// A trait for types to be used in [`classnames!`](crate::classnames!).
 pub trait Classnames<'a> {
   /// Appends the class to a string.
   fn append_to(&self, string: &mut String);

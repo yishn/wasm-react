@@ -49,7 +49,7 @@ impl Props {
   /// [ref]: https://reactjs.org/docs/refs-and-the-dom.html
   pub fn ref_callback<T>(
     self,
-    ref_callback: &PersistedCallback<T, ()>,
+    ref_callback: &PersistedCallback<T>,
   ) -> Self {
     self.insert_callback("ref", ref_callback)
   }

@@ -9,16 +9,16 @@ use wasm_bindgen::{
 };
 use web_sys::Element;
 
-/// The builder that powers [`h!`]. This provides auto-completion for HTML
-/// attributes and events.
+/// The builder that powers [`h!`](crate::h!). This provides auto-completion for
+/// HTML attributes and events.
 pub struct H<'a> {
   pub(crate) tag: &'a str,
   pub(crate) props: Props,
 }
 
 impl<'a> H<'a> {
-  /// Creates a new instance of [`H`]. It is recommended to use the [`h!`]
-  /// macro instead.
+  /// Creates a new instance of [`H`]. It is recommended to use the
+  /// [`h!`](crate::h!) macro instead.
   pub fn new(tag: &'a str) -> Self {
     Self {
       tag,
@@ -51,7 +51,7 @@ impl<'a> H<'a> {
   /// [ref]: https://reactjs.org/docs/refs-and-the-dom.html
   pub fn ref_callback(
     mut self,
-    ref_callback: &PersistedCallback<Option<Element>, ()>,
+    ref_callback: &PersistedCallback<Option<Element>>,
   ) -> Self {
     self.props = self.props.ref_callback(ref_callback);
     self

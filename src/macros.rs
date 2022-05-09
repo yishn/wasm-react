@@ -17,7 +17,7 @@
 /// ```
 ///
 /// It is also possible to add an id and/or classes to the element using a terse
-/// notation. You can use the same syntax as [`classnames!`](crate::classnames).
+/// notation. You can use the same syntax as [`classnames!`](crate::classnames!).
 ///
 /// ```
 /// # use wasm_react::*;
