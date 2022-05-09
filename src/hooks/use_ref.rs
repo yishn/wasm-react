@@ -137,7 +137,7 @@ pub(crate) fn use_ref_with_unmount_handler<T: 'static>(
 ///       || ()
 ///     }, Deps::some(self.value));
 ///
-///     h!(div).build(children![
+///     h!(div).build(c![
 ///       ref_container.current().value
 ///     ])
 ///   }
@@ -221,11 +221,11 @@ impl<T> From<JsRefContainer<T>> for JsValue {
 ///     let input_element = use_js_ref(None);
 ///
 ///     h!(div)
-///       .build(children![
+///       .build(c![
 ///         h!(input)
 ///           .ref_container(&input_element)
 ///           .html_type("text")
-///           .build(children![])
+///           .build(c![])
 ///       ])
 ///   }
 /// }

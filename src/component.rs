@@ -23,7 +23,7 @@ use wasm_bindgen::prelude::*;
 ///   }
 ///
 ///   fn render(&self) -> VNode {
-///     h!(div).build(children!["Counter: ", self.0])
+///     h!(div).build(c!["Counter: ", self.0])
 ///   }
 /// }
 /// ```
@@ -37,7 +37,7 @@ pub trait Component: 'static {
   /// The render function.
   ///
   /// **Do not** call this method in another render function. Instead, use the
-  /// [`children!`](crate::children) macro to include your component.
+  /// [`c!`](crate::c!) macro to include your component.
   fn render(&self) -> VNode;
 
   /// Override this method to provide a [React key][key] when rendering.
@@ -58,84 +58,4 @@ impl ComponentWrapper {
   pub fn render(&self) -> JsValue {
     self.0.render().into()
   }
-}
-
-/// This macro can be used to expose your [`Component`] for JS consumption via
-/// `wasm-bindgen`.
-///
-/// Requirement is that you implement the [`TryFrom<JsValue, Error = JsValue>`](core::convert::TryFrom)
-/// trait on your component and that you do not export anything else that has
-/// the same name as your component.
-///
-/// Therefore, it is only recommended to use this macro if you're writing a
-/// library for JS consumption only, or if you're writing a standalone
-/// application, since this will pollute the export namespace, which isn't
-/// desirable if you're writing a library for Rust consumption only.
-///
-/// # Example
-///
-/// Implement [`TryFrom<JsValue, Error = JsValue>`](core::convert::TryFrom) on
-/// your component and export it:
-///
-/// ```
-/// # use wasm_react::*;
-/// # use wasm_bindgen::prelude::*;
-/// # use js_sys::Reflect;
-/// #
-/// pub struct Counter {
-///   counter: i32,
-/// }
-///
-/// impl Component for Counter {
-///   # fn name() -> &'static str { "" }
-///   # fn render(&self) -> VNode { VNode::empty() }
-///   /* ... */
-/// }
-///
-/// impl TryFrom<JsValue> for Counter {
-///   type Error = JsValue;
-///
-///   fn try_from(value: JsValue) -> Result<Self, Self::Error> {
-///     let diff = Reflect::get(&value, &"counter".into())?
-///       .as_f64()
-///       .ok_or(JsError::new("`counter` property not found"))?;
-///
-///     Ok(Counter { counter: diff as i32 })
-///   }
-/// }
-///
-/// export_component!(Counter);
-/// ```
-///
-/// In JS, you can use it like any other component:
-///
-/// ```js
-/// import React from "react";
-/// import init, { Counter } from "./path/to/wasm-bindings.js";
-///
-/// function SomeOtherJsComponent(props) {
-///   return (
-///     <div>
-///       <Counter counter={0} />
-///     </div>
-///   );
-/// }
-/// ```
-#[macro_export]
-macro_rules! export_component {
-  ($component:ident) => {
-    use wasm_bindgen::JsValue;
-    use wasm_bindgen::prelude::wasm_bindgen;
-
-    #[allow(non_snake_case)]
-    #[allow(dead_code)]
-    #[wasm_bindgen]
-    pub fn $component(props: JsValue) -> Result<JsValue, JsValue>
-    where
-      $component: $crate::Component + TryFrom<JsValue, Error = JsValue>,
-    {
-      let component = $component::try_from(props)?;
-      Ok(component.render().into())
-    }
-  };
 }

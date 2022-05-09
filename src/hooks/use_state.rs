@@ -70,7 +70,7 @@ impl<T> Deref for State<T> {
 ///     || ()
 ///   }, Deps::some(( /* ... */ )));
 ///
-///   h!(div).build(children![state.value])
+///   h!(div).build(c![state.value])
 /// }
 /// # }
 /// ```

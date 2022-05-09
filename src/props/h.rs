@@ -78,50 +78,8 @@ impl<'a> H<'a> {
   }
 
   /// Builds the [`VNode`] and returns it with the given children. Use
-  /// [`children!`](crate::children!) for easier construction of the children.
+  /// [`c!`](crate::c!) for easier construction of the children.
   pub fn build(self, children: VNodeList) -> VNode {
     create_element(&self.tag.into(), self.props, children)
   }
-}
-
-/// A convenience macro to [`create_element()`] for creating HTML element nodes.
-///
-/// # Example
-///
-/// ```
-/// # use wasm_react::*;
-/// # fn f() -> VNode {
-/// h!(div)
-///   .attr("id", &"app".into())
-///   .build(children![
-///     h!(h1).build(children!["Hello World!"])
-///   ])
-/// # }
-///
-/// // <div id="app"><h1>Hello World!</h1></div>
-/// ```
-///
-/// It is also possible to add an id and/or classes to the element using a terse
-/// notation. You can use the same syntax as [`classnames!`](crate::classnames).
-///
-/// ```
-/// # use wasm_react::*;
-/// # fn f() -> VNode {
-/// h!(div[#"app"."some-class"."warning"])
-///   .build(children!["This is a warning!"])
-/// # }
-///
-/// // <div id="app" class="some-class warning">This is a warning!</div>
-/// ```
-#[macro_export]
-macro_rules! h {
-  ($tag:ident[#$id:literal $( $( $tt:tt )+ )?]) => {
-    $crate::props::H::new(stringify!($tag))
-      .id($id)
-      $( .class_name(&classnames![$( $tt )+]) )?
-  };
-  ($tag:ident $( [$( $tt:tt )*] )?) => {
-    $crate::props::H::new(stringify!($tag))
-      $( .class_name(&classnames![$( $tt )*]) )?
-  };
 }

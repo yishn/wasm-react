@@ -13,7 +13,8 @@ use wasm_bindgen::{JsValue, UnwrapThrowExt};
 /// ```
 /// # use wasm_react::{callback::*, props::*};
 /// # use wasm_bindgen::prelude::*;
-/// # fn f(handle_click: Callback<Void>) -> Props {
+/// #
+/// # fn f(handle_click: PersistedCallback<Void>) -> Props {
 /// Props::new()
 ///   .insert("id", &"app".into())
 ///   .insert_callback("onClick", &handle_click)

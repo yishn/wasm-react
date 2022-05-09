@@ -40,7 +40,7 @@ impl<'a> H<'a> {
   /// # fn f() -> VNode {
   /// h!(div)
   ///   .dangerously_set_inner_html(&create_markup())
-  ///   .build(children![])
+  ///   .build(c![])
   /// # }
   /// ```
   pub fn dangerously_set_inner_html(self, value: &DangerousHtml) -> Self {

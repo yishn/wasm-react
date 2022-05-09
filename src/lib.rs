@@ -8,6 +8,7 @@ extern "C" {}
 
 mod builtin_components;
 mod component;
+mod macros;
 mod marker;
 mod react_bindings;
 mod test;

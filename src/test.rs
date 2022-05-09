@@ -1,5 +1,5 @@
 use crate::{
-  children, classnames, export_component, h,
+  c, classnames, export_component, h,
   hooks::{self, use_callback, use_effect, use_js_ref, Deps},
   props::Style,
   Callable, Callback, Component, VNode, VNodeList, Void,
@@ -94,10 +94,10 @@ impl Component for App {
 
     h!(div[#"app-container".warning])
       .attr("data-counter", &state.counter.into())
-      .build(children![
+      .build(c![
         h!(h2)
           .style(Style::new().color(warning.then(|| "red")))
-          .build(children!["Counter: ", state.counter]),
+          .build(c!["Counter: ", state.counter]),
         //
         Counter {
           counter: state.counter,
@@ -105,12 +105,12 @@ impl Component for App {
           on_decrement: Some(handle_decrement.into()),
         },
         //
-        h!(ul[."logs"]).build(children![
-          h!(li).build(children!["Started..."]),
+        h!(ul[."logs"]).build(c![
+          h!(li).build(c!["Started..."]),
           state
             .logs
             .iter()
-            .map(|&log| h!(li).build(children![log]))
+            .map(|&log| h!(li).build(c![log]))
             .collect::<VNodeList>()
         ])
       ])
@@ -163,15 +163,15 @@ impl Component for Counter {
 
     h!(div[."counter-component"])
       .ref_container(&element_ref)
-      .build(children![
+      .build(c![
         h!(button)
           .on_click(&handle_decrement)
-          .build(children!["Decrement"]),
+          .build(c!["Decrement"]),
         " ",
         h!(button[."default"])
           .on_click(&handle_increment)
           .html_type("submit")
-          .build(children!["Increment"])
+          .build(c!["Increment"])
       ])
   }
 }

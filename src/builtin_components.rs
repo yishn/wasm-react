@@ -9,9 +9,9 @@ use crate::{create_element, props::Props, react_bindings, VNode, VNodeList};
 /// ```
 /// # use wasm_react::*;
 /// # fn f() -> VNode {
-/// Fragment.build(children![
-///   h!(h1).build(children!["Hello World!"]),
-///   h!(div).build(children!["No wrapper element"]),
+/// Fragment.build(c![
+///   h!(h1).build(c!["Hello World!"]),
+///   h!(div).build(c!["No wrapper element"]),
 /// ])
 /// # }
 /// ```

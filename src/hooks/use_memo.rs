@@ -60,7 +60,7 @@ impl<T, D: PartialEq> DerefMut for Memo<T, D> {
 ///   let b = self.b;
 ///   let memo = use_memo(|| compute_expensive_value(a, b), Deps::some((a, b)));
 ///
-///   h!(div).build(children![*memo])
+///   h!(div).build(c![*memo])
 /// }
 /// # }
 /// ```
