@@ -4,24 +4,48 @@ use crate::{
 };
 use js_sys::Reflect;
 use std::{fmt::Debug, marker::PhantomData};
-use wasm_bindgen::{prelude::Closure, JsCast, JsValue, UnwrapThrowExt};
+use wasm_bindgen::{
+  prelude::Closure, throw_val, JsCast, JsError, JsValue, UnwrapThrowExt,
+};
 
 /// Allows access to the underlying data persisted with [`use_ref()`].
-pub struct RefContainer<T>(*mut T);
+pub struct RefContainer<T>(*mut T, JsValue);
 
 impl<T> RefContainer<T> {
+  fn data_dropped_check(&self) {
+    // Memory safety: Only yield underlying data if data has not been dropped
+    // already!
+
+    let dropped = Reflect::get(&self.1, &"dropped".into())
+      .unwrap_throw()
+      .as_bool()
+      .unwrap_throw();
+
+    if dropped {
+      throw_val(
+        JsError::new(
+          "Trying to use a hook on a component that has already been unmounted!",
+        )
+        .into(),
+      );
+    }
+  }
+
   /// Returns a reference to the underlying data.
   pub fn current(&self) -> &T {
+    self.data_dropped_check();
     Box::leak(unsafe { Box::from_raw(self.0) })
   }
 
   /// Returns a mutable reference to the underlying data.
   pub fn current_mut(&mut self) -> &mut T {
+    self.data_dropped_check();
     Box::leak(unsafe { Box::from_raw(self.0) })
   }
 
   /// Sets the underlying data to the given value.
   pub fn set_current(&mut self, value: T) {
+    self.data_dropped_check();
     *self.current_mut() = value;
   }
 }
@@ -42,7 +66,7 @@ impl<T: Debug> Debug for RefContainer<T> {
 
 impl<T> Clone for RefContainer<T> {
   fn clone(&self) -> Self {
-    Self(self.0.clone())
+    Self(self.0, self.1.clone())
   }
 }
 
@@ -50,21 +74,36 @@ pub(crate) fn use_ref_with_unmount_handler<T: 'static>(
   init: T,
   unmount_handler: impl FnOnce(&mut RefContainer<T>) + 'static,
 ) -> RefContainer<T> {
-  let ptr = react_bindings::use_rust_ref(
+  let js_ref = react_bindings::use_rust_ref(
     Callback::once(move |_: Void| Box::into_raw(Box::new(init))).as_ref(),
-  ) as *mut T;
+    &Closure::once_into_js(
+      move |unmounted: bool, ptr: usize, js_ref: JsValue| {
+        if unmounted {
+          let ptr = ptr as *mut T;
 
-  // This callback will always be called exactly one time.
-  react_bindings::use_unmount_handler(&Closure::once_into_js(
-    move |unmounted: bool| {
-      if unmounted {
-        unmount_handler(&mut RefContainer(ptr));
-        drop(unsafe { Box::from_raw(ptr) });
-      }
-    },
-  ));
+          unmount_handler(&mut RefContainer(ptr, js_ref.clone()));
 
-  RefContainer(ptr)
+          // A callback with `unmounted == true` can only be called once (look
+          // at `react-bindings.js#useRustRef`), so a double-free cannot happen!
+          drop(unsafe { Box::from_raw(ptr) });
+
+          // By setting `dropped` to `true`, we're signalling that the underlying
+          // data has already been dropped and that it is not safe for
+          // `RefContainer` to access the pointer anymore.
+          Reflect::set(&js_ref, &"dropped".into(), &JsValue::TRUE)
+            .unwrap_throw();
+        }
+      },
+    ),
+  );
+
+  RefContainer(
+    Reflect::get(&js_ref, &"ptr".into())
+      .unwrap_throw()
+      .as_f64()
+      .unwrap_throw() as usize as *mut T,
+    js_ref,
+  )
 }
 
 /// This is the main hook to persist Rust data through the entire lifetime of

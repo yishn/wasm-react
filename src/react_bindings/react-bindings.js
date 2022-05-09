@@ -54,33 +54,26 @@ export function useRustState() {
   return () => setState([]);
 }
 
-export function useRustRef(create) {
+export function useRustRef(create, handler) {
   let ref = React.useRef(null);
 
   if (ref.current == null) {
-    // Create ref struct if called for the first time and maintain a pointer
-    ref.current = create();
+    // Create ref struct if called for the first time.
+
+    ref.current = { ptr: create(), dropped: false };
+  } else {
+    // The callback `handler` has to be called exactly one time so the Rust
+    // memory of its corresponding closure will be freed. If this function has
+    // been called for the first time, the `useEffect` below will ensure that
+    // `handler` will be called when the component unmounts.
+    //
+    // Otherwise, we have to call `handler` manually, so the closure can be
+    // dropped on Rust side.
+
+    handler(false, ref.current.ptr, ref.current);
   }
+
+  React.useEffect(() => () => handler(true, ref.current.ptr, ref.current), []);
 
   return ref.current;
-}
-
-export function useUnmountHandler(handler) {
-  let firstRenderRef = React.useRef(true);
-
-  // The callback `handler` has to be called exactly one time so the Rust memory
-  // of its corresponding closure will be freed. If this function has been
-  // called for the first time, this `useEffect` will ensure that `handler` will
-  // be called with `true` when the component unmounts. But if we're rerendering,
-  // we have to call `handler` with `false` manually, so the closure can be
-  // dropped on Rust side.
-  React.useEffect(() => {
-    firstRenderRef.current = false;
-
-    return () => handler(true);
-  }, []);
-
-  if (!firstRenderRef.current) {
-    handler(false);
-  }
 }
