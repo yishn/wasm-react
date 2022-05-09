@@ -1,4 +1,4 @@
-use crate::{Callback, hooks::JsRefContainer};
+use crate::{callback::PersistedCallback, hooks::JsRefContainer};
 use js_sys::{Object, Reflect};
 use wasm_bindgen::{JsValue, UnwrapThrowExt};
 
@@ -46,7 +46,10 @@ impl Props {
   /// Sets the [React ref][ref] to the given ref callback.
   ///
   /// [ref]: https://reactjs.org/docs/refs-and-the-dom.html
-  pub fn ref_callback<T>(self, ref_callback: &Callback<T, ()>) -> Self {
+  pub fn ref_callback<T>(
+    self,
+    ref_callback: &PersistedCallback<T, ()>,
+  ) -> Self {
     self.insert_callback("ref", ref_callback)
   }
 
@@ -57,7 +60,11 @@ impl Props {
   }
 
   /// Equivalent to `props[key] = f;`.
-  pub fn insert_callback<T, U>(self, prop: &str, f: &Callback<T, U>) -> Self {
+  pub fn insert_callback<T, U>(
+    self,
+    prop: &str,
+    f: &PersistedCallback<T, U>,
+  ) -> Self {
     Reflect::set(&self.0, &prop.into(), f.as_ref()).unwrap_throw();
     self
   }

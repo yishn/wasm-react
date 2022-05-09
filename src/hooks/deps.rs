@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 /// This struct specifies dependencies for certain hooks.
 ///
 /// # Example
@@ -13,17 +15,43 @@
 ///   log("This effect will be called every time `self.id` or `state.counter` changes.");
 ///
 ///   || ()
-/// }, Deps::Some((self.id, state.counter)));
+/// }, Deps::some((self.id, state.counter)));
 /// #   }
 /// # }
 /// ```
-#[derive(Debug, PartialEq, Clone, Copy)]
-pub enum Deps<T: PartialEq> {
+#[derive(PartialEq, Clone, Copy)]
+pub struct Deps<T>(Option<T>);
+
+impl<T: Debug> Debug for Deps<T> {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    let mut result = f.debug_tuple("Deps");
+
+    match self.0.as_ref() {
+      Some(deps) => result.field(&deps),
+      None => result.field(&"All"),
+    }
+    .finish()
+  }
+}
+
+impl<T> Deps<T> {
   /// The hook will be activated whenever the component renders.
-  All,
+  pub fn all() -> Deps<()> {
+    Deps(None)
+  }
+
   /// The hook will be activated only on the first render.
-  None,
+  pub fn none() -> Deps<()> {
+    Deps(Some(()))
+  }
+
   /// The hook will be activated every time when the component renders if the
   /// inner value `T` has changed from last render.
-  Some(T),
+  pub fn some(deps: T) -> Deps<T> {
+    Deps(Some(deps))
+  }
+
+  pub(crate) fn is_all(&self) -> bool {
+    self.0.is_none()
+  }
 }

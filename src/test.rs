@@ -64,7 +64,7 @@ impl Component for App {
 
         move |_| state.update(move |state| state.counter += diff)
       },
-      Deps::Some(self.diff),
+      Deps::some(self.diff),
     );
 
     let handle_decrement = use_callback(
@@ -74,7 +74,7 @@ impl Component for App {
 
         move |_| state.update(move |state| state.counter -= diff)
       },
-      Deps::Some(self.diff),
+      Deps::some(self.diff),
     );
 
     hooks::use_effect(
@@ -89,7 +89,7 @@ impl Component for App {
 
         || ()
       },
-      Deps::Some(warning),
+      Deps::some(warning),
     );
 
     h!(div[#"app-container".warning])
@@ -136,7 +136,7 @@ impl Component for Counter {
         let on_decrement = self.on_decrement.clone();
         move |_| on_decrement.call(Void)
       },
-      Deps::Some(self.on_decrement.clone()),
+      Deps::some(self.on_decrement.clone()),
     );
 
     let handle_increment = use_callback(
@@ -144,7 +144,7 @@ impl Component for Counter {
         let on_increment = self.on_increment.clone();
         move |_| on_increment.call(Void)
       },
-      Deps::Some(self.on_increment.clone()),
+      Deps::some(self.on_increment.clone()),
     );
 
     use_effect(
@@ -158,7 +158,7 @@ impl Component for Counter {
 
         || ()
       },
-      Deps::Some(element_ref.current_untyped()),
+      Deps::some(element_ref.current_untyped()),
     );
 
     h!(div[."counter-component"])

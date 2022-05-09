@@ -68,7 +68,7 @@ impl<T> Deref for State<T> {
 ///     state.update(|state| state.value = "Welcome!");
 ///
 ///     || ()
-///   }, Deps::Some(( /* ... */ )));
+///   }, Deps::some(( /* ... */ )));
 ///
 ///   h!(div).build(children![state.value])
 /// }

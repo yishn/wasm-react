@@ -96,7 +96,7 @@ pub(crate) fn use_ref_with_unmount_handler<T: 'static>(
 ///       ref_container.current_mut().value = self.value;
 ///
 ///       || ()
-///     }, Deps::Some(self.value));
+///     }, Deps::some(self.value));
 ///
 ///     h!(div).build(children![
 ///       ref_container.current().value
@@ -179,11 +179,15 @@ impl<T> From<JsRefContainer<T>> for JsValue {
 ///   # fn name() -> &'static str { "" }
 ///
 ///   fn render(&self) -> VNode {
-///     let div_element = use_js_ref(None);
+///     let input_element = use_js_ref(None);
 ///
 ///     h!(div)
-///       .ref_container(&div_element)
-///       .build(children!["Hello World!"])
+///       .build(children![
+///         h!(input)
+///           .ref_container(&input_element)
+///           .html_type("text")
+///           .build(children![])
+///       ])
 ///   }
 /// }
 /// ```

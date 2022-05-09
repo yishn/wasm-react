@@ -58,7 +58,7 @@ impl<T, D: PartialEq> DerefMut for Memo<T, D> {
 /// fn render(&self) -> VNode {
 ///   let a = self.a;
 ///   let b = self.b;
-///   let memo = use_memo(|| compute_expensive_value(a, b), Deps::Some((a, b)));
+///   let memo = use_memo(|| compute_expensive_value(a, b), Deps::some((a, b)));
 ///
 ///   h!(div).build(children![*memo])
 /// }
@@ -72,7 +72,7 @@ where
   let mut ref_container = use_ref(None::<(T, Deps<D>)>);
   let old_deps = ref_container.current().as_ref().map(|memo| &memo.1);
 
-  if deps == Deps::All || Some(&deps) != old_deps {
+  if deps.is_all() || Some(&deps) != old_deps {
     ref_container.set_current(Some((create(), deps)));
   }
 
