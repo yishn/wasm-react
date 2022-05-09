@@ -1,4 +1,4 @@
-import { __WasmReact_ComponentWrapper } from "../../../wasm_react.js";
+import { __WasmReact_ComponentWrapper } from "../../../../wasm_react.js";
 
 let components = {};
 

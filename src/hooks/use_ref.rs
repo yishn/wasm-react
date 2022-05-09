@@ -53,7 +53,8 @@ impl<T> Clone for RefContainer<T> {
 /// Keep in mind that [`use_ref()`] can only be mutated in Rust. If you need a
 /// ref to hold a DOM element, use [`use_js_ref()`] instead.
 ///
-/// The component will not rerender when you mutate the underlying data.
+/// The component will not rerender when you mutate the underlying data. If you
+/// want that, use [`use_state()`](crate::hooks::use_state()) instead.
 ///
 /// # Example
 ///
@@ -102,7 +103,7 @@ pub fn use_ref<T: 'static>(init: T) -> RefContainer<T> {
 /// Allows access to the underlying JS data persisted with [`use_js_ref()`].
 pub struct JsRefContainer<T>(JsValue, PhantomData<T>);
 
-impl<T: JsCast> JsRefContainer<Option<T>> {
+impl<T: JsCast> JsRefContainer<T> {
   /// Returns the underlying typed JS data.
   pub fn current(&self) -> Option<T> {
     self.current_untyped().dyn_into::<T>().ok()
@@ -178,7 +179,7 @@ impl<T> From<JsRefContainer<T>> for JsValue {
 ///   }
 /// }
 /// ```
-pub fn use_js_ref<T: JsCast>(init: Option<T>) -> JsRefContainer<Option<T>> {
+pub fn use_js_ref<T: JsCast>(init: Option<T>) -> JsRefContainer<T> {
   let ref_container = react_bindings::use_ref(
     &init.map(|init| init.into()).unwrap_or(JsValue::null()),
   );

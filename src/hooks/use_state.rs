@@ -50,6 +50,9 @@ impl<T> Deref for State<T> {
 /// Unlike the [`use_ref()`] hook, updating the state will automatically trigger
 /// a rerender of the component.
 ///
+/// Unlike its React counterpart, calling `update` will mutate the underlying
+/// data in-place and immediately.
+///
 /// # Example
 ///
 /// ```

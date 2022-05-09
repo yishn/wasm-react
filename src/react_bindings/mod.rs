@@ -1,7 +1,7 @@
 use js_sys::Function;
 use wasm_bindgen::prelude::*;
 
-#[wasm_bindgen(module = "/js/react-bindings.js")]
+#[wasm_bindgen(module = "/src/react_bindings/react-bindings.js")]
 extern "C" {
   #[wasm_bindgen(js_name = useReact, catch)]
   pub fn use_react(value: &JsValue) -> Result<(), JsValue>;

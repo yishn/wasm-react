@@ -8,7 +8,8 @@ use wasm_bindgen::{
 };
 use web_sys::Element;
 
-/// The builder that powers [`h!`].
+/// The builder that powers [`h!`]. This provides auto-completion for HTML
+/// attributes and events.
 pub struct H<'a> {
   pub(crate) tag: &'a str,
   pub(crate) props: Props,
@@ -38,7 +39,7 @@ impl<'a> H<'a> {
   /// [ref]: https://reactjs.org/docs/refs-and-the-dom.html
   pub fn ref_container(
     mut self,
-    ref_container: &JsRefContainer<Option<Element>>,
+    ref_container: &JsRefContainer<Element>,
   ) -> Self {
     self.props = self.props.ref_container(ref_container);
     self
@@ -72,15 +73,13 @@ impl<'a> H<'a> {
   }
 
   /// Builds the [`VNode`] and returns it with the given children. Use
-  /// [`children!`] for easier construction of the children.
+  /// [`children!`](crate::children!) for easier construction of the children.
   pub fn build(self, children: VNodeList) -> VNode {
     create_element(&self.tag.into(), self.props, children)
   }
 }
 
-/// A convenience macro to [`create_element()`] for creating HTML elements.
-/// This macro returns a builder [`H`] which provides auto-completion for HTML
-/// attributes and events.
+/// A convenience macro to [`create_element()`] for creating HTML element nodes.
 ///
 /// # Example
 ///
