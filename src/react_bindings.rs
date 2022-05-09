@@ -16,7 +16,10 @@ extern "C" {
   pub fn use_rust_state() -> Function;
 
   #[wasm_bindgen(js_name = useRustRef)]
-  pub fn use_rust_ref(create: &JsValue, on_free: &JsValue) -> usize;
+  pub fn use_rust_ref(create: &JsValue) -> usize;
+
+  #[wasm_bindgen(js_name = useUnmountHandler)]
+  pub fn use_unmount_handler(handler: &JsValue);
 
   // From the React namespace:
 

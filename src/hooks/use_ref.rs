@@ -85,17 +85,18 @@ impl<T> Clone for RefContainer<T> {
 pub fn use_ref<T: 'static>(init: T) -> RefContainer<T> {
   let ptr = react_bindings::use_rust_ref(
     Callback::once(move |_: Void| Box::into_raw(Box::new(init))).as_ref(),
-    // This callback will always be called exactly one time. Either with
-    // `Some(ptr)` when the component unmounts, at which point we should also
-    // drop the inner value, or with `None` where we should do nothing.
-    &Closure::once_into_js(move |ptr: Option<usize>| {
-      if let Some(ptr) = ptr {
-        drop(unsafe { Box::from_raw(ptr as *mut T) });
-      }
-    }),
-  );
+  ) as *mut T;
 
-  RefContainer(ptr as *mut T)
+  // This callback will always be called exactly one time.
+  react_bindings::use_unmount_handler(&Closure::once_into_js(
+    move |unmounted: bool| {
+      if unmounted {
+        drop(unsafe { Box::from_raw(ptr) });
+      }
+    },
+  ));
+
+  RefContainer(ptr)
 }
 
 /// Allows access to the underlying JS data persisted with [`use_js_ref()`].
