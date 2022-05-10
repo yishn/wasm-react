@@ -8,15 +8,6 @@ pub struct Context<T: 'static> {
   pub(crate) js_context: JsValue,
 }
 
-impl<T: 'static> Clone for Context<T> {
-  fn clone(&self) -> Self {
-    Self {
-      fallback_value: self.fallback_value.clone(),
-      js_context: self.js_context.clone(),
-    }
-  }
-}
-
 pub fn create_context<T>(init: T) -> Context<T> {
   Context {
     fallback_value: Rc::new(init),

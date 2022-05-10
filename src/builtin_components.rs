@@ -6,7 +6,7 @@ use crate::{
 };
 use js_sys::Reflect;
 use std::{rc::Rc, thread::LocalKey};
-use wasm_bindgen::UnwrapThrowExt;
+use wasm_bindgen::{JsValue, UnwrapThrowExt};
 
 /// Can be used to create a [React fragment][fragment].
 ///
@@ -36,7 +36,7 @@ impl Fragment {
 }
 
 pub struct ContextProvider<T: 'static> {
-  context: Context<T>,
+  context: &'static LocalKey<Context<T>>,
   value: Option<Rc<T>>,
   children: VNodeList,
 }
@@ -44,14 +44,14 @@ pub struct ContextProvider<T: 'static> {
 impl<T: 'static> ContextProvider<T> {
   pub fn from(context: &'static LocalKey<Context<T>>) -> Self {
     Self {
-      context: context.with(|context| context.clone()),
+      context,
       value: None,
       children: c![],
     }
   }
 
-  pub fn value(mut self, value: Option<T>) -> Self {
-    self.value = value.map(|t| Rc::new(t));
+  pub fn value(mut self, value: T) -> Self {
+    self.value = Some(Rc::new(value));
     self
   }
 
@@ -67,10 +67,9 @@ impl<T: 'static> Component for ContextProvider<T> {
   }
 
   fn render(&self) -> VNode {
-    let value = self
-      .value
-      .clone()
-      .unwrap_or_else(|| self.context.fallback_value.clone());
+    let value = self.value.clone().unwrap_or_else(|| {
+      self.context.with(|context| context.fallback_value.clone())
+    });
     let mut value_ref = use_ref(value.clone());
 
     use_effect(
@@ -82,10 +81,48 @@ impl<T: 'static> Component for ContextProvider<T> {
     );
 
     create_element(
-      &Reflect::get(&self.context.js_context, &"Provider".into())
-        .unwrap_throw(),
+      &Reflect::get(
+        &self.context.with(|context| context.js_context.clone()),
+        &"Provider".into(),
+      )
+      .unwrap_throw(),
       Props::new().insert("value", value_ref.as_ref()),
       self.children.clone(),
+    )
+  }
+}
+
+pub struct JsContextProvider<'a> {
+  context: &'a JsValue,
+  value: Option<JsValue>,
+}
+
+impl<'a> JsContextProvider<'a> {
+  pub fn from(context: &'a JsValue) -> Self {
+    Self {
+      context,
+      value: None,
+    }
+  }
+
+  pub fn value(mut self, value: JsValue) -> Self {
+    self.value = Some(value);
+    self
+  }
+
+  pub fn build(self, children: VNodeList) -> VNode {
+    create_element(
+      &Reflect::get(self.context, &"Provider".into()).unwrap_throw(),
+      {
+        let mut props = Props::new();
+
+        if let Some(value) = self.value.as_ref() {
+          props = props.insert("value", value);
+        }
+
+        props
+      },
+      children,
     )
   }
 }

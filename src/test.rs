@@ -104,7 +104,7 @@ impl Component for App {
     );
 
     ContextProvider::from(&THEME_CONTEXT)
-      .value(Some(Theme::DarkMode))
+      .value(Theme::DarkMode)
       .build(c![h!(div[#"app-container".warning])
         .attr("data-counter", &state.counter.into())
         .build(c![
