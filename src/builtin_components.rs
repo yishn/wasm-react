@@ -6,7 +6,7 @@ use crate::{
 };
 use js_sys::Reflect;
 use std::{rc::Rc, thread::LocalKey};
-use wasm_bindgen::{JsValue, UnwrapThrowExt};
+use wasm_bindgen::UnwrapThrowExt;
 
 /// Can be used to create a [React fragment][fragment].
 ///
@@ -92,41 +92,6 @@ impl<T: 'static> Component for ContextProvider<T> {
       .unwrap_throw(),
       Props::new().insert("value", value_ref.as_ref()),
       self.children.clone(),
-    )
-  }
-}
-
-pub struct JsContextProvider<'a> {
-  context: &'a JsValue,
-  value: Option<JsValue>,
-}
-
-impl<'a> JsContextProvider<'a> {
-  pub fn from(context: &'a JsValue) -> Self {
-    Self {
-      context,
-      value: None,
-    }
-  }
-
-  pub fn value(mut self, value: JsValue) -> Self {
-    self.value = Some(value);
-    self
-  }
-
-  pub fn build(self, children: VNodeList) -> VNode {
-    create_element(
-      &Reflect::get(self.context, &"Provider".into()).unwrap_throw(),
-      {
-        let mut props = Props::new();
-
-        if let Some(value) = self.value.as_ref() {
-          props = props.insert("value", value);
-        }
-
-        props
-      },
-      children,
     )
   }
 }
