@@ -105,8 +105,10 @@ impl VNodeList {
   }
 
   /// Adds the given node list to the list.
-  pub fn push_list(&self, list: &VNodeList) {
-    self.0.push(list.as_ref());
+  pub fn extend(&self, iter: impl Iterator<Item = VNode>) {
+    for vnode in iter {
+      self.push(&vnode);
+    }
   }
 }
 

@@ -41,8 +41,10 @@ macro_rules! h {
   };
 }
 
-/// This macro will take various objects of [`Into<VNode>`](crate::VNode) and
-/// builds a [`VNodeList`](crate::VNodeList).
+/// This macro will take various objects of [`Into<VNode>`](crate::VNode) or
+/// [`Iterator<Item = VNode>`](crate::VNode) and builds a [`VNodeList`].
+///
+/// [`VNodeList`]: crate::VNodeList
 ///
 /// # Example
 ///
@@ -55,13 +57,18 @@ macro_rules! h {
 /// #   fn render(&self) -> VNode { VNode::empty() }
 /// # }
 /// #
-/// # fn f(some_prop: ()) -> VNode {
+/// # fn f(some_prop: (), vec: Vec<&str>) -> VNode {
 /// h!(div).build(c![
 ///   "Counter: ", 5,
+///
 ///   SomeComponent {
 ///     some_prop,
 ///   },
+///
 ///   h!(h1).build(c!["Hello World"]),
+///
+///   ..vec.iter()
+///     .map(|x| h!(p).build(c![*x])),
 /// ])
 /// # }
 /// ```
@@ -69,7 +76,7 @@ macro_rules! h {
 macro_rules! c {
   [@single $list:ident <<] => {};
   [@single $list:ident << ..$vnode_list:expr $(, $( $tt:tt )* )?] => {
-    $list.push_list(&$vnode_list);
+    $list.extend($vnode_list);
     c![@single $list << $( $( $tt )* )?];
   };
   [@single $list:ident << $into_vnode:expr $(, $( $tt:tt )* )?] => {

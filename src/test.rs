@@ -4,7 +4,7 @@ use crate::{
   classnames, create_context, create_element, export_component, h,
   hooks::{use_callback, use_context, use_effect, use_js_ref, use_state, Deps},
   props::{Props, Style},
-  Component, Context, ContextProvider, VNode, VNodeList,
+  Component, Context, ContextProvider, VNode,
 };
 use js_sys::Reflect;
 use wasm_bindgen::prelude::*;
@@ -129,7 +129,6 @@ impl Component for App {
               .logs
               .iter()
               .map(|&log| h!(li).build(c![log]))
-              .collect::<VNodeList>()
           ])
         ])])
   }
