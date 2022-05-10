@@ -91,7 +91,7 @@ impl<T> TryFrom<JsValue> for RefContainer<T> {
   }
 }
 
-pub(crate) fn use_ref_with_unmount_handler<T: 'static>(
+fn use_ref_with_unmount_handler<T: 'static>(
   init: T,
   unmount_handler: impl FnOnce(&mut RefContainer<T>) + 'static,
 ) -> RefContainer<T> {
@@ -142,14 +142,18 @@ pub(crate) fn use_ref_with_unmount_handler<T: 'static>(
 ///   # fn name() -> &'static str { "" }
 ///
 ///   fn render(&self) -> VNode {
-///     let mut ref_container = use_ref(MyData {
+///     let ref_container = use_ref(MyData {
 ///       value: "Hello World!"
 ///     });
 ///
-///     use_effect(|| {
-///       ref_container.current_mut().value = self.value;
+///     use_effect({
+///       let value = self.value;
+///       let mut ref_container = ref_container.clone();
 ///
-///       || ()
+///       move || {
+///         ref_container.current_mut().value = value;
+///         || ()
+///       }
 ///     }, Deps::some(self.value));
 ///
 ///     h!(div).build(c![

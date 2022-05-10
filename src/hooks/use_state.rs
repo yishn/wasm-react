@@ -66,12 +66,15 @@ impl<T> Deref for State<T> {
 /// # struct C;
 /// # impl C {
 /// fn render(&self) -> VNode {
-///   let mut state = use_state(|| State { value: "Hello!" });
+///   let state = use_state(|| State { value: "Hello!" });
 ///
-///   use_effect(|| {
-///     state.update(|state| state.value = "Welcome!");
+///   use_effect({
+///     let mut state = state.clone();
 ///
-///     || ()
+///     move || {
+///       state.update(|state| state.value = "Welcome!");
+///       || ()
+///     }
 ///   }, Deps::some(( /* ... */ )));
 ///
 ///   h!(div).build(c![state.value])
