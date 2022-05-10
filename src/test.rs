@@ -1,8 +1,9 @@
 use crate::{
-  c, classnames, create_element, export_component, h,
-  hooks::{self, use_callback, use_effect, use_js_ref, Deps},
+  c, classnames, create_context, create_element, export_component, h,
+  hooks::{use_callback, use_context, use_effect, use_js_ref, use_state, Deps},
   props::{Props, Style},
-  Callable, Callback, Component, VNode, VNodeList, Void,
+  Callable, Callback, Component, Context, ContextProvider, VNode, VNodeList,
+  Void,
 };
 use js_sys::Reflect;
 use wasm_bindgen::prelude::*;
@@ -18,6 +19,15 @@ extern "C" {
 
   #[wasm_bindgen(js_namespace = console, js_name = log)]
   pub fn log_js(input: &JsValue);
+}
+
+thread_local! {
+  static THEME_CONTEXT: Context<Theme> = create_context(Theme::LightMode);
+}
+
+pub enum Theme {
+  DarkMode,
+  LightMode,
 }
 
 #[derive(Debug, Clone)]
@@ -51,7 +61,7 @@ impl Component for App {
   }
 
   fn render(&self) -> VNode {
-    let mut state = hooks::use_state(|| AppState {
+    let mut state = use_state(|| AppState {
       counter: 11,
       logs: vec![],
     });
@@ -77,7 +87,7 @@ impl Component for App {
       Deps::some(self.diff),
     );
 
-    hooks::use_effect(
+    use_effect(
       || {
         state.update(|state| {
           state.logs.push(if warning {
@@ -92,33 +102,35 @@ impl Component for App {
       Deps::some(warning),
     );
 
-    h!(div[#"app-container".warning])
-      .attr("data-counter", &state.counter.into())
-      .build(c![
-        create_element(
-          &WELCOME,
-          Props::new().insert("welcome", &"Welcome!".into()),
-          c![]
-        ),
-        h!(h2)
-          .style(Style::new().color(warning.then(|| "red")))
-          .build(c!["Counter: ", state.counter]),
-        //
-        Counter {
-          counter: state.counter,
-          on_increment: Some(handle_increment.into()),
-          on_decrement: Some(handle_decrement.into()),
-        },
-        //
-        h!(ul[."logs"]).build(c![
-          h!(li).build(c!["Started..."]),
-          state
-            .logs
-            .iter()
-            .map(|&log| h!(li).build(c![log]))
-            .collect::<VNodeList>()
-        ])
-      ])
+    ContextProvider::from(&THEME_CONTEXT)
+      .value(Some(Theme::DarkMode))
+      .build(c![h!(div[#"app-container".warning])
+        .attr("data-counter", &state.counter.into())
+        .build(c![
+          create_element(
+            &WELCOME,
+            Props::new().insert("welcome", &"Welcome!".into()),
+            c![]
+          ),
+          h!(h2)
+            .style(Style::new().color(warning.then(|| "red")))
+            .build(c!["Counter: ", state.counter]),
+          //
+          Counter {
+            counter: state.counter,
+            on_increment: Some(handle_increment.into()),
+            on_decrement: Some(handle_decrement.into()),
+          },
+          //
+          h!(ul[."logs"]).build(c![
+            h!(li).build(c!["Started..."]),
+            state
+              .logs
+              .iter()
+              .map(|&log| h!(li).build(c![log]))
+              .collect::<VNodeList>()
+          ])
+        ])])
   }
 }
 
@@ -135,6 +147,10 @@ impl Component for Counter {
   }
 
   fn render(&self) -> VNode {
+    let dark_mode = match *use_context(&THEME_CONTEXT) {
+      Theme::DarkMode => true,
+      Theme::LightMode => false,
+    };
     let element_ref = use_js_ref(None::<Element>);
     let handle_decrement = use_callback(
       {
@@ -166,7 +182,7 @@ impl Component for Counter {
       Deps::some(element_ref.current_untyped()),
     );
 
-    h!(div[."counter-component"])
+    h!(div[."counter-component".{dark_mode.then(|| "dark")}])
       .ref_container(&element_ref)
       .build(c![
         h!(button)
@@ -181,15 +197,13 @@ impl Component for Counter {
   }
 }
 
-#[wasm_bindgen(
-  inline_js = "
+#[wasm_bindgen(inline_js = "
     import React from 'https://cdn.skypack.dev/react';
 
     export function Welcome(props) {
       return React.createElement('h1', {}, props.welcome);
     }
-  "
-)]
+  ")]
 extern "C" {
   #[wasm_bindgen(js_name = Welcome)]
   static WELCOME: JsValue;

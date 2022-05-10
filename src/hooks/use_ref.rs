@@ -73,6 +73,24 @@ impl<T> Clone for RefContainer<T> {
   }
 }
 
+impl<T> AsRef<JsValue> for RefContainer<T> {
+  fn as_ref(&self) -> &JsValue {
+    &self.1
+  }
+}
+
+impl<T> TryFrom<JsValue> for RefContainer<T> {
+  type Error = JsValue;
+
+  fn try_from(value: JsValue) -> Result<Self, Self::Error> {
+    Ok(RefContainer(
+      Reflect::get(&value, &"ptr".into())?.as_f64().unwrap_throw() as usize
+        as *mut T,
+      value,
+    ))
+  }
+}
+
 pub(crate) fn use_ref_with_unmount_handler<T: 'static>(
   init: T,
   unmount_handler: impl FnOnce(&mut RefContainer<T>) + 'static,
@@ -100,13 +118,7 @@ pub(crate) fn use_ref_with_unmount_handler<T: 'static>(
     ),
   );
 
-  RefContainer(
-    Reflect::get(&js_ref, &"ptr".into())
-      .unwrap_throw()
-      .as_f64()
-      .unwrap_throw() as usize as *mut T,
-    js_ref,
-  )
+  RefContainer::try_from(js_ref).unwrap_throw()
 }
 
 /// This is the main hook to persist Rust data through the entire lifetime of

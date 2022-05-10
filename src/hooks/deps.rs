@@ -36,21 +36,23 @@ impl<T: Debug> Debug for Deps<T> {
   }
 }
 
-impl<T> Deps<T> {
+impl Deps<()> {
   /// The hook will be activated whenever the component renders.
-  pub fn all() -> Deps<()> {
-    Deps(None)
+  pub fn all() -> Self {
+    Self(None)
   }
 
   /// The hook will be activated only on the first render.
-  pub fn none() -> Deps<()> {
-    Deps(Some(()))
+  pub fn none() -> Self {
+    Self(Some(()))
   }
+}
 
+impl<T> Deps<T> {
   /// The hook will be activated every time when the component renders if the
   /// inner value `T` has changed from last render.
-  pub fn some(deps: T) -> Deps<T> {
-    Deps(Some(deps))
+  pub fn some(deps: T) -> Self {
+    Self(Some(deps))
   }
 
   pub(crate) fn is_all(&self) -> bool {

@@ -1,4 +1,4 @@
-#![warn(missing_docs)]
+// #![warn(missing_docs)]
 #![doc = include_str!("../README.md")]
 
 // This hack is needed to let the doctests run for our README file
@@ -19,6 +19,7 @@ pub mod hooks;
 pub mod props;
 
 use callback::*;
+use std::rc::Rc;
 use wasm_bindgen::prelude::*;
 
 pub use builtin_components::*;
@@ -69,4 +70,26 @@ pub fn create_element(
     props.as_ref(),
     children.as_ref(),
   ))
+}
+
+#[derive(Debug)]
+pub struct Context<T: 'static> {
+  fallback_value: Rc<T>,
+  js_context: JsValue,
+}
+
+impl<T: 'static> Clone for Context<T> {
+  fn clone(&self) -> Self {
+    Self {
+      fallback_value: self.fallback_value.clone(),
+      js_context: self.js_context.clone(),
+    }
+  }
+}
+
+pub fn create_context<T>(init: T) -> Context<T> {
+  Context {
+    fallback_value: Rc::new(init),
+    js_context: react_bindings::create_context(&JsValue::undefined()),
+  }
 }

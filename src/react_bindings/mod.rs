@@ -30,6 +30,13 @@ extern "C" {
     children: &JsValue,
   ) -> JsValue;
 
+
+  #[wasm_bindgen(js_namespace = React, js_name = createContext)]
+  pub fn create_context(value: &JsValue) -> JsValue;
+
+  #[wasm_bindgen(js_namespace = React, js_name = useContext)]
+  pub fn use_context(context: &JsValue) -> JsValue;
+
   #[wasm_bindgen(js_namespace = React, js_name = useEffect)]
   pub fn use_effect(f: &JsValue, deps: &JsValue);
 
