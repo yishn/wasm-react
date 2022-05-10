@@ -21,6 +21,9 @@ extern "C" {
   #[wasm_bindgen(js_name = useRustEffect)]
   pub fn use_rust_effect(effect: &JsValue, dep: u8);
 
+  #[wasm_bindgen(js_name = useRustLayoutEffect)]
+  pub fn use_rust_layout_effect(effect: &JsValue, dep: u8);
+
   // From the React namespace:
 
   #[wasm_bindgen(js_namespace = React, js_name = Fragment)]

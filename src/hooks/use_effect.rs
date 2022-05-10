@@ -5,8 +5,11 @@ use crate::{
 };
 use wasm_bindgen::{prelude::Closure, JsValue, UnwrapThrowExt};
 
-pub fn use_effect<G, D>(effect: impl FnOnce() -> G + 'static, deps: Deps<D>)
-where
+fn use_effect_inner<G, D>(
+  effect: impl FnOnce() -> G + 'static,
+  deps: Deps<D>,
+  layout: bool,
+) where
   G: FnOnce() + 'static,
   D: PartialEq + 'static,
 {
@@ -34,5 +37,29 @@ where
 
   let (effect, _, counter) = ref_container.current().as_ref().unwrap_throw();
 
-  react_bindings::use_rust_effect(effect.as_ref(), *counter);
+  let use_effect = if !layout {
+    react_bindings::use_rust_effect
+  } else {
+    react_bindings::use_rust_layout_effect
+  };
+
+  use_effect(effect.as_ref(), *counter);
+}
+
+pub fn use_effect<G, D>(effect: impl FnOnce() -> G + 'static, deps: Deps<D>)
+where
+  G: FnOnce() + 'static,
+  D: PartialEq + 'static,
+{
+  use_effect_inner(effect, deps, false);
+}
+
+pub fn use_layout_effect<G, D>(
+  effect: impl FnOnce() -> G + 'static,
+  deps: Deps<D>,
+) where
+  G: FnOnce() + 'static,
+  D: PartialEq + 'static,
+{
+  use_effect_inner(effect, deps, true);
 }

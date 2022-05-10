@@ -81,3 +81,7 @@ export function useRustState() {
 export function useRustEffect(effect, dep) {
   React.useEffect(effect, [dep]);
 }
+
+export function useRustLayoutEffect(effect, dep) {
+  React.useLayoutEffect(effect, [dep]);
+}
