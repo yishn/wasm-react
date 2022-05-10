@@ -1,6 +1,7 @@
 use super::{use_ref, RefContainer};
 use crate::{
-  callback::Void, react_bindings, Callable, Persisted, PersistedOrigin,
+  callback::{Callable, Void},
+  react_bindings, Persisted, PersistedOrigin,
 };
 use js_sys::Function;
 use std::{fmt::Debug, ops::Deref};

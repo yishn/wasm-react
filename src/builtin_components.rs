@@ -63,7 +63,7 @@ impl<T: 'static> ContextProvider<T> {
 
 impl<T: 'static> Component for ContextProvider<T> {
   fn name() -> &'static str {
-    "ContextProvider"
+    "WasmReactContextProvider"
   }
 
   fn render(&self) -> VNode {

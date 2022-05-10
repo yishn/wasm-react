@@ -108,9 +108,9 @@ pub(crate) fn use_ref_with_unmount_handler<T: 'static>(
           // at `react-bindings.js#useRustRef`), so a double-free cannot happen!
           drop(unsafe { Box::from_raw(ptr) });
 
-          // By setting `dropped` to `true`, we're signalling that the underlying
-          // data has already been dropped and that it is not safe for
-          // `RefContainer` to access the pointer anymore.
+          // By setting `dropped` to `true`, we're signalling that the
+          // underlying data has already been dropped and that it is not safe
+          // for `RefContainer` to access it anymore.
           Reflect::set(&js_ref, &"dropped".into(), &JsValue::TRUE)
             .unwrap_throw();
         }

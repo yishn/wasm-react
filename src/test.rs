@@ -1,9 +1,10 @@
 use crate::{
-  c, classnames, create_context, create_element, export_component, h,
+  c,
+  callback::{Callable, Callback, Void},
+  classnames, create_context, create_element, export_component, h,
   hooks::{use_callback, use_context, use_effect, use_js_ref, use_state, Deps},
   props::{Props, Style},
-  Callable, Callback, Component, Context, ContextProvider, VNode, VNodeList,
-  Void,
+  Component, Context, ContextProvider, VNode, VNodeList,
 };
 use js_sys::Reflect;
 use wasm_bindgen::prelude::*;
@@ -198,12 +199,12 @@ impl Component for Counter {
 }
 
 #[wasm_bindgen(inline_js = "
-    import React from 'https://cdn.skypack.dev/react';
+  import React from 'https://cdn.skypack.dev/react';
 
-    export function Welcome(props) {
-      return React.createElement('h1', {}, props.welcome);
-    }
-  ")]
+  export function Welcome(props) {
+    return React.createElement('h1', {}, props.welcome);
+  }
+")]
 extern "C" {
   #[wasm_bindgen(js_name = Welcome)]
   static WELCOME: JsValue;
