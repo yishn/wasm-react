@@ -1,4 +1,4 @@
-use js_sys::Function;
+use js_sys::{Function, Array};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(module = "/src/react_bindings/react-bindings.js")]
@@ -23,6 +23,9 @@ extern "C" {
 
   #[wasm_bindgen(js_name = useRustLayoutEffect)]
   pub fn use_rust_layout_effect(effect: &JsValue, dep: u8);
+
+  #[wasm_bindgen(js_name = childrenToArray, catch)]
+  pub fn children_to_array(children: &JsValue) -> Result<Array, JsValue>;
 
   // From the React namespace:
 

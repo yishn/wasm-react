@@ -31,7 +31,11 @@ impl Fragment {
   ///
   /// [fragment]: https://reactjs.org/docs/fragments.html
   pub fn build(&self, children: VNodeList) -> VNode {
-    create_element(&react_bindings::FRAGMENT, Props::new().as_ref(), children)
+    create_element(
+      &react_bindings::FRAGMENT,
+      Props::new(),
+      children,
+    )
   }
 }
 
@@ -63,7 +67,7 @@ impl<T: 'static> ContextProvider<T> {
 
 impl<T: 'static> Component for ContextProvider<T> {
   fn name() -> &'static str {
-    "WasmReactContextProvider"
+    "WasmReact.ContextProvider"
   }
 
   fn render(&self) -> VNode {

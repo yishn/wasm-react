@@ -85,3 +85,7 @@ export function useRustEffect(effect, dep) {
 export function useRustLayoutEffect(effect, dep) {
   React.useLayoutEffect(effect, [dep]);
 }
+
+export function childrenToArray(children) {
+  return React.Children.toArray(children);
+}

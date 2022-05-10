@@ -1,6 +1,6 @@
 use crate::{props::Props, react_bindings, Component, ComponentWrapper};
 use js_sys::Array;
-use wasm_bindgen::JsValue;
+use wasm_bindgen::{JsCast, JsValue, UnwrapThrowExt};
 
 /// Represents a node in the virtual DOM of React.
 #[derive(Clone)]
@@ -106,8 +106,8 @@ impl VNodeList {
 
   /// Adds the given node list to the list.
   pub fn extend(&self, iter: impl Iterator<Item = VNode>) {
-    for vnode in iter {
-      self.push(&vnode);
+    for node in iter {
+      self.push(&node);
     }
   }
 }
@@ -121,6 +121,20 @@ impl AsRef<JsValue> for VNodeList {
 impl From<VNodeList> for JsValue {
   fn from(value: VNodeList) -> Self {
     value.0.into()
+  }
+}
+
+impl TryFrom<JsValue> for VNodeList {
+  type Error = JsValue;
+
+  fn try_from(value: JsValue) -> Result<Self, Self::Error> {
+    Ok(VNodeList({
+      if value.is_instance_of::<Array>() {
+        value.dyn_into::<Array>().unwrap_throw()
+      } else {
+        react_bindings::children_to_array(&value)?
+      }
+    }))
   }
 }
 

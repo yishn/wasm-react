@@ -68,6 +68,6 @@ pub fn create_element(
   VNode(react_bindings::create_element(
     typ,
     props.as_ref(),
-    children.as_ref(),
+    &children.into(),
   ))
 }

@@ -115,7 +115,7 @@ impl Component for App {
           create_element(
             &WELCOME,
             Props::new().insert("welcome", &"Welcome!".into()),
-            c![]
+            c![],
           ),
           h!(h2)
             .style(Style::new().color(warning.then(|| "red")))

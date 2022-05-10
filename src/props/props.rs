@@ -1,6 +1,6 @@
 use crate::{callback::PersistedCallback, hooks::JsRefContainer};
 use js_sys::{Object, Reflect};
-use wasm_bindgen::{JsValue, UnwrapThrowExt};
+use wasm_bindgen::{JsValue, UnwrapThrowExt, JsCast};
 
 /// A convenience builder for JS objects. Mainly used for constructing props
 /// that are not controlled by Rust.
@@ -47,10 +47,7 @@ impl Props {
   /// Sets the [React ref][ref] to the given ref callback.
   ///
   /// [ref]: https://reactjs.org/docs/refs-and-the-dom.html
-  pub fn ref_callback<T>(
-    self,
-    ref_callback: &PersistedCallback<T>,
-  ) -> Self {
+  pub fn ref_callback<T>(self, ref_callback: &PersistedCallback<T>) -> Self {
     self.insert_callback("ref", ref_callback)
   }
 
@@ -80,5 +77,19 @@ impl AsRef<JsValue> for Props {
 impl From<Props> for JsValue {
   fn from(style: Props) -> Self {
     style.0.into()
+  }
+}
+
+impl From<Object> for Props {
+  fn from(value: Object) -> Self {
+    Props(value)
+  }
+}
+
+impl TryFrom<JsValue> for Props {
+  type Error = JsValue;
+
+  fn try_from(value: JsValue) -> Result<Self, Self::Error> {
+    Ok(Props(value.dyn_into::<Object>()?))
   }
 }
