@@ -125,7 +125,7 @@ impl Component for App {
           //
           h!(ul[."logs"]).build(c![
             h!(li).build(c!["Started..."]),
-            state
+            ..state
               .logs
               .iter()
               .map(|&log| h!(li).build(c![log]))

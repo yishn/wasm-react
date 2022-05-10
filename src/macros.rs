@@ -67,11 +67,20 @@ macro_rules! h {
 /// ```
 #[macro_export]
 macro_rules! c {
-  [$( $into_vnode:expr ),* $(,)?] => {
+  [@single $list:ident <<] => {};
+  [@single $list:ident << ..$vnode_list:expr $(, $( $tt:tt )* )?] => {
+    $list.push_list(&$vnode_list);
+    c![@single $list << $( $( $tt )* )?];
+  };
+  [@single $list:ident << $into_vnode:expr $(, $( $tt:tt )* )?] => {
+    $list.push(&$into_vnode.into());
+    c![@single $list << $( $( $tt )* )?];
+  };
+  [$( $tt:tt )*] => {
     {
-      let arr = $crate::VNodeList::new();
-      $( arr.push($into_vnode.into()); )*
-      arr
+      let list = $crate::VNodeList::new();
+      c![@single list << $( $tt )*];
+      list
     }
   };
 }

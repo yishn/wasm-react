@@ -100,8 +100,13 @@ impl VNodeList {
   }
 
   /// Adds the given node to the list.
-  pub fn push(&self, node: VNode) {
-    self.0.push(&node.into());
+  pub fn push(&self, node: &VNode) {
+    self.0.push(node.as_ref());
+  }
+
+  /// Adds the given node list to the list.
+  pub fn push_list(&self, list: &VNodeList) {
+    self.0.push(list.as_ref());
   }
 }
 
@@ -117,16 +122,10 @@ impl From<VNodeList> for JsValue {
   }
 }
 
-impl From<VNodeList> for VNode {
-  fn from(value: VNodeList) -> Self {
-    VNode(value.into())
-  }
-}
-
 impl Extend<VNode> for VNodeList {
   fn extend<T: IntoIterator<Item = VNode>>(&mut self, iter: T) {
     for node in iter.into_iter() {
-      self.push(node);
+      self.push(&node);
     }
   }
 }
@@ -136,7 +135,7 @@ impl FromIterator<VNode> for VNodeList {
     let result = Self::new();
 
     for node in iter.into_iter() {
-      result.push(node);
+      result.push(&node);
     }
 
     result
