@@ -12,11 +12,14 @@ extern "C" {
   #[wasm_bindgen(js_name = createRustComponent)]
   pub fn create_rust_component(name: &str, props: &JsValue) -> JsValue;
 
+  #[wasm_bindgen(js_name = useRustRef)]
+  pub fn use_rust_ref(create: &JsValue, handler: &JsValue) -> JsValue;
+
   #[wasm_bindgen(js_name = useRustState)]
   pub fn use_rust_state() -> Function;
 
-  #[wasm_bindgen(js_name = useRustRef)]
-  pub fn use_rust_ref(create: &JsValue, handler: &JsValue) -> JsValue;
+  #[wasm_bindgen(js_name = useRustEffect)]
+  pub fn use_rust_effect(effect: &JsValue, dep: u8);
 
   // From the React namespace:
 
@@ -30,15 +33,11 @@ extern "C" {
     children: &JsValue,
   ) -> JsValue;
 
-
   #[wasm_bindgen(js_namespace = React, js_name = createContext)]
   pub fn create_context(value: &JsValue) -> JsValue;
 
   #[wasm_bindgen(js_namespace = React, js_name = useContext)]
   pub fn use_context(context: &JsValue) -> JsValue;
-
-  #[wasm_bindgen(js_namespace = React, js_name = useEffect)]
-  pub fn use_effect(f: &JsValue, deps: &JsValue);
 
   #[wasm_bindgen(js_namespace = React, js_name = useCallback)]
   pub fn use_callback(f: &JsValue, deps: &JsValue) -> Function;

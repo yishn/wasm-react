@@ -62,7 +62,7 @@ impl Component for App {
   }
 
   fn render(&self) -> VNode {
-    let mut state = use_state(|| AppState {
+    let state = use_state(|| AppState {
       counter: 11,
       logs: vec![],
     });
@@ -89,16 +89,20 @@ impl Component for App {
     );
 
     use_effect(
-      || {
-        state.update(|state| {
-          state.logs.push(if warning {
-            "Counter is now above 50 🎉"
-          } else {
-            "Counter is now below 50"
-          })
-        });
+      {
+        let mut state = state.clone();
 
-        || ()
+        move || {
+          state.update(|state| {
+            state.logs.push(if warning {
+              "Counter is now above 50 🎉"
+            } else {
+              "Counter is now below 50"
+            })
+          });
+
+          || ()
+        }
       },
       Deps::some(warning),
     );
@@ -125,10 +129,7 @@ impl Component for App {
           //
           h!(ul[."logs"]).build(c![
             h!(li).build(c!["Started..."]),
-            ..state
-              .logs
-              .iter()
-              .map(|&log| h!(li).build(c![log]))
+            ..state.logs.iter().map(|&log| h!(li).build(c![log]))
           ])
         ])])
   }
@@ -169,15 +170,19 @@ impl Component for Counter {
     );
 
     use_effect(
-      || {
-        log_js(
-          &element_ref
-            .current()
-            .map(|x| x.into())
-            .unwrap_or(JsValue::undefined()),
-        );
+      {
+        let element_ref = element_ref.clone();
 
-        || ()
+        move || {
+          log_js(
+            &element_ref
+              .current()
+              .map(|x| x.into())
+              .unwrap_or(JsValue::undefined()),
+          );
+
+          || ()
+        }
       },
       Deps::some(element_ref.current_untyped()),
     );

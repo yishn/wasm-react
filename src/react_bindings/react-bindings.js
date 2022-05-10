@@ -47,13 +47,6 @@ export function createBuiltinComponent(name, props, children) {
   return React.createElement(React[name], props, children);
 }
 
-export function useRustState() {
-  // This only returns a function that can trigger a component rerender
-  let [, setState] = React.useState(() => []);
-
-  return () => setState([]);
-}
-
 export function useRustRef(create, handler) {
   let ref = React.useRef(null);
 
@@ -76,4 +69,15 @@ export function useRustRef(create, handler) {
   React.useEffect(() => () => handler(true, ref.current.ptr, ref.current), []);
 
   return ref.current;
+}
+
+export function useRustState() {
+  // This only returns a function that can trigger a component rerender
+  let [, setState] = React.useState(() => []);
+
+  return () => setState([]);
+}
+
+export function useRustEffect(effect, dep) {
+  React.useEffect(effect, [dep]);
 }

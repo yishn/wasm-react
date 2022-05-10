@@ -70,12 +70,16 @@ impl<T: 'static> Component for ContextProvider<T> {
     let value = self.value.clone().unwrap_or_else(|| {
       self.context.with(|context| context.fallback_value.clone())
     });
-    let mut value_ref = use_ref(value.clone());
+    let value_ref = use_ref(value.clone());
 
     use_effect(
-      || {
-        value_ref.set_current(value);
-        || ()
+      {
+        let mut value_ref = value_ref.clone();
+
+        move || {
+          value_ref.set_current(value);
+          || ()
+        }
       },
       Deps::all(),
     );
