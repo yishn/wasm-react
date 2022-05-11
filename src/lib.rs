@@ -1,4 +1,4 @@
-// #![warn(missing_docs)]
+#![warn(missing_docs)]
 #![doc = include_str!("../README.md")]
 
 // This hack is needed to let the doctests run for our README file
