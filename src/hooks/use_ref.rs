@@ -91,36 +91,6 @@ impl<T> TryFrom<JsValue> for RefContainer<T> {
   }
 }
 
-fn use_ref_with_unmount_handler<T: 'static>(
-  init: T,
-  unmount_handler: impl FnOnce(&mut RefContainer<T>) + 'static,
-) -> RefContainer<T> {
-  let js_ref = react_bindings::use_rust_ref(
-    Callback::once(move |_: Void| Box::into_raw(Box::new(init))).as_ref(),
-    &Closure::once_into_js(
-      move |unmounted: bool, ptr: usize, js_ref: JsValue| {
-        if unmounted {
-          let ptr = ptr as *mut T;
-
-          unmount_handler(&mut RefContainer(ptr, js_ref.clone()));
-
-          // A callback with `unmounted == true` can only be called once (look
-          // at `react-bindings.js#useRustRef`), so a double-free cannot happen!
-          drop(unsafe { Box::from_raw(ptr) });
-
-          // By setting `dropped` to `true`, we're signalling that the
-          // underlying data has already been dropped and that it is not safe
-          // for `RefContainer` to access it anymore.
-          Reflect::set(&js_ref, &"dropped".into(), &JsValue::TRUE)
-            .unwrap_throw();
-        }
-      },
-    ),
-  );
-
-  RefContainer::try_from(js_ref).unwrap_throw()
-}
-
 /// This is the main hook to persist Rust data through the entire lifetime of
 /// the component.
 ///
@@ -163,7 +133,28 @@ fn use_ref_with_unmount_handler<T: 'static>(
 /// }
 /// ```
 pub fn use_ref<T: 'static>(init: T) -> RefContainer<T> {
-  use_ref_with_unmount_handler(init, |_| ())
+  let js_ref = react_bindings::use_rust_ref(
+    Callback::once(move |_: Void| Box::into_raw(Box::new(init))).as_ref(),
+    &Closure::once_into_js(
+      move |unmounted: bool, ptr: usize, js_ref: JsValue| {
+        if unmounted {
+          let ptr = ptr as *mut T;
+
+          // A callback with `unmounted == true` can only be called once (look
+          // at `react-bindings.js#useRustRef`), so a double-free cannot happen!
+          drop(unsafe { Box::from_raw(ptr) });
+
+          // By setting `dropped` to `true`, we're signalling that the
+          // underlying data has already been dropped and that it is not safe
+          // for `RefContainer` to access it anymore.
+          Reflect::set(&js_ref, &"dropped".into(), &JsValue::TRUE)
+            .unwrap_throw();
+        }
+      },
+    ),
+  );
+
+  RefContainer::try_from(js_ref).unwrap_throw()
 }
 
 /// Allows access to the underlying JS data persisted with [`use_js_ref()`].
