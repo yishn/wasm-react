@@ -84,7 +84,7 @@ impl<T> TryFrom<JsValue> for RefContainer<T> {
 
   fn try_from(value: JsValue) -> Result<Self, Self::Error> {
     Ok(RefContainer(
-      Reflect::get(&value, &"ptr".into())?.as_f64().unwrap_throw() as usize
+      react_bindings::cast_to_usize(&Reflect::get(&value, &"ptr".into())?)
         as *mut T,
       value,
     ))
@@ -213,8 +213,7 @@ impl<T> From<JsRefContainer<T>> for JsValue {
   }
 }
 
-/// A binding to `React.useRef()`. This hook can persist JS data through the
-/// entire lifetime of the component.
+/// This hook can persist JS data through the entire lifetime of the component.
 ///
 /// Use this if you need JS to set the ref value. If you only need to mutate the
 /// data from Rust, use [`use_ref()`] instead.

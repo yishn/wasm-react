@@ -11,27 +11,43 @@ use wasm_bindgen::UnwrapThrowExt;
 ///
 /// When the component unmounts, the underlying data is dropped. After that,
 /// trying to access the data will result in a panic.
-pub struct State<T>(RefContainer<Option<T>>, Function);
+pub struct State<T> {
+  ref_container: RefContainer<Option<T>>,
+  update: Function,
+}
 
 impl<T: 'static> State<T> {
-  /// Updates the underlying state with the given mutator closure and rerenders
-  /// the component.
-  pub fn update(&mut self, mutator: impl FnOnce(&mut T)) {
-    mutator(self.0.current_mut().as_mut().unwrap_throw());
+  /// Sets the state to the return value of the given mutator closure and
+  /// rerenders the component.
+  pub fn set(&mut self, mutator: impl FnOnce(&T) -> T) {
+    let new_state =
+      mutator(self.ref_container.current().as_ref().unwrap_throw());
 
-    self.1.call(&Void.into()).unwrap_throw();
+    self.ref_container.set_current(Some(new_state));
+    self.update.call(&Void.into()).unwrap_throw();
+  }
+
+  /// Updates the state with the given mutator closure and rerenders the
+  /// component.
+  pub fn update(&mut self, mutator: impl FnOnce(&mut T)) {
+    mutator(self.ref_container.current_mut().as_mut().unwrap_throw());
+
+    self.update.call(&Void.into()).unwrap_throw();
   }
 }
 
 impl<T> Persisted for State<T> {
   fn ptr(&self) -> PersistedOrigin {
-    self.0.ptr()
+    self.ref_container.ptr()
   }
 }
 
 impl<T> Clone for State<T> {
   fn clone(&self) -> Self {
-    Self(self.0.clone(), self.1.clone())
+    Self {
+      ref_container: self.ref_container.clone(),
+      update: self.update.clone(),
+    }
   }
 }
 
@@ -45,7 +61,7 @@ impl<T> Deref for State<T> {
   type Target = T;
 
   fn deref(&self) -> &Self::Target {
-    self.0.current().as_ref().unwrap_throw()
+    self.ref_container.current().as_ref().unwrap_throw()
   }
 }
 
@@ -54,8 +70,8 @@ impl<T> Deref for State<T> {
 /// Unlike the [`use_ref()`] hook, updating the state will automatically trigger
 /// a rerender of the component.
 ///
-/// Unlike its React counterpart, calling `update` will mutate the underlying
-/// data in-place and immediately.
+/// Unlike its React counterpart, setting the state will mutate the underlying
+/// data immediately.
 ///
 /// # Example
 ///
@@ -72,7 +88,7 @@ impl<T> Deref for State<T> {
 ///     let mut state = state.clone();
 ///
 ///     move || {
-///       state.update(|state| state.value = "Welcome!");
+///       state.set(|_| State { value: "Welcome!" });
 ///       || ()
 ///     }
 ///   }, Deps::some(( /* ... */ )));
@@ -90,5 +106,8 @@ pub fn use_state<T: 'static>(init: impl FnOnce() -> T) -> State<T> {
 
   let update = react_bindings::use_rust_state();
 
-  State(ref_container.into(), update)
+  State {
+    ref_container,
+    update,
+  }
 }

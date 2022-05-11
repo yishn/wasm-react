@@ -3,7 +3,7 @@ use crate::{react_bindings, Context};
 use std::{rc::Rc, thread::LocalKey};
 use wasm_bindgen::UnwrapThrowExt;
 
-/// Returns the current context value of the given context.
+/// Allows access to the current context value of the given context.
 ///
 /// See [`create_context()`](crate::create_context()) for usage.
 pub fn use_context<T>(context: &'static LocalKey<Context<T>>) -> Rc<T> {

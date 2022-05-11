@@ -109,29 +109,32 @@ impl Component for App {
 
     ContextProvider::from(&THEME_CONTEXT)
       .value(Theme::DarkMode)
-      .build(c![h!(div[#"app-container".warning])
-        .attr("data-counter", &state.counter.into())
-        .build(c![
-          create_element(
-            &WELCOME,
-            Props::new().insert("welcome", &"Welcome!".into()),
-            c![],
-          ),
-          h!(h2)
-            .style(Style::new().color(warning.then(|| "red")))
-            .build(c!["Counter: ", state.counter]),
-          //
-          Counter {
-            counter: state.counter,
-            on_increment: Some(handle_increment.into()),
-            on_decrement: Some(handle_decrement.into()),
-          },
-          //
-          h!(ul[."logs"]).build(c![
-            h!(li).build(c!["Started..."]),
-            ..state.logs.iter().map(|&log| h!(li).build(c![log]))
+      .build(c![
+        //
+        h!(div[#"app-container".warning])
+          .attr("data-counter", &state.counter.into())
+          .build(c![
+            create_element(
+              &WELCOME,
+              Props::new().insert("welcome", &"Welcome!".into()),
+              c![],
+            ),
+            h!(h2)
+              .style(Style::new().color(warning.then(|| "red")))
+              .build(c!["Counter: ", state.counter]),
+            //
+            Counter {
+              counter: state.counter,
+              on_increment: Some(handle_increment.into()),
+              on_decrement: Some(handle_decrement.into()),
+            },
+            //
+            h!(ul[."logs"]).build(c![
+              h!(li).build(c!["Started..."]),
+              ..state.logs.iter().map(|&log| h!(li).build(c![log]))
+            ])
           ])
-        ])])
+      ])
   }
 }
 

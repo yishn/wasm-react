@@ -27,6 +27,9 @@ extern "C" {
   #[wasm_bindgen(js_name = childrenToArray, catch)]
   pub fn children_to_array(children: &JsValue) -> Result<Array, JsValue>;
 
+  #[wasm_bindgen(js_name = cast)]
+  pub fn cast_to_usize(value: &JsValue) -> usize;
+
   // From the React namespace:
 
   #[wasm_bindgen(js_namespace = React, js_name = Fragment)]
@@ -50,4 +53,13 @@ extern "C" {
 
   #[wasm_bindgen(js_namespace = React, js_name = useRef)]
   pub fn use_ref(init: &JsValue) -> JsValue;
+
+  #[wasm_bindgen(js_namespace = React, js_name = useId)]
+  pub fn use_id() -> String;
+
+  #[wasm_bindgen(js_namespace = React, js_name = useDeferredValue)]
+  pub fn use_deferred_value(value: u8) -> u8;
+
+  #[wasm_bindgen(js_namespace = React, js_name = useTransition)]
+  pub fn use_transition() -> Array;
 }
