@@ -36,7 +36,7 @@ pub struct WasmReact;
 impl WasmReact {
   /// Set the React runtime that `wasm-react` should use.
   ///
-  /// **Please** call this function before doing anything else and only once.
+  /// Calling this function the multiple times will result in no-ops.
   ///
   /// # Example
   ///
@@ -52,8 +52,8 @@ impl WasmReact {
   /// main();
   /// ```
   #[wasm_bindgen(js_name = useReact)]
-  pub fn use_react(value: &JsValue) -> Result<(), JsValue> {
-    react_bindings::use_react(value)
+  pub fn use_react(value: &JsValue) {
+    react_bindings::use_react(value);
   }
 }
 

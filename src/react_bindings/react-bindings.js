@@ -5,8 +5,6 @@ export let React = undefined;
 export function useReact(value) {
   if (React == null) {
     React = value;
-  } else {
-    throw new Error("React runtime is already set");
   }
 }
 
