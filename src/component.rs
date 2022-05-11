@@ -1,4 +1,5 @@
 use crate::VNode;
+use std::{ops::Deref, rc::Rc};
 use wasm_bindgen::prelude::*;
 
 /// Implement this trait on a struct to create a component with the struct as
@@ -46,6 +47,16 @@ pub trait Component: 'static {
   /// [key]: https://reactjs.org/docs/lists-and-keys.html
   fn key(&self) -> Option<String> {
     None
+  }
+}
+
+impl<T: Component> Component for Rc<T> {
+  fn name() -> &'static str {
+    T::name()
+  }
+
+  fn render(&self) -> VNode {
+    self.deref().render()
   }
 }
 

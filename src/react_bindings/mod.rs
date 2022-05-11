@@ -1,4 +1,4 @@
-use js_sys::{Function, Array};
+use js_sys::{Array, Function};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(module = "/src/react_bindings/react-bindings.js")]
@@ -10,7 +10,11 @@ extern "C" {
   pub fn get_rust_component(name: &str) -> Function;
 
   #[wasm_bindgen(js_name = createRustComponent)]
-  pub fn create_rust_component(name: &str, props: &JsValue) -> JsValue;
+  pub fn create_rust_component(
+    name: &str,
+    key: &JsValue,
+    component: &JsValue,
+  ) -> JsValue;
 
   #[wasm_bindgen(js_name = useRustRef)]
   pub fn use_rust_ref(create: &JsValue, handler: &JsValue) -> JsValue;

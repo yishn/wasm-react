@@ -8,6 +8,7 @@ use crate::{create_element, props::Props, react_bindings, VNode, VNodeList};
 ///
 /// ```
 /// # use wasm_react::*;
+/// #
 /// # fn f() -> VNode {
 /// Fragment.build(c![
 ///   h!(h1).build(c!["Hello World!"]),

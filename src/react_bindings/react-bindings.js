@@ -39,12 +39,8 @@ export function getRustComponent(name) {
   return components[name];
 }
 
-export function createRustComponent(name, props) {
-  return React.createElement(getRustComponent(name), props);
-}
-
-export function createBuiltinComponent(name, props, children) {
-  return React.createElement(React[name], props, children);
+export function createRustComponent(name, key, component) {
+  return React.createElement(getRustComponent(name), { key, component });
 }
 
 export function useRustRef(create, handler) {

@@ -1,4 +1,4 @@
-use crate::{props::Props, react_bindings, Component, ComponentWrapper};
+use crate::{react_bindings, Component, ComponentWrapper};
 use js_sys::Array;
 use wasm_bindgen::{JsCast, JsValue, UnwrapThrowExt};
 
@@ -35,10 +35,8 @@ impl<T: Component> From<T> for VNode {
   fn from(value: T) -> Self {
     VNode(react_bindings::create_rust_component(
       T::name(),
-      &Props::new()
-        .insert("key", &value.key().into())
-        .insert("component", &ComponentWrapper(Box::new(value)).into())
-        .into(),
+      &value.key().into(),
+      &ComponentWrapper(Box::new(value)).into(),
     ))
   }
 }
