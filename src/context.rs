@@ -8,6 +8,11 @@ use js_sys::Reflect;
 use std::{rc::Rc, thread::LocalKey};
 use wasm_bindgen::{JsValue, UnwrapThrowExt};
 
+/// Represents a [React context][context] that can hold a global state.
+///
+/// See [`create_context()`] for usage.
+///
+/// [context]: https://reactjs.org/docs/context.html
 #[derive(Debug)]
 pub struct Context<T> {
   fallback_value: Rc<T>,
@@ -26,6 +31,75 @@ impl<T> From<Context<T>> for JsValue {
   }
 }
 
+/// Creates a new [React context][context] that can hold a global state.
+///
+/// Use [`ContextProvider`] to make the context available for its subtrees and
+/// [`use_context()`](crate::hooks::use_context()) to get access to the context
+/// value.
+///
+/// [context]: https://reactjs.org/docs/context.html
+///
+/// # Example
+///
+/// ```
+/// # use wasm_react::{*, hooks::*, props::*};
+/// # pub enum Theme { DarkMode, LightMode }
+/// #
+/// thread_local! {
+///   // Pass in a default value for the context.
+///   static THEME_CONTEXT: Context<Theme> = create_context(Theme::LightMode);
+/// }
+///
+/// struct App;
+///
+/// impl Component for App {
+///   /* ... */
+///   # fn name() -> &'static str { "" }
+///
+///   fn render(&self) -> VNode {
+///     // Use a `ContextProvider` to pass the context value to the trees below.
+///     // In this example, we are passing down `Theme::DarkMode`.
+///
+///     ContextProvider::from(&THEME_CONTEXT)
+///       .value(Theme::DarkMode)
+///       .build(c![Toolbar])
+///   }
+/// }
+///
+/// struct Toolbar;
+///
+/// impl Component for Toolbar {
+///   /* ... */
+///   # fn name() -> &'static str { "" }
+///
+///   fn render(&self) -> VNode {
+///     // Theme context does not have to be passed down explicitly.
+///     h!(div).build(c![Button])
+///   }
+/// }
+///
+/// struct Button;
+///
+/// impl Component for Button {
+///   /* ... */
+///   # fn name() -> &'static str { "" }
+///
+///   fn render(&self) -> VNode {
+///     // Use the `use_context` hook to get access to the context value.
+///     let theme = use_context(&THEME_CONTEXT);
+///
+///     h!(button)
+///       .style(
+///         Style::new()
+///           .background_color(match *theme {
+///             Theme::LightMode => "white",
+///             Theme::DarkMode => "black",
+///           })
+///       )
+///       .build(c![])
+///   }
+/// }
+/// ```
 pub fn create_context<T: 'static>(init: T) -> Context<T> {
   Context {
     fallback_value: Rc::new(init),
@@ -33,6 +107,9 @@ pub fn create_context<T: 'static>(init: T) -> Context<T> {
   }
 }
 
+/// A component that can make the given context availble for its subtrees.
+///
+/// See [`create_context()`] for usage.
 pub struct ContextProvider<T: 'static> {
   context: &'static LocalKey<Context<T>>,
   value: Option<Rc<T>>,
@@ -40,6 +117,7 @@ pub struct ContextProvider<T: 'static> {
 }
 
 impl<T: 'static> ContextProvider<T> {
+  /// Creates a new `ContextProvider` from the given context.
   pub fn from(context: &'static LocalKey<Context<T>>) -> Self {
     Self {
       context,
@@ -48,11 +126,13 @@ impl<T: 'static> ContextProvider<T> {
     }
   }
 
+  /// Sets the value of the context to be passed down.
   pub fn value(mut self, value: T) -> Self {
     self.value = Some(Rc::new(value));
     self
   }
 
+  /// Returns a [`VNode`] to be included in the render function of a component.
   pub fn build(mut self, children: VNodeList) -> VNode {
     self.children = children;
     self.into()

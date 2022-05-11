@@ -107,6 +107,7 @@ impl<T> TryFrom<JsValue> for RefContainer<T> {
 /// # use wasm_react::{*, hooks::*};
 /// # struct MyData { value: &'static str };
 /// # struct MyComponent { value: &'static str };
+/// #
 /// impl Component for MyComponent {
 ///   /* ... */
 ///   # fn name() -> &'static str { "" }
