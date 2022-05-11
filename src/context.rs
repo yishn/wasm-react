@@ -107,7 +107,7 @@ pub fn create_context<T: 'static>(init: T) -> Context<T> {
   }
 }
 
-/// A component that can make the given context availble for its subtrees.
+/// A component that can make the given context available for its subtrees.
 ///
 /// See [`create_context()`] for usage.
 pub struct ContextProvider<T: 'static> {

@@ -91,8 +91,8 @@ impl<T> TryFrom<JsValue> for RefContainer<T> {
   }
 }
 
-/// This is the main hook to persist Rust data through the entire lifetime of
-/// the component.
+/// This is the main hook for persisting Rust data through the entire lifetime
+/// of the component.
 ///
 /// Whenever the component is unmounted by React, the data will also be dropped.
 /// Keep in mind that [`use_ref()`] can only be mutated in Rust. If you need a

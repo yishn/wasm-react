@@ -39,6 +39,9 @@ extern "C" {
   #[wasm_bindgen(js_namespace = React, js_name = Fragment)]
   pub static FRAGMENT: JsValue;
 
+  #[wasm_bindgen(js_namespace = React, js_name = Suspense)]
+  pub static SUSPENSE: JsValue;
+
   #[wasm_bindgen(js_namespace = React, js_name = createElement)]
   pub fn create_element(
     name: &JsValue,
