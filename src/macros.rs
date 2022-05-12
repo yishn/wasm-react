@@ -1,4 +1,3 @@
-
 /// A convenience macro to [`create_element()`](crate::create_element()) for
 /// creating HTML element nodes.
 ///
