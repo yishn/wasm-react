@@ -53,9 +53,6 @@ impl<T> From<Context<T>> for JsValue {
 /// struct App;
 ///
 /// impl Component for App {
-///   /* ... */
-///   # fn name() -> &'static str { "" }
-///
 ///   fn render(&self) -> VNode {
 ///     // Use a `ContextProvider` to pass the context value to the trees below.
 ///     // In this example, we are passing down `Theme::DarkMode`.
@@ -69,9 +66,6 @@ impl<T> From<Context<T>> for JsValue {
 /// struct Toolbar;
 ///
 /// impl Component for Toolbar {
-///   /* ... */
-///   # fn name() -> &'static str { "" }
-///
 ///   fn render(&self) -> VNode {
 ///     // Theme context does not have to be passed down explicitly.
 ///     h!(div).build(c![Button])
@@ -81,9 +75,6 @@ impl<T> From<Context<T>> for JsValue {
 /// struct Button;
 ///
 /// impl Component for Button {
-///   /* ... */
-///   # fn name() -> &'static str { "" }
-///
 ///   fn render(&self) -> VNode {
 ///     // Use the `use_context` hook to get access to the context value.
 ///     let theme = use_context(&THEME_CONTEXT);

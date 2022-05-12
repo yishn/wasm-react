@@ -115,9 +115,6 @@ impl<T> TryFrom<JsValue> for RefContainer<T> {
 /// # struct MyComponent { value: &'static str };
 /// #
 /// impl Component for MyComponent {
-///   /* ... */
-///   # fn name() -> &'static str { "" }
-///
 ///   fn render(&self) -> VNode {
 ///     let ref_container = use_ref(MyData {
 ///       value: "Hello World!"
@@ -230,9 +227,6 @@ impl<T> From<JsRefContainer<T>> for JsValue {
 /// # use wasm_react::{*, hooks::*};
 /// # struct MyComponent;
 /// impl Component for MyComponent {
-///   /* ... */
-///   # fn name() -> &'static str { "" }
-///
 ///   fn render(&self) -> VNode {
 ///     let input_element = use_js_ref(None);
 ///

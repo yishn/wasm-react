@@ -53,7 +53,6 @@ macro_rules! h {
 /// #
 /// # struct SomeComponent { some_prop: () }
 /// # impl Component for SomeComponent {
-/// #   fn name() -> &'static str { "" }
 /// #   fn render(&self) -> VNode { VNode::empty() }
 /// # }
 /// #
@@ -185,7 +184,6 @@ macro_rules! classnames {
 /// }
 ///
 /// impl Component for Counter {
-///   # fn name() -> &'static str { "" }
 ///   # fn render(&self) -> VNode { VNode::empty() }
 ///   /* ... */
 /// }

@@ -20,10 +20,6 @@ use wasm_bindgen::prelude::*;
 /// struct Counter(i32);
 ///
 /// impl Component for Counter {
-///   fn name() -> &'static str {
-///     "Counter"
-///   }
-///
 ///   fn render(&self) -> VNode {
 ///     h!(div).build(c!["Counter: ", self.0])
 ///   }

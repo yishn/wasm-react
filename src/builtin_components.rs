@@ -40,7 +40,6 @@ impl Fragment {
 /// #
 /// # struct SomeLazyComponent {}
 /// # impl Component for SomeLazyComponent {
-/// #   fn name() -> &'static str { "" }
 /// #   fn render(&self) -> VNode { VNode::default() }
 /// # }
 /// #
