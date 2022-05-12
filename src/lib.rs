@@ -12,7 +12,6 @@ mod context;
 mod macros;
 mod marker;
 mod react_bindings;
-mod test;
 mod vnode;
 
 pub mod callback;

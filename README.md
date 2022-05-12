@@ -26,7 +26,14 @@ can be exported to JS to be reused or rendered.
 ## Getting Started
 
 Make sure you have Rust and Cargo installed. You can include `wasm-react` by
-adding it to your `Cargo.toml`.
+adding it to your `Cargo.toml`. Furthermore, if you want to expose your Rust
+components to JS, you also need `wasm-bindgen`.
+
+```toml
+[dependencies]
+wasm-react = "0.1"
+wasm-bindgen = "0.2"
+```
 
 ### Creating a Component
 
@@ -43,11 +50,123 @@ struct Counter {
 
 impl Component for Counter {
   fn render(&self) -> VNode {
-    h!(div[."counter"])
+    h!(div)
       .build(c![
         h!(p).build(c!["Counter: ", self.counter]),
         h!(button).build(c!["Increment"]),
       ])
   }
 }
+```
+
+### Add State
+
+You can use the `use_state()` hook to make your component stateful:
+
+```rust
+use wasm_react::{h, c, Component, VNode};
+use wasm_react::hooks::use_state;
+
+struct Counter {
+  initial_counter: i32,
+}
+
+impl Component for Counter {
+  fn render(&self) -> VNode {
+    let counter = use_state(|| self.initial_counter);
+
+    h!(div)
+      .build(c![
+        h!(p).build(c!["Counter: ", *counter]),
+        h!(button).build(c!["Increment"]),
+      ])
+  }
+}
+```
+
+Note that according to the usual Rust rules, the state will be dropped when the
+render function returns. `use_state()` will prevent that by tying the lifetime
+of the state to the lifetime of the component, therefore _persisting_ the state
+through the entire lifetime of the component.
+
+### Add Event Handlers
+
+To create an event handler, you have to keep the lifetime of the closure beyond
+the render function as well, so JS can call it in the future. You can persist a
+closure by using the `use_callback()` hook:
+
+```rust
+use wasm_react::{h, c, Component, VNode};
+use wasm_react::hooks::{use_state, use_callback, Deps};
+
+struct Counter {
+  initial_counter: i32,
+}
+
+impl Component for Counter {
+  fn render(&self) -> VNode {
+    let counter = use_state(|| self.initial_counter);
+    let handle_click = use_callback({
+      let mut counter = counter.clone();
+
+      move |_| counter.set(|c| c + 1)
+    }, Deps::none());
+
+    h!(div)
+      .build(c![
+        h!(p).build(c!["Counter: ", *counter]),
+        h!(button)
+          .on_click(&handle_click)
+          .build(c!["Increment"]),
+      ])
+  }
+}
+```
+
+### Export Component for JS Consumption
+
+First, you need to include `wasm-bindgen` in your `Cargo.toml`.
+
+You can use the `export_component!` macro to export your Rust component for JS
+consumption. Requirement is that your component needs to implement
+`TryFrom<JsValue, Error = JsValue>` and use `wasm_bindgen::prelude::*`.
+
+```rust
+/* ... */
+# use wasm_react::{h, c, Component, VNode};
+# use wasm_react::hooks::{use_state, use_callback, Deps};
+use wasm_bindgen::prelude::*;
+#
+# macro_rules! export_component { ($component:ident) => {}; }
+
+struct Counter {
+  initial_counter: i32,
+}
+
+impl Component for Counter {
+  /* ... */
+  # fn render(&self) -> VNode { VNode::default() }
+}
+
+struct App;
+
+impl Component for App {
+  fn render(&self) -> VNode {
+    h!(div).build(c![
+      Counter {
+        initial_counter: 0,
+      },
+    ])
+  }
+}
+
+impl TryFrom<JsValue> for App {
+  type Error = JsValue;
+
+  fn try_from(_: JsValue) -> Result<Self, Self::Error> {
+    Ok(App)
+  }
+}
+
+export_component!(App);
 ```
