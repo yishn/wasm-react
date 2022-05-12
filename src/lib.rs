@@ -28,6 +28,7 @@ pub use vnode::*;
 
 /// Contains all functions exported to JS by `wasm-react`. These functions should
 /// be called from JS only.
+#[doc(hidden)]
 #[wasm_bindgen]
 pub struct WasmReact;
 

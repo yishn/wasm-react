@@ -27,7 +27,8 @@ can be exported to JS to be reused or rendered.
 
 Make sure you have Rust and Cargo installed. You can include `wasm-react` by
 adding it to your `Cargo.toml`. Furthermore, if you want to expose your Rust
-components to JS, you also need `wasm-bindgen`.
+components to JS, you also need `wasm-bindgen` and install
+[`wasm-pack`](https://rustwasm.github.io/wasm-pack/).
 
 ```toml
 [dependencies]
@@ -132,20 +133,18 @@ consumption. Requirement is that your component needs to implement
 `TryFrom<JsValue, Error = JsValue>` and use `wasm_bindgen::prelude::*`.
 
 ```rust
-/* ... */
-# use wasm_react::{h, c, Component, VNode};
-# use wasm_react::hooks::{use_state, use_callback, Deps};
-use wasm_bindgen::prelude::*;
-#
-# macro_rules! export_component { ($component:ident) => {}; }
+use wasm_react::{h, c, export_component, Component, VNode};
+use wasm_bindgen::JsValue;
 
 struct Counter {
   initial_counter: i32,
 }
 
 impl Component for Counter {
-  /* ... */
-  # fn render(&self) -> VNode { VNode::default() }
+  fn render(&self) -> VNode {
+    /* ... */
+    VNode::empty()
+  }
 }
 
 struct App;

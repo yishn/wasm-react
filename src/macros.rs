@@ -220,19 +220,21 @@ macro_rules! classnames {
 #[macro_export]
 macro_rules! export_component {
   ($component:ident) => {
-    #[allow(non_snake_case)]
-    #[allow(dead_code)]
-    #[doc(hidden)]
-    #[wasm_bindgen]
-    pub fn $component(
-      props: wasm_bindgen::JsValue,
-    ) -> Result<wasm_bindgen::JsValue, wasm_bindgen::JsValue>
-    where
-      $component: $crate::Component
-        + TryFrom<wasm_bindgen::JsValue, Error = wasm_bindgen::JsValue>,
-    {
-      let component = $component::try_from(props)?;
-      Ok($crate::Component::render(&component).into())
+    paste::paste! {
+      #[allow(non_snake_case)]
+      #[allow(dead_code)]
+      #[doc(hidden)]
+      #[wasm_bindgen::prelude::wasm_bindgen(js_name = $component)]
+      pub fn [<__WasmReact_ $component>](
+        props: wasm_bindgen::JsValue,
+      ) -> Result<wasm_bindgen::JsValue, wasm_bindgen::JsValue>
+      where
+        $component: $crate::Component
+          + TryFrom<wasm_bindgen::JsValue, Error = wasm_bindgen::JsValue>,
+      {
+        let component = $component::try_from(props)?;
+        Ok($crate::Component::render(&component).into())
+      }
     }
   };
 }
