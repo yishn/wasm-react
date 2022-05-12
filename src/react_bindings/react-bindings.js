@@ -20,12 +20,13 @@ function renderRustComponent(props) {
 }
 
 function registerRustComponent(name) {
+  // Name is unique
+
   if (components[name] == null) {
     // All Rust components have the same implementation in JS, but we need to
-    // define them separately, so the names show up correctly in the React
+    // define them separately, so that React can distinguish them as different
+    // components, and also so the names show up correctly in the React
     // Developer Tools.
-    //
-    // It shouldn't be a problem if two Rust components share the same name.
     Object.assign(components, {
       [name]: (props = {}) => renderRustComponent(props),
     });

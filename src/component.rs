@@ -30,12 +30,6 @@ use wasm_bindgen::prelude::*;
 /// }
 /// ```
 pub trait Component: 'static {
-  /// The name of the component that will be displayed in the React Developer
-  /// Tools, should be the struct name.
-  fn name() -> &'static str
-  where
-    Self: Sized;
-
   /// The render function.
   ///
   /// **Do not** call this method in another render function. Instead, use the
@@ -51,10 +45,6 @@ pub trait Component: 'static {
 }
 
 impl<T: Component> Component for Rc<T> {
-  fn name() -> &'static str {
-    T::name()
-  }
-
   fn render(&self) -> VNode {
     self.deref().render()
   }

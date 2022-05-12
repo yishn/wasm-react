@@ -57,10 +57,6 @@ impl TryFrom<JsValue> for App {
 export_component!(App);
 
 impl Component for App {
-  fn name() -> &'static str {
-    "App"
-  }
-
   fn render(&self) -> VNode {
     let state = use_state(|| AppState {
       counter: 11,
@@ -146,10 +142,6 @@ pub struct Counter {
 }
 
 impl Component for Counter {
-  fn name() -> &'static str {
-    "Counter"
-  }
-
   fn render(&self) -> VNode {
     let dark_mode = match *use_context(&THEME_CONTEXT) {
       Theme::DarkMode => true,

@@ -140,10 +140,6 @@ impl<T: 'static> ContextProvider<T> {
 }
 
 impl<T: 'static> Component for ContextProvider<T> {
-  fn name() -> &'static str {
-    "WasmReact.ContextProvider"
-  }
-
   fn render(&self) -> VNode {
     let value = self.value.clone().unwrap_or_else(|| {
       self.context.with(|context| context.fallback_value.clone())
