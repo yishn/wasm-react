@@ -35,7 +35,8 @@ impl From<VNode> for JsValue {
 impl<T: Component> From<T> for VNode {
   fn from(value: T) -> Self {
     VNode(react_bindings::create_rust_component(
-      &format!("{} {:?}", type_name::<T>(), TypeId::of::<T>()),
+      type_name::<T>(),
+      &format!("{:?}", TypeId::of::<T>()),
       &value.key().into(),
       &ComponentWrapper(Box::new(value)).into(),
     ))

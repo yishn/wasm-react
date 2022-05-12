@@ -6,12 +6,10 @@ extern "C" {
   #[wasm_bindgen(js_name = useReact)]
   pub fn use_react(value: &JsValue);
 
-  #[wasm_bindgen(js_name = getRustComponent)]
-  pub fn get_rust_component(name: &str) -> Function;
-
   #[wasm_bindgen(js_name = createRustComponent)]
   pub fn create_rust_component(
     name: &str,
+    type_id: &str,
     key: &JsValue,
     component: &JsValue,
   ) -> JsValue;

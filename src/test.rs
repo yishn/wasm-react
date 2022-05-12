@@ -1,7 +1,7 @@
 use crate::{
   c,
   callback::{Callable, Callback, Void},
-  classnames, create_context, create_element, export_component, h,
+  create_context, create_element, export_component, h,
   hooks::{use_callback, use_context, use_effect, use_js_ref, use_state, Deps},
   props::{Props, Style},
   Component, Context, ContextProvider, VNode,
