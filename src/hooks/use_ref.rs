@@ -12,14 +12,17 @@ use wasm_bindgen::{
 ///
 /// When the component unmounts, the underlying data is dropped. After that,
 /// trying to access the data will result in a panic.
-pub struct RefContainer<T>(*mut T, JsValue);
+pub struct RefContainer<T> {
+  ptr: *mut T,
+  js_ref: JsValue,
+}
 
 impl<T> RefContainer<T> {
   fn throw_if_data_dropped(&self) {
     // Memory safety: Only yield underlying data if data has not been dropped
     // already!
 
-    let dropped = Reflect::get(&self.1, &"dropped".into())
+    let dropped = Reflect::get(&self.js_ref, &"dropped".into())
       .unwrap_throw()
       .as_bool()
       .unwrap_throw();
@@ -37,13 +40,13 @@ impl<T> RefContainer<T> {
   /// Returns a reference to the underlying data.
   pub fn current(&self) -> &T {
     self.throw_if_data_dropped();
-    Box::leak(unsafe { Box::from_raw(self.0) })
+    Box::leak(unsafe { Box::from_raw(self.ptr) })
   }
 
   /// Returns a mutable reference to the underlying data.
   pub fn current_mut(&mut self) -> &mut T {
     self.throw_if_data_dropped();
-    Box::leak(unsafe { Box::from_raw(self.0) })
+    Box::leak(unsafe { Box::from_raw(self.ptr) })
   }
 
   /// Sets the underlying data to the given value.
@@ -69,13 +72,16 @@ impl<T: Debug> Debug for RefContainer<T> {
 
 impl<T> Clone for RefContainer<T> {
   fn clone(&self) -> Self {
-    Self(self.0, self.1.clone())
+    Self {
+      ptr: self.ptr,
+      js_ref: self.js_ref.clone(),
+    }
   }
 }
 
 impl<T> AsRef<JsValue> for RefContainer<T> {
   fn as_ref(&self) -> &JsValue {
-    &self.1
+    &self.js_ref
   }
 }
 
@@ -83,11 +89,11 @@ impl<T> TryFrom<JsValue> for RefContainer<T> {
   type Error = JsValue;
 
   fn try_from(value: JsValue) -> Result<Self, Self::Error> {
-    Ok(RefContainer(
-      react_bindings::cast_to_usize(&Reflect::get(&value, &"ptr".into())?)
+    Ok(RefContainer {
+      ptr: react_bindings::cast_to_usize(&Reflect::get(&value, &"ptr".into())?)
         as *mut T,
-      value,
-    ))
+      js_ref: value,
+    })
   }
 }
 

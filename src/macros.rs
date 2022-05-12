@@ -57,13 +57,17 @@ macro_rules! h {
 /// #   fn render(&self) -> VNode { VNode::empty() }
 /// # }
 /// #
-/// # fn f(some_prop: (), vec: Vec<&str>) -> VNode {
+/// # fn f(some_prop: (), vec: Vec<&str>, some_bool: bool) -> VNode {
 /// h!(div).build(c![
 ///   "Counter: ", 5,
 ///
 ///   SomeComponent {
 ///     some_prop,
 ///   },
+///
+///   some_bool.then(||
+///     h!(p).build(c!["Conditional rendering"]),
+///   ),
 ///
 ///   h!(h1).build(c!["Hello World"]),
 ///

@@ -3,6 +3,7 @@ use wasm_bindgen::{prelude::Closure, JsCast, UnwrapThrowExt};
 
 use crate::{callback::Callable, react_bindings};
 
+/// Allows access to the transition state.
 #[derive(Clone)]
 pub struct Transition {
   is_pending: bool,
@@ -10,11 +11,13 @@ pub struct Transition {
 }
 
 impl Transition {
+  /// Returns whether the transition is active or not.
   pub fn is_pending(&self) -> bool {
     self.is_pending
   }
 
-  pub fn start_transition(&self, f: impl FnOnce() + 'static) {
+  /// Marks the updates in the given closure as transitions.
+  pub fn start(&self, f: impl FnOnce() + 'static) {
     self
       .start_transition
       .call(&Closure::once_into_js(f))
@@ -22,6 +25,38 @@ impl Transition {
   }
 }
 
+/// Returns a stateful value for the pending state of the transition, and a
+/// function to start it.
+///
+/// # Example
+///
+/// ```
+/// # use wasm_react::{*, hooks::*, callback::*};
+/// #
+/// # fn render() -> VNode {
+/// let count = use_state(|| 0);
+/// let transition = use_transition();
+///
+/// let handle_click = use_callback({
+///   let transition = transition.clone();
+///
+///   move |_| {
+///     let mut count = count.clone();
+///
+///     transition.start(move || {
+///       count.set(|c| c + 1);
+///     });
+///   }
+/// }, Deps::none());
+///
+/// h!(div).build(c![
+///   transition.is_pending().then(||
+///     h!(div).build(c!["Loading..."])
+///   ),
+///   h!(button).on_click(&handle_click).build(c![]),
+/// ])
+/// # }
+/// ```
 pub fn use_transition() -> Transition {
   let result = react_bindings::use_transition();
 
