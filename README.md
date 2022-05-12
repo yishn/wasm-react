@@ -203,15 +203,15 @@ $ wasm-pack build --target web
 ```
 
 ```js
-import React from "react";
-import { createRoot } from "react-dom/client";
+import "https://unpkg.com/react/umd/react.production.min.js";
+import "https://unpkg.com/react-dom/umd/react-dom.production.min.js";
 
 async function main() {
   const init, { WasmReact, App } = await import("./path/to/wasm-bindings.js");
   await init();
   WasmReact.useReact(React); // Tell WasmReact to use your React runtime
 
-  const root = createRoot(document.getElementById("root"));
+  const root = ReactDOM.createRoot(document.getElementById("root"));
   root.render(React.createElement(App, {}));
 }
 ```

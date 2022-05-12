@@ -1,3 +1,4 @@
+
 /// A convenience macro to [`create_element()`](crate::create_element()) for
 /// creating HTML element nodes.
 ///
@@ -220,7 +221,7 @@ macro_rules! classnames {
 #[macro_export]
 macro_rules! export_component {
   ($component:ident) => {
-    paste::paste! {
+    $crate::paste! {
       #[allow(non_snake_case)]
       #[allow(dead_code)]
       #[doc(hidden)]

@@ -20,6 +20,8 @@ pub mod props;
 
 use wasm_bindgen::prelude::*;
 
+#[doc(hidden)]
+pub use paste::paste;
 pub use builtin_components::*;
 pub use component::*;
 pub use context::*;
