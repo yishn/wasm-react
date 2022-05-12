@@ -1,4 +1,4 @@
-# wasm-react
+# wasm-react [![GitHub](https://img.shields.io/badge/GitHub-Repo-lightgrey?logo=github)](https://github.com/yishn/wasm-react) [![CI](https://github.com/yishn/wasm-react/actions/workflows/ci.yml/badge.svg)](https://github.com/yishn/wasm-react/actions/workflows/ci.yml)
 
 WIP: WASM bindings for [React](https://reactjs.org/).
 

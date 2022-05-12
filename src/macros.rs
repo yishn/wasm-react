@@ -33,11 +33,11 @@ macro_rules! h {
   ($tag:ident[#$id:literal $( $( $tt:tt )+ )?]) => {
     $crate::props::H::new(stringify!($tag))
       .id($id)
-      $( .class_name(&classnames![$( $tt )+]) )?
+      $( .class_name(&$crate::classnames![$( $tt )+]) )?
   };
   ($tag:ident $( [$( $tt:tt )*] )?) => {
     $crate::props::H::new(stringify!($tag))
-      $( .class_name(&classnames![$( $tt )*]) )?
+      $( .class_name(&$crate::classnames![$( $tt )*]) )?
   };
 }
 
@@ -80,16 +80,16 @@ macro_rules! c {
   [@single $list:ident <<] => {};
   [@single $list:ident << ..$vnode_list:expr $(, $( $tt:tt )* )?] => {
     $list.extend($vnode_list);
-    c![@single $list << $( $( $tt )* )?];
+    $crate::c![@single $list << $( $( $tt )* )?];
   };
   [@single $list:ident << $into_vnode:expr $(, $( $tt:tt )* )?] => {
     $list.push(&$into_vnode.into());
-    c![@single $list << $( $( $tt )* )?];
+    $crate::c![@single $list << $( $( $tt )* )?];
   };
   [$( $tt:tt )*] => {
     {
       let list = $crate::VNodeList::new();
-      c![@single list << $( $tt )*];
+      $crate::c![@single list << $( $tt )*];
       list
     }
   };
@@ -130,7 +130,7 @@ macro_rules! classnames {
   // Handle string literals
   [@single $result:ident << .$str:literal $( $tt:tt )*] => {
     $crate::props::Classnames::append_to(&$str, &mut $result);
-    classnames![@single $result << $( $tt ) *];
+    $crate::classnames![@single $result << $( $tt ) *];
   };
 
   // Handle boolean variables
@@ -139,19 +139,19 @@ macro_rules! classnames {
       &$bool.then(|| stringify!($bool)),
       &mut $result
     );
-    classnames![@single $result << $( $tt ) *];
+    $crate::classnames![@single $result << $( $tt ) *];
   };
 
   // Handle block expressions
   [@single $result:ident << .$block:block $( $tt:tt )*] => {
     $crate::props::Classnames::append_to(&$block, &mut $result);
-    classnames![@single $result << $( $tt ) *];
+    $crate::classnames![@single $result << $( $tt ) *];
   };
 
   [$( $tt:tt )*] => {
     {
       let mut result = String::new();
-      classnames![@single result << $( $tt )*];
+      $crate::classnames![@single result << $( $tt )*];
       result
     }
   };
@@ -231,7 +231,7 @@ macro_rules! export_component {
       $component: $crate::Component + TryFrom<JsValue, Error = JsValue>,
     {
       let component = $component::try_from(props)?;
-      Ok(component.render().into())
+      Ok($crate::Component::render(&component).into())
     }
   };
 }
