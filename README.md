@@ -205,10 +205,10 @@ $ wasm-pack build --target web
 ```js
 import "https://unpkg.com/react/umd/react.production.min.js";
 import "https://unpkg.com/react-dom/umd/react-dom.production.min.js";
+import init, { WasmReact, App } from "./path/to/wasm-bindings.js";
 
 async function main() {
-  const init, { WasmReact, App } = await import("./path/to/wasm-bindings.js");
-  await init();
+  await init(); // Need to load WASM first
   WasmReact.useReact(React); // Tell WasmReact to use your React runtime
 
   const root = ReactDOM.createRoot(document.getElementById("root"));

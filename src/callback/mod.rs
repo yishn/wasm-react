@@ -179,11 +179,11 @@ impl<T, U> Persisted for PersistedCallback<T, U> {
 /// return value.
 pub trait Callable<T, U = ()> {
   /// Calls the struct with the given input argument.
-  fn call(&self, arg: T) -> U;
+  fn call(&mut self, arg: T) -> U;
 }
 
-impl<T, U, F: Fn(T) -> U> Callable<T, U> for F {
-  fn call(&self, arg: T) -> U {
+impl<T, U, F: FnMut(T) -> U> Callable<T, U> for F {
+  fn call(&mut self, arg: T) -> U {
     self(arg)
   }
 }
@@ -192,7 +192,7 @@ impl<T> Callable<T, ()> for Callback<T, ()>
 where
   T: Into<JsValue>,
 {
-  fn call(&self, arg: T) {
+  fn call(&mut self, arg: T) {
     (self.as_ref() as &Function)
       .call1(&JsValue::undefined(), &arg.into())
       .unwrap_throw();
@@ -203,7 +203,7 @@ impl<T> Callable<T, JsValue> for Callback<T, JsValue>
 where
   T: Into<JsValue>,
 {
-  fn call(&self, arg: T) -> JsValue {
+  fn call(&mut self, arg: T) -> JsValue {
     (self.as_ref() as &Function)
       .call1(&JsValue::undefined(), &arg.into())
       .unwrap_throw()
@@ -211,13 +211,13 @@ where
 }
 
 impl Callable<&JsValue, Result<JsValue, JsValue>> for Function {
-  fn call(&self, arg: &JsValue) -> Result<JsValue, JsValue> {
+  fn call(&mut self, arg: &JsValue) -> Result<JsValue, JsValue> {
     self.call1(&JsValue::undefined(), arg)
   }
 }
 
 impl<T, U: Default, F: Callable<T, U>> Callable<T, U> for Option<F> {
-  fn call(&self, arg: T) -> U {
-    self.as_ref().map(|f| f.call(arg)).unwrap_or_default()
+  fn call(&mut self, arg: T) -> U {
+    self.as_mut().map(|f| f.call(arg)).unwrap_or_default()
   }
 }

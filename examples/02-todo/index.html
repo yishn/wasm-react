@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>Example</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script type="module">
+      import "https://unpkg.com/react/umd/react.production.min.js";
+      import "https://unpkg.com/react-dom/umd/react-dom.production.min.js";
+      import init, { WasmReact, App } from "./pkg/todo.js";
+
+      async function main() {
+        await init();
+        WasmReact.useReact(React);
+
+        const root = ReactDOM.createRoot(document.getElementById("root"));
+        root.render(React.createElement(App));
+      }
+
+      main();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,9 @@
+{
+  "scripts": {
+    "build": "wasm-pack build --target web",
+    "start": "serve"
+  },
+  "devDependencies": {
+    "serve": "^13.0.2"
+  }
+}

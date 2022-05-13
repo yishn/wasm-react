@@ -55,6 +55,12 @@ impl<'a> From<&'a str> for VNode {
   }
 }
 
+impl<'a> From<&'a String> for VNode {
+  fn from(value: &'a String) -> Self {
+    VNode(value.into())
+  }
+}
+
 macro_rules! impl_into_vnode {
   ($($T:ty),*$(,)?) => {
     $(
@@ -91,21 +97,33 @@ impl_into_vnode! {
 /// # }
 /// ```
 #[derive(Default, Clone)]
-pub struct VNodeList(Array);
+pub struct VNodeList {
+  empty: bool,
+  arr: Array,
+}
 
 impl VNodeList {
   /// Creates a new, empty list.
   pub fn new() -> Self {
-    Self(Array::new())
+    Self {
+      empty: true,
+      arr: Array::new(),
+    }
+  }
+
+  /// Returns whether the list is empty or not.
+  pub fn empty(&self) -> bool {
+    self.empty
   }
 
   /// Adds the given node to the list.
-  pub fn push(&self, node: &VNode) {
-    self.0.push(node.as_ref());
+  pub fn push(&mut self, node: &VNode) {
+    self.empty = false;
+    self.arr.push(node.as_ref());
   }
 
   /// Adds the given node list to the list.
-  pub fn extend(&self, iter: impl Iterator<Item = VNode>) {
+  pub fn extend(&mut self, iter: impl Iterator<Item = VNode>) {
     for node in iter {
       self.push(&node);
     }
@@ -114,13 +132,13 @@ impl VNodeList {
 
 impl AsRef<JsValue> for VNodeList {
   fn as_ref(&self) -> &JsValue {
-    &self.0
+    &self.arr
   }
 }
 
 impl From<VNodeList> for JsValue {
   fn from(value: VNodeList) -> Self {
-    value.0.into()
+    value.arr.into()
   }
 }
 
@@ -128,13 +146,16 @@ impl TryFrom<JsValue> for VNodeList {
   type Error = JsValue;
 
   fn try_from(value: JsValue) -> Result<Self, Self::Error> {
-    Ok(VNodeList({
-      if value.is_instance_of::<Array>() {
-        value.dyn_into::<Array>().unwrap_throw()
-      } else {
-        react_bindings::children_to_array(&value)?
-      }
-    }))
+    let arr = if value.is_instance_of::<Array>() {
+      value.dyn_into::<Array>().unwrap_throw()
+    } else {
+      react_bindings::children_to_array(&value)?
+    };
+
+    Ok(VNodeList {
+      empty: arr.length() == 0,
+      arr,
+    })
   }
 }
 
@@ -148,7 +169,7 @@ impl Extend<VNode> for VNodeList {
 
 impl FromIterator<VNode> for VNodeList {
   fn from_iter<T: IntoIterator<Item = VNode>>(iter: T) -> Self {
-    let result = Self::new();
+    let mut result = Self::new();
 
     for node in iter.into_iter() {
       result.push(&node);

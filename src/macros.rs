@@ -77,6 +77,9 @@ macro_rules! h {
 /// ```
 #[macro_export]
 macro_rules! c {
+  [] => {
+    $crate::VNodeList::new()
+  };
   [@single $list:ident <<] => {};
   [@single $list:ident << ..$vnode_list:expr $(, $( $tt:tt )* )?] => {
     $list.extend($vnode_list);
@@ -88,7 +91,7 @@ macro_rules! c {
   };
   [$( $tt:tt )*] => {
     {
-      let list = $crate::VNodeList::new();
+      let mut list = $crate::VNodeList::new();
       $crate::c![@single list << $( $tt )*];
       list
     }

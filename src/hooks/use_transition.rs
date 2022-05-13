@@ -17,7 +17,7 @@ impl Transition {
   }
 
   /// Marks the updates in the given closure as transitions.
-  pub fn start(&self, f: impl FnOnce() + 'static) {
+  pub fn start(&mut self, f: impl FnOnce() + 'static) {
     self
       .start_transition
       .call(&Closure::once_into_js(f))
@@ -38,7 +38,7 @@ impl Transition {
 /// let transition = use_transition();
 ///
 /// let handle_click = use_callback({
-///   let transition = transition.clone();
+///   let mut transition = transition.clone();
 ///
 ///   move |_| {
 ///     let mut count = count.clone();

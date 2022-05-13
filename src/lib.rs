@@ -20,12 +20,12 @@ pub mod props;
 
 use wasm_bindgen::prelude::*;
 
-#[doc(hidden)]
-pub use paste::paste;
 pub use builtin_components::*;
 pub use component::*;
 pub use context::*;
 pub use marker::*;
+#[doc(hidden)]
+pub use paste::paste;
 pub use vnode::*;
 
 /// Contains all functions exported to JS by `wasm-react`. These functions should
@@ -70,6 +70,10 @@ pub fn create_element(
   VNode(react_bindings::create_element(
     typ,
     props.as_ref(),
-    &children.into(),
+    &if !children.empty() {
+      children.into()
+    } else {
+      JsValue::undefined()
+    },
   ))
 }
