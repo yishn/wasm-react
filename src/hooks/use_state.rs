@@ -4,11 +4,7 @@ use crate::{
   react_bindings, Persisted, PersistedOrigin,
 };
 use js_sys::Function;
-use std::{
-  cell::{Ref, RefCell},
-  fmt::Debug,
-  rc::Rc,
-};
+use std::fmt::Debug;
 use wasm_bindgen::UnwrapThrowExt;
 
 /// Allows access to the underlying state data persisted with [`use_state()`].
@@ -16,48 +12,29 @@ use wasm_bindgen::UnwrapThrowExt;
 /// When the component unmounts, the underlying data is dropped. After that,
 /// trying to access the data will result in a **panic**.
 pub struct State<T> {
-  ref_container: RefContainer<Option<Rc<RefCell<T>>>>,
+  ref_container: RefContainer<Option<T>>,
   update: Function,
 }
 
 impl<T: 'static> State<T> {
   /// Returns a reference to the value of the state.
-  pub fn value<'a>(&'a self) -> Ref<'a, T> {
-    self
-      .ref_container
-      .current()
-      .as_ref()
-      .unwrap_throw()
-      .borrow()
-  }
-
-  /// Returns an owned version to the value of the state.
-  pub fn owned(&self) -> Rc<RefCell<T>> {
-    self.ref_container.current().as_ref().unwrap_throw().clone()
+  pub fn value(&self) -> &T {
+    self.ref_container.current().as_ref().unwrap_throw()
   }
 
   /// Sets the state to the return value of the given mutator closure and
   /// rerenders the component.
   pub fn set(&mut self, mutator: impl FnOnce(&T) -> T) {
-    let new_state = mutator(&*self.value());
+    let new_state = mutator(self.value());
 
-    self
-      .ref_container
-      .set_current(Some(Rc::new(RefCell::new(new_state))));
+    self.ref_container.set_current(Some(new_state));
     self.update.call(&Void.into()).unwrap_throw();
   }
 
   /// Updates the state with the given mutator closure and rerenders the
   /// component.
   pub fn update(&mut self, mutator: impl FnOnce(&mut T)) {
-    mutator(
-      &mut *self
-        .ref_container
-        .current()
-        .as_ref()
-        .unwrap_throw()
-        .borrow_mut(),
-    );
+    mutator(self.ref_container.current_mut().as_mut().unwrap_throw());
 
     self.update.call(&Void.into()).unwrap_throw();
   }
@@ -121,7 +98,7 @@ pub fn use_state<T: 'static>(init: impl FnOnce() -> T) -> State<T> {
   let mut ref_container = use_ref(None);
 
   if ref_container.current().is_none() {
-    ref_container.set_current(Some(Rc::new(RefCell::new(init()))));
+    ref_container.set_current(Some(init()));
   }
 
   let update = react_bindings::use_rust_state();

@@ -1,10 +1,9 @@
-use std::{cell::RefCell, rc::Rc};
 use wasm_bindgen::{JsCast, JsValue, UnwrapThrowExt};
 use wasm_react::{
   c,
   callback::Callback,
   export_component, h,
-  hooks::{use_callback, use_state, Deps},
+  hooks::{use_callback, use_state, Deps, State},
   Component, VNode,
 };
 use web_sys::{Event, HtmlInputElement};
@@ -77,7 +76,7 @@ impl Component for App {
     h!(div[."app"]).build(c![
       h!(h1).build(c!["Todo"]),
       TaskList {
-        tasks: tasks.owned(),
+        tasks: tasks.clone(),
         on_change: Some(handle_task_change.into()),
       },
       h!(form).on_submit(&handle_submit).build(c![
@@ -96,7 +95,7 @@ impl Component for App {
 export_component!(App);
 
 struct TaskList {
-  tasks: Rc<RefCell<Vec<(bool, String)>>>,
+  tasks: State<Vec<(bool, String)>>,
   on_change: Option<Callback<(usize, bool)>>,
 }
 
@@ -107,7 +106,7 @@ impl Component for TaskList {
       h!(ul).build(c![
         ..self
           .tasks
-          .borrow()
+          .value()
           .iter()
           .enumerate()
           .map(|(i, (done, description))| TaskItem {
