@@ -1,6 +1,5 @@
 use super::{use_memo, Deps};
 use crate::callback::{Callback, PersistedCallback};
-use wasm_bindgen::convert::{FromWasmAbi, IntoWasmAbi};
 
 /// Returns a persisted, memoized callback.
 pub fn use_callback<T, U, D>(
@@ -8,8 +7,8 @@ pub fn use_callback<T, U, D>(
   deps: Deps<D>,
 ) -> PersistedCallback<T, U>
 where
-  T: FromWasmAbi + 'static,
-  U: IntoWasmAbi + 'static,
+  T: 'static,
+  U: 'static,
   D: PartialEq + 'static,
 {
   let memo = use_memo(move || Callback::new(f), deps);

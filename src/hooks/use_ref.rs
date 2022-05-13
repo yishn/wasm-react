@@ -11,7 +11,7 @@ use wasm_bindgen::{
 /// Allows access to the underlying data persisted with [`use_ref()`].
 ///
 /// When the component unmounts, the underlying data is dropped. After that,
-/// trying to access the data will result in a panic.
+/// trying to access the data will result in a **panic**.
 pub struct RefContainer<T> {
   ptr: *mut T,
   js_ref: JsValue,
@@ -138,7 +138,7 @@ impl<T> TryFrom<JsValue> for RefContainer<T> {
 /// ```
 pub fn use_ref<T: 'static>(init: T) -> RefContainer<T> {
   let js_ref = react_bindings::use_rust_ref(
-    Callback::once(move |_: Void| Box::into_raw(Box::new(init))).as_ref(),
+    &*Callback::once(move |_: Void| Box::into_raw(Box::new(init))).as_js(),
     &Closure::once_into_js(
       move |unmounted: bool, ptr: usize, js_ref: JsValue| {
         if unmounted {

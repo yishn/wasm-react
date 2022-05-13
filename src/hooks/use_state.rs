@@ -14,7 +14,7 @@ use wasm_bindgen::UnwrapThrowExt;
 /// Allows access to the underlying state data persisted with [`use_state()`].
 ///
 /// When the component unmounts, the underlying data is dropped. After that,
-/// trying to access the data will result in a panic.
+/// trying to access the data will result in a **panic**.
 pub struct State<T> {
   ref_container: RefContainer<Option<Rc<RefCell<T>>>>,
   update: Function,

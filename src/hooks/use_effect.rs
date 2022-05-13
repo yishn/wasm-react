@@ -37,7 +37,7 @@ fn use_effect_inner<G, D>(
 
   let (effect, _, counter) = ref_container.current().as_ref().unwrap_throw();
 
-  f(effect.as_ref(), *counter);
+  f(&*effect.as_js(), *counter);
 }
 
 /// Runs a function which contains imperative code that may cause side-effects.

@@ -1,6 +1,9 @@
 use crate::{callback::PersistedCallback, hooks::JsRefContainer};
 use js_sys::{Object, Reflect};
-use wasm_bindgen::{JsValue, UnwrapThrowExt, JsCast};
+use wasm_bindgen::{
+  convert::{FromWasmAbi, IntoWasmAbi},
+  JsCast, JsValue, UnwrapThrowExt,
+};
 
 /// A convenience builder for JS objects. Mainly used for constructing props
 /// that are not controlled by Rust.
@@ -47,7 +50,10 @@ impl Props {
   /// Sets the [React ref][ref] to the given ref callback.
   ///
   /// [ref]: https://reactjs.org/docs/refs-and-the-dom.html
-  pub fn ref_callback<T>(self, ref_callback: &PersistedCallback<T>) -> Self {
+  pub fn ref_callback<T>(self, ref_callback: &PersistedCallback<T>) -> Self
+  where
+    T: FromWasmAbi + 'static,
+  {
     self.insert_callback("ref", ref_callback)
   }
 
@@ -62,8 +68,12 @@ impl Props {
     self,
     prop: &str,
     f: &PersistedCallback<T, U>,
-  ) -> Self {
-    Reflect::set(&self.0, &prop.into(), f.as_ref()).unwrap_throw();
+  ) -> Self
+  where
+    T: FromWasmAbi + 'static,
+    U: IntoWasmAbi + 'static,
+  {
+    Reflect::set(&self.0, &prop.into(), &*f.as_js()).unwrap_throw();
     self
   }
 }

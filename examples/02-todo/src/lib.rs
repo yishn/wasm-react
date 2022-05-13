@@ -2,7 +2,7 @@ use std::{cell::RefCell, rc::Rc};
 use wasm_bindgen::{JsCast, JsValue, UnwrapThrowExt};
 use wasm_react::{
   c,
-  callback::Callable,
+  callback::{Callable, Callback},
   export_component, h,
   hooks::{use_callback, use_state, Deps},
   Component, VNode,
@@ -59,21 +59,26 @@ impl Component for App {
       Deps::none(),
     );
 
+    let handle_task_change = use_callback(
+      {
+        let mut tasks = tasks.clone();
+
+        move |(id, done): (usize, bool)| {
+          tasks.update(|tasks| {
+            tasks
+              .get_mut(id)
+              .map(|task: &mut (bool, String)| task.0 = done);
+          })
+        }
+      },
+      Deps::none(),
+    );
+
     h!(div[."app"]).build(c![
       h!(h1).build(c!["Todo"]),
       TaskList {
         tasks: tasks.owned(),
-        on_change: Some({
-          let mut tasks = tasks.clone();
-
-          move |(id, done)| {
-            tasks.update(|tasks| {
-              tasks
-                .get_mut(id)
-                .map(|task: &mut (bool, String)| task.0 = done);
-            })
-          }
-        }),
+        on_change: Some(handle_task_change.into()),
       },
       h!(form).on_submit(&handle_submit).build(c![
         h!(input)
@@ -90,12 +95,12 @@ impl Component for App {
 
 export_component!(App);
 
-struct TaskList<F: FnMut((usize, bool)) + Clone> {
+struct TaskList {
   tasks: Rc<RefCell<Vec<(bool, String)>>>,
-  on_change: Option<F>,
+  on_change: Option<Callback<(usize, bool)>>,
 }
 
-impl<F: FnMut((usize, bool)) + Clone + 'static> Component for TaskList<F> {
+impl Component for TaskList {
   fn render(&self) -> VNode {
     h!(div[."task-list"]).build(c![
       //
@@ -117,18 +122,18 @@ impl<F: FnMut((usize, bool)) + Clone + 'static> Component for TaskList<F> {
   }
 }
 
-struct TaskItem<F: FnMut((usize, bool)) + Clone> {
+struct TaskItem {
   id: usize,
   description: String,
   done: bool,
-  on_change: Option<F>,
+  on_change: Option<Callback<(usize, bool)>>,
 }
 
-impl<F: FnMut((usize, bool)) + Clone + 'static> Component for TaskItem<F> {
+impl Component for TaskItem {
   fn render(&self) -> VNode {
     let handle_change = use_callback(
       {
-        let mut on_change = self.on_change.clone();
+        let on_change = self.on_change.clone();
         let id = self.id;
 
         move |evt: Event| {

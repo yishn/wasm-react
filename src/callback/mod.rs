@@ -2,15 +2,21 @@
 
 use crate::{Persisted, PersistedOrigin};
 use js_sys::Function;
-use std::{fmt::Debug, ops::Deref, rc::Rc};
+use std::{
+  cell::{Ref, RefCell},
+  fmt::Debug,
+  ops::Deref,
+  rc::Rc,
+};
 use wasm_bindgen::{
   convert::{FromWasmAbi, IntoWasmAbi},
   describe::WasmDescribe,
   prelude::Closure,
-  JsCast, JsValue, UnwrapThrowExt,
+  JsValue, UnwrapThrowExt,
 };
 
-/// A helper struct to simulate a [`Callback`] with no input arguments.
+/// A helper struct to simulate a JS-interoperable [`Callback`] with no input
+/// arguments.
 ///
 /// ```
 /// # use wasm_react::callback::*;
@@ -42,8 +48,55 @@ impl From<Void> for JsValue {
   }
 }
 
-/// This is a simplified, reference-counted wrapper around a [`Closure`] which
-/// represents a Rust closure that can be called from JS.
+enum CallbackType<T, U> {
+  Multiple(Rc<RefCell<dyn FnMut(T) -> U>>),
+  Once(Rc<RefCell<Option<Box<dyn FnOnce(T) -> U>>>>),
+}
+
+impl<T, U> PartialEq for CallbackType<T, U> {
+  fn eq(&self, other: &Self) -> bool {
+    match (self, other) {
+      (Self::Multiple(x), Self::Multiple(y)) => Rc::ptr_eq(x, y),
+      (Self::Once(x), Self::Once(y)) => Rc::ptr_eq(x, y),
+      _ => false,
+    }
+  }
+}
+
+impl<T, U> Eq for CallbackType<T, U> {}
+
+impl<T, U> Clone for CallbackType<T, U> {
+  fn clone(&self) -> Self {
+    match self {
+      Self::Multiple(x) => Self::Multiple(x.clone()),
+      Self::Once(x) => Self::Once(x.clone()),
+    }
+  }
+}
+
+/// A smart pointer that derefs to `JsValue`.
+pub struct CallbackJsRef<'a, T, U>(Ref<'a, Option<Closure<dyn FnMut(T) -> U>>>);
+
+impl<'a, T, U> Clone for CallbackJsRef<'a, T, U> {
+  fn clone(&self) -> Self {
+    Self(Ref::clone(&self.0))
+  }
+}
+
+impl<'a, T, U> Deref for CallbackJsRef<'a, T, U>
+where
+  T: FromWasmAbi + 'static,
+  U: IntoWasmAbi + 'static,
+{
+  type Target = JsValue;
+
+  fn deref(&self) -> &Self::Target {
+    self.0.as_ref().unwrap_throw().as_ref()
+  }
+}
+
+/// This is a simplified, reference-counted wrapper around a Rust closure that
+/// may be called from JS when `T` and `U` allow.
 ///
 /// It only supports closures with exactly one input argument and some return
 /// value. Memory management is handled by Rust. Whenever Rust drops all clones
@@ -51,28 +104,66 @@ impl From<Void> for JsValue {
 /// called from JS anymore.
 ///
 /// Use [`Void`] to simulate a callback with no arguments.
-pub struct Callback<T, U = ()>(Rc<Closure<dyn FnMut(T) -> U>>);
+pub struct Callback<T, U = ()> {
+  closure: CallbackType<T, U>,
+  js: Rc<RefCell<Option<Closure<dyn FnMut(T) -> U>>>>,
+}
+
+impl<T, U> Callback<T, U> {
+  /// Creates a new [`Callback`] from an [`Fn`].
+  pub fn new(f: impl FnMut(T) -> U + 'static) -> Self {
+    Self {
+      closure: CallbackType::Multiple(Rc::new(RefCell::new(f))),
+      js: Rc::new(RefCell::new(None)),
+    }
+  }
+
+  /// Creates a new [`Callback`] from an [`FnOnce`] that can only be called once.
+  /// Trying to call it more than once will result in a **panic**.
+  pub fn once(f: impl FnOnce(T) -> U + 'static) -> Self {
+    Self {
+      closure: CallbackType::Once(Rc::new(RefCell::new(Some(Box::new(f))))),
+      js: Rc::new(RefCell::new(None)),
+    }
+  }
+}
+
+impl<T> Callback<T> {
+  /// Returns a new [`Callback`] that does nothing.
+  pub fn noop() -> Self {
+    Callback::new(|_: T| ())
+  }
+}
 
 impl<T, U> Callback<T, U>
 where
   T: FromWasmAbi + 'static,
   U: IntoWasmAbi + 'static,
 {
-  /// Creates a new [`Callback`] from an [`FnMut`].
-  pub fn new(mut f: impl FnMut(T) -> U + 'static) -> Self {
-    Self(Rc::new(Closure::wrap(
-      Box::new(move |arg| f(arg)) as Box<dyn FnMut(T) -> U>
-    )))
-  }
+  /// Returns a reference to `JsValue` of the callback.
+  pub fn as_js(&self) -> CallbackJsRef<'_, T, U> {
+    if self.js.borrow().is_none() {
+      *self.js.borrow_mut() = Some(match &self.closure {
+        CallbackType::Multiple(x) => Closure::wrap(Box::new({
+          let x = x.clone();
 
-  /// Creates a new [`Callback`] from an [`FnOnce`] that can only be called once.
-  pub fn once(f: impl FnOnce(T) -> U + 'static) -> Self {
-    Self(Rc::new(Closure::once(move |arg| f(arg))))
-  }
+          move |arg| {
+            let mut f = x.borrow_mut();
+            f(arg)
+          }
+        })),
+        CallbackType::Once(x) => {
+          let x = x.clone();
 
-  /// Returns a new [`Callback`] that does nothing.
-  pub fn noop() -> Callback<T, ()> {
-    Callback::new(|_: T| ())
+          Closure::once(move |arg| {
+            let f = x.borrow_mut().take().unwrap_throw();
+            f(arg)
+          })
+        }
+      });
+    }
+
+    CallbackJsRef(self.js.borrow())
   }
 }
 
@@ -93,7 +184,7 @@ impl<T, U> Debug for Callback<T, U> {
 
 impl<T, U> PartialEq for Callback<T, U> {
   fn eq(&self, other: &Self) -> bool {
-    Rc::ptr_eq(&self.0, &other.0)
+    self.closure == other.closure && Rc::ptr_eq(&self.js, &other.js)
   }
 }
 
@@ -101,19 +192,10 @@ impl<T, U> Eq for Callback<T, U> {}
 
 impl<T, U> Clone for Callback<T, U> {
   fn clone(&self) -> Self {
-    Self(self.0.clone())
-  }
-}
-
-impl<T, U> AsRef<JsValue> for Callback<T, U> {
-  fn as_ref(&self) -> &JsValue {
-    (*self.0).as_ref()
-  }
-}
-
-impl<T, U> AsRef<Function> for Callback<T, U> {
-  fn as_ref(&self) -> &Function {
-    (*self.0).as_ref().dyn_ref::<Function>().unwrap_throw()
+    Self {
+      closure: self.closure.clone(),
+      js: self.js.clone(),
+    }
   }
 }
 
@@ -179,45 +261,44 @@ impl<T, U> Persisted for PersistedCallback<T, U> {
 /// return value.
 pub trait Callable<T, U = ()> {
   /// Calls the struct with the given input argument.
-  fn call(&mut self, arg: T) -> U;
+  fn call(&self, arg: T) -> U;
 }
 
-impl<T, U, F: FnMut(T) -> U> Callable<T, U> for F {
-  fn call(&mut self, arg: T) -> U {
+impl<T, U, F: Fn(T) -> U> Callable<T, U> for F {
+  fn call(&self, arg: T) -> U {
     self(arg)
   }
 }
 
-impl<T> Callable<T, ()> for Callback<T, ()>
-where
-  T: Into<JsValue>,
-{
-  fn call(&mut self, arg: T) {
-    (self.as_ref() as &Function)
-      .call1(&JsValue::undefined(), &arg.into())
-      .unwrap_throw();
+impl<T, U> Callable<T, U> for Callback<T, U> {
+  fn call(&self, arg: T) -> U {
+    match &self.closure {
+      CallbackType::Multiple(x) => {
+        let mut f = x.borrow_mut();
+        f(arg)
+      }
+      CallbackType::Once(x) => {
+        let f = x.borrow_mut().take().unwrap_throw();
+        f(arg)
+      }
+    }
   }
 }
 
-impl<T> Callable<T, JsValue> for Callback<T, JsValue>
-where
-  T: Into<JsValue>,
-{
-  fn call(&mut self, arg: T) -> JsValue {
-    (self.as_ref() as &Function)
-      .call1(&JsValue::undefined(), &arg.into())
-      .unwrap_throw()
+impl<T, U> Callable<T, U> for PersistedCallback<T, U> {
+  fn call(&self, arg: T) -> U {
+    self.deref().call(arg)
   }
 }
 
 impl Callable<&JsValue, Result<JsValue, JsValue>> for Function {
-  fn call(&mut self, arg: &JsValue) -> Result<JsValue, JsValue> {
+  fn call(&self, arg: &JsValue) -> Result<JsValue, JsValue> {
     self.call1(&JsValue::undefined(), arg)
   }
 }
 
 impl<T, U: Default, F: Callable<T, U>> Callable<T, U> for Option<F> {
-  fn call(&mut self, arg: T) -> U {
-    self.as_mut().map(|f| f.call(arg)).unwrap_or_default()
+  fn call(&self, arg: T) -> U {
+    self.as_ref().map(|f| f.call(arg)).unwrap_or_default()
   }
 }
