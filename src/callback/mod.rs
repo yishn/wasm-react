@@ -48,32 +48,6 @@ impl From<Void> for JsValue {
   }
 }
 
-enum CallbackType<T, U> {
-  Multiple(Rc<RefCell<dyn FnMut(T) -> U>>),
-  Once(Rc<RefCell<Option<Box<dyn FnOnce(T) -> U>>>>),
-}
-
-impl<T, U> PartialEq for CallbackType<T, U> {
-  fn eq(&self, other: &Self) -> bool {
-    match (self, other) {
-      (Self::Multiple(x), Self::Multiple(y)) => Rc::ptr_eq(x, y),
-      (Self::Once(x), Self::Once(y)) => Rc::ptr_eq(x, y),
-      _ => false,
-    }
-  }
-}
-
-impl<T, U> Eq for CallbackType<T, U> {}
-
-impl<T, U> Clone for CallbackType<T, U> {
-  fn clone(&self) -> Self {
-    match self {
-      Self::Multiple(x) => Self::Multiple(x.clone()),
-      Self::Once(x) => Self::Once(x.clone()),
-    }
-  }
-}
-
 /// A smart pointer that derefs to `JsValue`.
 pub struct CallbackJsRef<'a, T, U>(Ref<'a, Option<Closure<dyn FnMut(T) -> U>>>);
 
@@ -95,8 +69,8 @@ where
   }
 }
 
-/// This is a simplified, reference-counted wrapper around a Rust closure that
-/// may be called from JS when `T` and `U` allow.
+/// This is a simplified, reference-counted wrapper around an [`FnMut`] Rust
+/// closure that may be called from JS when `T` and `U` allow.
 ///
 /// It only supports closures with exactly one input argument and some return
 /// value. Memory management is handled by Rust. Whenever Rust drops all clones
@@ -105,33 +79,76 @@ where
 ///
 /// Use [`Void`] to simulate a callback with no arguments.
 pub struct Callback<T, U = ()> {
-  closure: CallbackType<T, U>,
+  closure: Rc<RefCell<dyn FnMut(T) -> U>>,
   js: Rc<RefCell<Option<Closure<dyn FnMut(T) -> U>>>>,
 }
 
-impl<T, U> Callback<T, U> {
-  /// Creates a new [`Callback`] from an [`Fn`].
+impl<T, U> Callback<T, U>
+where
+  T: 'static,
+  U: 'static,
+{
+  /// Creates a new [`Callback`] from a Rust closure.
   pub fn new(f: impl FnMut(T) -> U + 'static) -> Self {
     Self {
-      closure: CallbackType::Multiple(Rc::new(RefCell::new(f))),
-      js: Rc::new(RefCell::new(None)),
+      closure: Rc::new(RefCell::new(f)),
+      js: Default::default(),
     }
   }
 
-  /// Creates a new [`Callback`] from an [`FnOnce`] that can only be called once.
-  /// Trying to call it more than once will result in a **panic**.
-  pub fn once(f: impl FnOnce(T) -> U + 'static) -> Self {
-    Self {
-      closure: CallbackType::Once(Rc::new(RefCell::new(Some(Box::new(f))))),
-      js: Rc::new(RefCell::new(None)),
+  /// Returns a Rust closure from the callback.
+  pub fn to_closure(&self) -> impl FnMut(T) -> U + 'static {
+    let closure = self.closure.clone();
+
+    move |arg| {
+      let mut f = closure.borrow_mut();
+      f(arg)
+    }
+  }
+
+  /// Returns a new [`Callback`] by prepending the given closure to the callback.
+  pub fn premap<V>(
+    &self,
+    mut f: impl FnMut(V) -> T + 'static,
+  ) -> Callback<V, U> {
+    Callback {
+      closure: Rc::new(RefCell::new({
+        let closure = self.closure.clone();
+
+        move |v| {
+          let t = f(v);
+          let mut g = closure.borrow_mut();
+          g(t)
+        }
+      })),
+      js: Default::default(),
+    }
+  }
+
+  /// Returns a new [`Callback`] by appending the given closure to the callback.
+  pub fn postmap<V>(
+    &self,
+    mut f: impl FnMut(U) -> V + 'static,
+  ) -> Callback<T, V> {
+    Callback {
+      closure: Rc::new(RefCell::new({
+        let closure = self.closure.clone();
+
+        move |t| {
+          let mut g = closure.borrow_mut();
+          let u = g(t);
+          f(u)
+        }
+      })),
+      js: Default::default(),
     }
   }
 }
 
-impl<T> Callback<T> {
+impl<T: 'static> Callback<T> {
   /// Returns a new [`Callback`] that does nothing.
   pub fn noop() -> Self {
-    Callback::new(|_: T| ())
+    Callback::new(|_| ())
   }
 }
 
@@ -143,36 +160,27 @@ where
   /// Returns a reference to `JsValue` of the callback.
   pub fn as_js(&self) -> CallbackJsRef<'_, T, U> {
     if self.js.borrow().is_none() {
-      *self.js.borrow_mut() = Some(match &self.closure {
-        CallbackType::Multiple(x) => Closure::wrap(Box::new({
-          let x = x.clone();
+      *self.js.borrow_mut() = Some(Closure::wrap(Box::new({
+        let closure = self.closure.clone();
 
-          move |arg| {
-            let mut f = x.borrow_mut();
-            f(arg)
-          }
-        })),
-        CallbackType::Once(x) => {
-          let x = x.clone();
-
-          Closure::once(move |arg| {
-            let f = x.borrow_mut().take().unwrap_throw();
-            f(arg)
-          })
+        move |arg| {
+          let mut f = closure.borrow_mut();
+          f(arg)
         }
-      });
+      })));
     }
 
     CallbackJsRef(self.js.borrow())
   }
 }
 
-impl<T> Default for Callback<T, ()>
+impl<T, U> Default for Callback<T, U>
 where
-  T: FromWasmAbi + 'static,
+  T: 'static,
+  U: Default + 'static,
 {
   fn default() -> Self {
-    Self::new(|_| ())
+    Self::new(|_| U::default())
   }
 }
 
@@ -184,7 +192,7 @@ impl<T, U> Debug for Callback<T, U> {
 
 impl<T, U> PartialEq for Callback<T, U> {
   fn eq(&self, other: &Self) -> bool {
-    self.closure == other.closure && Rc::ptr_eq(&self.js, &other.js)
+    Rc::ptr_eq(&self.closure, &other.closure) && Rc::ptr_eq(&self.js, &other.js)
   }
 }
 
@@ -272,16 +280,8 @@ impl<T, U, F: Fn(T) -> U> Callable<T, U> for F {
 
 impl<T, U> Callable<T, U> for Callback<T, U> {
   fn call(&self, arg: T) -> U {
-    match &self.closure {
-      CallbackType::Multiple(x) => {
-        let mut f = x.borrow_mut();
-        f(arg)
-      }
-      CallbackType::Once(x) => {
-        let f = x.borrow_mut().take().unwrap_throw();
-        f(arg)
-      }
-    }
+    let mut f = self.closure.borrow_mut();
+    f(arg)
   }
 }
 

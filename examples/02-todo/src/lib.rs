@@ -2,7 +2,7 @@ use std::{cell::RefCell, rc::Rc};
 use wasm_bindgen::{JsCast, JsValue, UnwrapThrowExt};
 use wasm_react::{
   c,
-  callback::{Callable, Callback},
+  callback::Callback,
   export_component, h,
   hooks::{use_callback, use_state, Deps},
   Component, VNode,
@@ -133,22 +133,26 @@ impl Component for TaskItem {
   fn render(&self) -> VNode {
     let handle_change = use_callback(
       {
-        let on_change = self.on_change.clone();
         let id = self.id;
 
-        move |evt: Event| {
-          on_change.call((
-            id,
-            evt
-              .current_target()
-              .unwrap_throw()
-              .dyn_into::<HtmlInputElement>()
-              .unwrap_throw()
-              .checked(),
-          ));
-        }
+        self
+          .on_change
+          .clone()
+          .unwrap_or_default()
+          .premap(move |evt: Event| {
+            (
+              id,
+              evt
+                .current_target()
+                .unwrap_throw()
+                .dyn_into::<HtmlInputElement>()
+                .unwrap_throw()
+                .checked(),
+            )
+          })
+          .to_closure()
       },
-      Deps::all(),
+      Deps::some(self.on_change.clone()),
     );
 
     h!(li[."task-item"]).build(c![

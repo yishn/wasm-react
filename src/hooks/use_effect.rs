@@ -1,8 +1,5 @@
 use super::{use_ref, Deps};
-use crate::{
-  callback::{Callback, Void},
-  react_bindings,
-};
+use crate::{callback::Void, react_bindings};
 use wasm_bindgen::{prelude::Closure, JsValue, UnwrapThrowExt};
 
 fn use_effect_inner<G, D>(
@@ -13,14 +10,14 @@ fn use_effect_inner<G, D>(
   G: FnOnce() + 'static,
   D: PartialEq + 'static,
 {
-  let effect = Callback::once(move |_: Void| {
+  let effect = Closure::once(move |_: Void| {
     let destructor = effect();
 
     // The effect destructor will definitely be called exactly once by React
     Closure::once_into_js(move |_: Void| destructor())
   });
   let mut ref_container =
-    use_ref(None::<(Callback<Void, JsValue>, Deps<D>, u8)>);
+    use_ref(None::<(Closure<dyn FnMut(Void) -> JsValue>, Deps<D>, u8)>);
 
   match ref_container.current_mut().as_mut() {
     Some((old_effect, old_deps, counter)) => {
@@ -37,7 +34,7 @@ fn use_effect_inner<G, D>(
 
   let (effect, _, counter) = ref_container.current().as_ref().unwrap_throw();
 
-  f(&*effect.as_js(), *counter);
+  f(effect.as_ref(), *counter);
 }
 
 /// Runs a function which contains imperative code that may cause side-effects.

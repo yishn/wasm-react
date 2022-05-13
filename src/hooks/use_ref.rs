@@ -1,7 +1,4 @@
-use crate::{
-  callback::{Callback, Void},
-  react_bindings, Persisted, PersistedOrigin,
-};
+use crate::{callback::Void, react_bindings, Persisted, PersistedOrigin};
 use js_sys::Reflect;
 use std::{fmt::Debug, marker::PhantomData};
 use wasm_bindgen::{
@@ -138,7 +135,7 @@ impl<T> TryFrom<JsValue> for RefContainer<T> {
 /// ```
 pub fn use_ref<T: 'static>(init: T) -> RefContainer<T> {
   let js_ref = react_bindings::use_rust_ref(
-    &*Callback::once(move |_: Void| Box::into_raw(Box::new(init))).as_js(),
+    Closure::once(move |_: Void| Box::into_raw(Box::new(init))).as_ref(),
     &Closure::once_into_js(
       move |unmounted: bool, ptr: usize, js_ref: JsValue| {
         if unmounted {
