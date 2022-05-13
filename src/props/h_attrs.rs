@@ -11,7 +11,7 @@ pub struct DangerousHtml<'a> {
 }
 
 macro_rules! impl_attr {
-  { $( $attr:ident, $attr_str:expr, $T:ty; )* } => {
+  { $( $attr:ident, $attr_str:literal, $T:ty; )* } => {
     $(
       #[allow(missing_docs)]
       pub fn $attr(self, value: $T) -> Self {
@@ -52,7 +52,7 @@ impl<'a> H<'a> {
 
   /// Overwrites the class name attribute. Use [`h!`](crate::h) for easier way
   /// to set the class names.
-  pub fn class_name<'b>(self, value: &str) -> Self {
+  pub fn class_name(self, value: &str) -> Self {
     self.attr("className", &value.into())
   }
 
