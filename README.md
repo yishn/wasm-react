@@ -78,7 +78,7 @@ impl Component for Counter {
 
     h!(div)
       .build(c![
-        h!(p).build(c!["Counter: ", *counter]),
+        h!(p).build(c!["Counter: ", *counter.value()]),
         h!(button).build(c!["Increment"]),
       ])
   }
@@ -115,7 +115,7 @@ impl Component for Counter {
 
     h!(div)
       .build(c![
-        h!(p).build(c!["Counter: ", *counter]),
+        h!(p).build(c!["Counter: ", *counter.value()]),
         h!(button)
           .on_click(&handle_click)
           .build(c!["Increment"]),

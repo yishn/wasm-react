@@ -1,3 +1,4 @@
+use std::{cell::RefCell, rc::Rc};
 use wasm_bindgen::{JsCast, JsValue, UnwrapThrowExt};
 use wasm_react::{
   c,
@@ -31,8 +32,8 @@ impl Component for App {
         move |evt: Event| {
           evt.prevent_default();
 
-          if !text.is_empty() {
-            tasks.update(|tasks| tasks.push((false, (*text).clone())));
+          if !text.value().is_empty() {
+            tasks.update(|tasks| tasks.push((false, text.value().clone())));
             text.set(|_| "".to_string());
           }
         }
@@ -61,7 +62,7 @@ impl Component for App {
     h!(div[."app"]).build(c![
       h!(h1).build(c!["Todo"]),
       TaskList {
-        tasks: (*tasks).clone(),
+        tasks: tasks.owned(),
         on_change: Some({
           let mut tasks = tasks.clone();
 
@@ -77,7 +78,7 @@ impl Component for App {
       h!(form).on_submit(&handle_submit).build(c![
         h!(input)
           .placeholder("Add new item...")
-          .value(&*text)
+          .value(&*text.value())
           .on_change(&handle_input)
           .build(c![]),
         " ",
@@ -90,25 +91,29 @@ impl Component for App {
 export_component!(App);
 
 struct TaskList<F: FnMut((usize, bool)) + Clone> {
-  tasks: Vec<(bool, String)>,
+  tasks: Rc<RefCell<Vec<(bool, String)>>>,
   on_change: Option<F>,
 }
 
 impl<F: FnMut((usize, bool)) + Clone + 'static> Component for TaskList<F> {
   fn render(&self) -> VNode {
-    h!(div[."task-list"]).build(c![h!(ul).build(c![
-      ..self
-        .tasks
-        .iter()
-        .enumerate()
-        .map(|(i, (done, description))| TaskItem {
-          id: i,
-          description: description.clone(),
-          done: *done,
-          on_change: self.on_change.clone(),
-        })
-        .map(VNode::from)
-    ])])
+    h!(div[."task-list"]).build(c![
+      //
+      h!(ul).build(c![
+        ..self
+          .tasks
+          .borrow()
+          .iter()
+          .enumerate()
+          .map(|(i, (done, description))| TaskItem {
+            id: i,
+            description: description.clone(),
+            done: *done,
+            on_change: self.on_change.clone(),
+          })
+          .map(VNode::from)
+      ])
+    ])
   }
 }
 

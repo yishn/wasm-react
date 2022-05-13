@@ -4,7 +4,11 @@ use crate::{
   react_bindings, Persisted, PersistedOrigin,
 };
 use js_sys::Function;
-use std::{fmt::Debug, ops::Deref};
+use std::{
+  cell::{Ref, RefCell},
+  fmt::Debug,
+  rc::Rc,
+};
 use wasm_bindgen::UnwrapThrowExt;
 
 /// Allows access to the underlying state data persisted with [`use_state()`].
@@ -12,25 +16,48 @@ use wasm_bindgen::UnwrapThrowExt;
 /// When the component unmounts, the underlying data is dropped. After that,
 /// trying to access the data will result in a panic.
 pub struct State<T> {
-  ref_container: RefContainer<Option<T>>,
+  ref_container: RefContainer<Option<Rc<RefCell<T>>>>,
   update: Function,
 }
 
 impl<T: 'static> State<T> {
+  /// Returns a reference to the value of the state.
+  pub fn value<'a>(&'a self) -> Ref<'a, T> {
+    self
+      .ref_container
+      .current()
+      .as_ref()
+      .unwrap_throw()
+      .borrow()
+  }
+
+  /// Returns an owned version to the value of the state.
+  pub fn owned(&self) -> Rc<RefCell<T>> {
+    self.ref_container.current().as_ref().unwrap_throw().clone()
+  }
+
   /// Sets the state to the return value of the given mutator closure and
   /// rerenders the component.
   pub fn set(&mut self, mutator: impl FnOnce(&T) -> T) {
-    let new_state =
-      mutator(self.ref_container.current().as_ref().unwrap_throw());
+    let new_state = mutator(&*self.value());
 
-    self.ref_container.set_current(Some(new_state));
+    self
+      .ref_container
+      .set_current(Some(Rc::new(RefCell::new(new_state))));
     self.update.call(&Void.into()).unwrap_throw();
   }
 
   /// Updates the state with the given mutator closure and rerenders the
   /// component.
   pub fn update(&mut self, mutator: impl FnOnce(&mut T)) {
-    mutator(self.ref_container.current_mut().as_mut().unwrap_throw());
+    mutator(
+      &mut *self
+        .ref_container
+        .current()
+        .as_ref()
+        .unwrap_throw()
+        .borrow_mut(),
+    );
 
     self.update.call(&Void.into()).unwrap_throw();
   }
@@ -51,17 +78,10 @@ impl<T> Clone for State<T> {
   }
 }
 
-impl<T: Debug> Debug for State<T> {
+impl<T: Debug + 'static> Debug for State<T> {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    self.deref().fmt(f)
-  }
-}
-
-impl<T> Deref for State<T> {
-  type Target = T;
-
-  fn deref(&self) -> &Self::Target {
-    self.ref_container.current().as_ref().unwrap_throw()
+    let value = self.value();
+    value.fmt(f)
   }
 }
 
@@ -78,22 +98,22 @@ impl<T> Deref for State<T> {
 /// ```
 /// # use wasm_react::{*, hooks::*};
 /// #
-/// # struct State { value: &'static str }
+/// # struct State { greet: &'static str }
 /// # struct C;
 /// # impl C {
 /// fn render(&self) -> VNode {
-///   let state = use_state(|| State { value: "Hello!" });
+///   let state = use_state(|| State { greet: "Hello!" });
 ///
 ///   use_effect({
 ///     let mut state = state.clone();
 ///
 ///     move || {
-///       state.set(|_| State { value: "Welcome!" });
+///       state.set(|_| State { greet: "Welcome!" });
 ///       || ()
 ///     }
 ///   }, Deps::some(( /* ... */ )));
 ///
-///   h!(div).build(c![state.value])
+///   h!(div).build(c![state.value().greet])
 /// }
 /// # }
 /// ```
@@ -101,7 +121,7 @@ pub fn use_state<T: 'static>(init: impl FnOnce() -> T) -> State<T> {
   let mut ref_container = use_ref(None);
 
   if ref_container.current().is_none() {
-    ref_container.set_current(Some(init()));
+    ref_container.set_current(Some(Rc::new(RefCell::new(init()))));
   }
 
   let update = react_bindings::use_rust_state();
