@@ -1,21 +1,28 @@
 use crate::{callback::Void, react_bindings, Persisted, PersistedOrigin};
 use js_sys::Reflect;
-use std::{fmt::Debug, marker::PhantomData};
+use std::{
+  cell::{Ref, RefCell, RefMut},
+  fmt::Debug,
+  marker::PhantomData,
+  rc::Rc,
+};
 use wasm_bindgen::{
   prelude::Closure, throw_val, JsCast, JsError, JsValue, UnwrapThrowExt,
 };
 
 /// Allows access to the underlying data persisted with [`use_ref()`].
 ///
+/// The rules of borrowing will be enforced at runtime through a [`RefCell`].
+///
 /// When the component unmounts, the underlying data is dropped. After that,
 /// trying to access the data will result in a **panic**.
 pub struct RefContainer<T> {
-  ptr: *mut T,
+  ptr: Rc<RefCell<*mut T>>,
   js_ref: JsValue,
 }
 
-impl<T> RefContainer<T> {
-  fn throw_if_data_dropped(&self) {
+impl<T: 'static> RefContainer<T> {
+  fn check_dropped(&self) {
     // Memory safety: Only yield underlying data if data has not been dropped
     // already!
 
@@ -35,20 +42,25 @@ impl<T> RefContainer<T> {
   }
 
   /// Returns a reference to the underlying data.
-  pub fn current(&self) -> &T {
-    self.throw_if_data_dropped();
-    Box::leak(unsafe { Box::from_raw(self.ptr) })
+  pub fn current(&self) -> Ref<'_, T> {
+    self.check_dropped();
+
+    Ref::map(self.ptr.borrow(), |ptr| {
+      Box::leak(unsafe { Box::from_raw(*ptr) })
+    })
   }
 
   /// Returns a mutable reference to the underlying data.
-  pub fn current_mut(&mut self) -> &mut T {
-    self.throw_if_data_dropped();
-    Box::leak(unsafe { Box::from_raw(self.ptr) })
+  pub fn current_mut(&mut self) -> RefMut<'_, T> {
+    self.check_dropped();
+
+    RefMut::map(self.ptr.borrow_mut(), |ptr| {
+      Box::leak(unsafe { Box::from_raw(*ptr) })
+    })
   }
 
   /// Sets the underlying data to the given value.
   pub fn set_current(&mut self, value: T) {
-    self.throw_if_data_dropped();
     *self.current_mut() = value;
   }
 }
@@ -59,18 +71,10 @@ impl<T> Persisted for RefContainer<T> {
   }
 }
 
-impl<T: Debug> Debug for RefContainer<T> {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    f.debug_struct("RefContainer")
-      .field("current", self.current())
-      .finish()
-  }
-}
-
 impl<T> Clone for RefContainer<T> {
   fn clone(&self) -> Self {
     Self {
-      ptr: self.ptr,
+      ptr: self.ptr.clone(),
       js_ref: self.js_ref.clone(),
     }
   }
@@ -87,8 +91,10 @@ impl<T> TryFrom<JsValue> for RefContainer<T> {
 
   fn try_from(value: JsValue) -> Result<Self, Self::Error> {
     Ok(RefContainer {
-      ptr: react_bindings::cast_to_usize(&Reflect::get(&value, &"ptr".into())?)
-        as *mut T,
+      ptr: Rc::new(RefCell::new(react_bindings::cast_to_usize(&Reflect::get(
+        &value,
+        &"ptr".into(),
+      )?) as *mut T)),
       js_ref: value,
     })
   }

@@ -1,16 +1,20 @@
 use super::{use_ref, Deps, RefContainer};
 use crate::{Persisted, PersistedOrigin};
-use std::{
-  fmt::Debug,
-  ops::{Deref, DerefMut},
-};
+use std::{cell::Ref, fmt::Debug};
 use wasm_bindgen::UnwrapThrowExt;
 
 /// Allows access to the underlying memoized data persisted with [`use_memo()`].
 ///
 /// When the component unmounts, the underlying data is dropped. After that,
 /// trying to access the data will result in a **panic**.
-pub struct Memo<T, D: PartialEq>(RefContainer<Option<(T, Deps<D>)>>);
+pub struct Memo<T: 'static, D: 'static>(RefContainer<Option<(T, Deps<D>)>>);
+
+impl<T, D> Memo<T, D> {
+  /// Returns a reference to the underlying memoized data.
+  pub fn value(&self) -> Ref<'_, T> {
+    Ref::map(self.0.current(), |x| &x.as_ref().unwrap_throw().0)
+  }
+}
 
 impl<T, D: PartialEq> Persisted for Memo<T, D> {
   fn ptr(&self) -> PersistedOrigin {
@@ -20,27 +24,13 @@ impl<T, D: PartialEq> Persisted for Memo<T, D> {
 
 impl<T: Debug, D: PartialEq> Debug for Memo<T, D> {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    self.deref().fmt(f)
+    self.value().fmt(f)
   }
 }
 
 impl<T, D: PartialEq> Clone for Memo<T, D> {
   fn clone(&self) -> Self {
     Self(self.0.clone())
-  }
-}
-
-impl<T, D: PartialEq> Deref for Memo<T, D> {
-  type Target = T;
-
-  fn deref(&self) -> &Self::Target {
-    &self.0.current().as_ref().unwrap_throw().0
-  }
-}
-
-impl<T, D: PartialEq> DerefMut for Memo<T, D> {
-  fn deref_mut(&mut self) -> &mut Self::Target {
-    &mut self.0.current_mut().as_mut().unwrap_throw().0
   }
 }
 
@@ -63,7 +53,7 @@ impl<T, D: PartialEq> DerefMut for Memo<T, D> {
 ///   let b = self.b;
 ///   let memo = use_memo(|| compute_expensive_value(a, b), Deps::some((a, b)));
 ///
-///   h!(div).build(c![*memo])
+///   h!(div).build(c![*memo.value()])
 /// }
 /// # }
 /// ```
@@ -73,9 +63,14 @@ where
   D: PartialEq + 'static,
 {
   let mut ref_container = use_ref(None::<(T, Deps<D>)>);
-  let old_deps = ref_container.current().as_ref().map(|memo| &memo.1);
+  let need_update = {
+    let current = ref_container.current();
+    let old_deps = current.as_ref().map(|memo| &memo.1);
 
-  if deps.is_all() || Some(&deps) != old_deps {
+    deps.is_all() || Some(&deps) != old_deps
+  };
+
+  if need_update {
     ref_container.set_current(Some((create(), deps)));
   }
 

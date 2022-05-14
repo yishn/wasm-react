@@ -48,27 +48,6 @@ impl From<Void> for JsValue {
   }
 }
 
-/// A smart pointer that derefs to `JsValue`.
-pub struct CallbackJsRef<'a, T, U>(Ref<'a, Option<Closure<dyn FnMut(T) -> U>>>);
-
-impl<'a, T, U> Clone for CallbackJsRef<'a, T, U> {
-  fn clone(&self) -> Self {
-    Self(Ref::clone(&self.0))
-  }
-}
-
-impl<'a, T, U> Deref for CallbackJsRef<'a, T, U>
-where
-  T: FromWasmAbi + 'static,
-  U: IntoWasmAbi + 'static,
-{
-  type Target = JsValue;
-
-  fn deref(&self) -> &Self::Target {
-    self.0.as_ref().unwrap_throw().as_ref()
-  }
-}
-
 /// This is a simplified, reference-counted wrapper around an [`FnMut`] Rust
 /// closure that may be called from JS when `T` and `U` allow.
 ///
@@ -158,7 +137,7 @@ where
   U: IntoWasmAbi + 'static,
 {
   /// Returns a reference to `JsValue` of the callback.
-  pub fn as_js(&self) -> CallbackJsRef<'_, T, U> {
+  pub fn as_js(&self) -> Ref<'_, JsValue> {
     if self.js.borrow().is_none() {
       *self.js.borrow_mut() = Some(Closure::wrap(Box::new({
         let closure = self.closure.clone();
@@ -170,7 +149,7 @@ where
       })));
     }
 
-    CallbackJsRef(self.js.borrow())
+    Ref::map(self.js.borrow(), |x| x.as_ref().unwrap_throw().as_ref())
   }
 }
 

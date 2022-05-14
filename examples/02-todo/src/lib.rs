@@ -32,8 +32,8 @@ impl Component for App {
         move |evt: Event| {
           evt.prevent_default();
 
-          if !text.is_empty() {
-            tasks.update(|tasks| tasks.push((false, (*text).clone())));
+          if !text.value().is_empty() {
+            tasks.update(|tasks| tasks.push((false, text.value().clone())));
             text.set(|_| "".into());
           }
         }
@@ -75,14 +75,16 @@ impl Component for App {
 
     h!(div[."app"]).build(c![
       h!(h1).build(c!["Todo"]),
+      //
       TaskList {
         tasks: tasks.clone().into(),
         on_change: Some(handle_task_change.into()),
       },
+      //
       h!(form).on_submit(&handle_submit).build(c![
         h!(input)
           .placeholder("Add new item...")
-          .value(&**text)
+          .value(&**text.value())
           .on_change(&handle_input)
           .build(c![]),
         " ",
@@ -106,6 +108,7 @@ impl Component for TaskList {
       h!(ul).build(c![
         ..self
           .tasks
+          .value()
           .iter()
           .enumerate()
           .map(|(i, (done, description))| TaskItem {
@@ -163,9 +166,9 @@ impl Component for TaskItem {
           .build(c![]),
         " ",
         if self.done {
-          h!(del).build(c![&*self.description])
+          h!(del).build(c![*self.description])
         } else {
-          (&*self.description).into()
+          (*self.description).into()
         },
       ])
     ])

@@ -4,28 +4,28 @@ use crate::{
   react_bindings, Persisted, PersistedOrigin,
 };
 use js_sys::Function;
-use std::fmt::Debug;
+use std::{cell::Ref, fmt::Debug};
 use wasm_bindgen::UnwrapThrowExt;
 
 /// Allows access to the underlying state data persisted with [`use_state()`].
 ///
 /// When the component unmounts, the underlying data is dropped. After that,
 /// trying to access the data will result in a **panic**.
-pub struct State<T> {
+pub struct State<T: 'static> {
   ref_container: RefContainer<Option<T>>,
   update: Function,
 }
 
 impl<T: 'static> State<T> {
   /// Returns a reference to the value of the state.
-  pub fn value(&self) -> &T {
-    self.ref_container.current().as_ref().unwrap_throw()
+  pub fn value(&self) -> Ref<'_, T> {
+    Ref::map(self.ref_container.current(), |x| x.as_ref().unwrap_throw())
   }
 
   /// Sets the state to the return value of the given mutator closure and
   /// rerenders the component.
   pub fn set(&mut self, mutator: impl FnOnce(&T) -> T) {
-    let new_state = mutator(self.value());
+    let new_state = mutator(&*self.value());
 
     self.ref_container.set_current(Some(new_state));
     self.update.call(&Void.into()).unwrap_throw();
@@ -57,8 +57,7 @@ impl<T> Clone for State<T> {
 
 impl<T: Debug + 'static> Debug for State<T> {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    let value = self.value();
-    value.fmt(f)
+    self.value().fmt(f)
   }
 }
 

@@ -11,6 +11,7 @@ pub fn use_context<T>(context: &'static LocalKey<Context<T>>) -> Rc<T> {
     &context.with(|context| context.as_ref().clone()),
   );
   let ref_container = RefContainer::<Rc<T>>::try_from(js_ref).unwrap_throw();
+  let value = ref_container.current();
 
-  ref_container.current().clone()
+  value.clone()
 }

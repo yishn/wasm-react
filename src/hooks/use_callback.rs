@@ -12,6 +12,7 @@ where
   D: PartialEq + 'static,
 {
   let memo = use_memo(move || Callback::new(f), deps);
+  let value = memo.value();
 
-  PersistedCallback((*memo).clone())
+  PersistedCallback(value.clone())
 }

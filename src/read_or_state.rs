@@ -1,10 +1,35 @@
 use crate::hooks::State;
-use std::{fmt::Debug, ops::Deref, rc::Rc};
+use std::{cell::Ref, fmt::Debug, ops::Deref, rc::Rc};
 
-/// Represents
+pub enum ReadOrStateValueRef<'a, T: 'static> {
+  ReadOnly(&'a Rc<T>),
+  State(Ref<'a, T>),
+}
+
+impl<'a, T> Deref for ReadOrStateValueRef<'a, T> {
+  type Target = T;
+
+  fn deref(&self) -> &Self::Target {
+    match &self {
+      ReadOrStateValueRef::ReadOnly(x) => x.deref(),
+      ReadOrStateValueRef::State(x) => x.deref(),
+    }
+  }
+}
+
+#[derive(Debug)]
 pub enum ReadOrState<T: 'static> {
   ReadOnly(Rc<T>),
   State(State<T>),
+}
+
+impl<T> ReadOrState<T> {
+  pub fn value(&self) -> ReadOrStateValueRef<'_, T> {
+    match &self {
+      ReadOrState::ReadOnly(x) => ReadOrStateValueRef::ReadOnly(x),
+      ReadOrState::State(x) => ReadOrStateValueRef::State(x.value()),
+    }
+  }
 }
 
 impl<T> Clone for ReadOrState<T> {
@@ -12,23 +37,6 @@ impl<T> Clone for ReadOrState<T> {
     match self {
       Self::ReadOnly(x) => Self::ReadOnly(x.clone()),
       Self::State(x) => Self::State(x.clone()),
-    }
-  }
-}
-
-impl<T: Debug> Debug for ReadOrState<T> {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    self.deref().fmt(f)
-  }
-}
-
-impl<T> Deref for ReadOrState<T> {
-  type Target = T;
-
-  fn deref(&self) -> &Self::Target {
-    match &self {
-      ReadOrState::ReadOnly(x) => x.deref(),
-      ReadOrState::State(x) => x.deref(),
     }
   }
 }

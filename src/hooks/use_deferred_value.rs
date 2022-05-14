@@ -23,5 +23,9 @@ pub fn use_deferred_value<T: 'static>(value: T) -> Rc<T> {
     ref_container.set_current(Some((Rc::new(value), deferred_counter)));
   }
 
-  ref_container.current().clone().unwrap_throw().0
+  let current = ref_container.current();
+  current
+    .as_ref()
+    .map(|current| current.0.clone())
+    .unwrap_throw()
 }
