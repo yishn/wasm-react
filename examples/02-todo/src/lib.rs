@@ -1,10 +1,11 @@
+use std::rc::Rc;
 use wasm_bindgen::{JsCast, JsValue, UnwrapThrowExt};
 use wasm_react::{
   c,
   callback::Callback,
   export_component, h,
-  hooks::{use_callback, use_state, Deps, State},
-  Component, VNode,
+  hooks::{use_callback, use_state, Deps},
+  Component, ReadOrState, VNode,
 };
 use web_sys::{Event, HtmlInputElement};
 
@@ -21,7 +22,7 @@ impl TryFrom<JsValue> for App {
 impl Component for App {
   fn render(&self) -> VNode {
     let tasks = use_state(|| vec![]);
-    let text = use_state(|| "".to_string());
+    let text = use_state(|| -> Rc<str> { "".into() });
 
     let handle_submit = use_callback(
       {
@@ -31,9 +32,9 @@ impl Component for App {
         move |evt: Event| {
           evt.prevent_default();
 
-          if !text.value().is_empty() {
-            tasks.update(|tasks| tasks.push((false, text.value().clone())));
-            text.set(|_| "".to_string());
+          if !text.is_empty() {
+            tasks.update(|tasks| tasks.push((false, (*text).clone())));
+            text.set(|_| "".into());
           }
         }
       },
@@ -52,6 +53,7 @@ impl Component for App {
               .dyn_into::<HtmlInputElement>()
               .unwrap_throw()
               .value()
+              .into()
           })
         }
       },
@@ -64,9 +66,7 @@ impl Component for App {
 
         move |(id, done): (usize, bool)| {
           tasks.update(|tasks| {
-            tasks
-              .get_mut(id)
-              .map(|task: &mut (bool, String)| task.0 = done);
+            tasks.get_mut(id).map(|task: &mut (bool, _)| task.0 = done);
           })
         }
       },
@@ -76,13 +76,13 @@ impl Component for App {
     h!(div[."app"]).build(c![
       h!(h1).build(c!["Todo"]),
       TaskList {
-        tasks: tasks.clone(),
+        tasks: tasks.clone().into(),
         on_change: Some(handle_task_change.into()),
       },
       h!(form).on_submit(&handle_submit).build(c![
         h!(input)
           .placeholder("Add new item...")
-          .value(&*text.value())
+          .value(&**text)
           .on_change(&handle_input)
           .build(c![]),
         " ",
@@ -95,7 +95,7 @@ impl Component for App {
 export_component!(App);
 
 struct TaskList {
-  tasks: State<Vec<(bool, String)>>,
+  tasks: ReadOrState<Vec<(bool, Rc<str>)>>,
   on_change: Option<Callback<(usize, bool)>>,
 }
 
@@ -106,7 +106,6 @@ impl Component for TaskList {
       h!(ul).build(c![
         ..self
           .tasks
-          .value()
           .iter()
           .enumerate()
           .map(|(i, (done, description))| TaskItem {
@@ -123,7 +122,7 @@ impl Component for TaskList {
 
 struct TaskItem {
   id: usize,
-  description: String,
+  description: Rc<str>,
   done: bool,
   on_change: Option<Callback<(usize, bool)>>,
 }
@@ -164,9 +163,9 @@ impl Component for TaskItem {
           .build(c![]),
         " ",
         if self.done {
-          h!(del).build(c![&self.description])
+          h!(del).build(c![&*self.description])
         } else {
-          (&self.description).into()
+          (&*self.description).into()
         },
       ])
     ])
