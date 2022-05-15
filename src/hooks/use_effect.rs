@@ -20,12 +20,12 @@ fn use_effect_inner<G, D>(
     use_ref(None::<(Closure<dyn FnMut(Void) -> JsValue>, Deps<D>, u8)>);
 
   let new_value = match ref_container.current_mut().take() {
-    Some((effect, old_deps, counter)) => {
+    Some((old_effect, old_deps, counter)) => {
       if deps.is_all() || old_deps != deps {
         Some((effect, deps, counter.wrapping_add(1)))
       } else {
         // Dependencies didn't change
-        Some((effect, old_deps, counter))
+        Some((old_effect, old_deps, counter))
       }
     }
     None => Some((effect, deps, 0)),

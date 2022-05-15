@@ -126,12 +126,10 @@ impl Component for Counter {
 
 ### Export Component for JS Consumption
 
-First, you need to include `wasm-bindgen` in your `Cargo.toml` and install
-[`wasm-pack`](https://rustwasm.github.io/wasm-pack/).
-
-You can use the `export_component!` macro to export your Rust component for JS
-consumption. Requirement is that your component needs to implement
-`TryFrom<JsValue, Error = JsValue>` and use `wasm_bindgen::prelude::*`.
+First, you'll need [`wasm-pack`](https://rustwasm.github.io/wasm-pack/). You can
+use the `export_component!` macro to export your Rust component for JS
+consumption. Requirement is that your component implements
+`TryFrom<JsValue, Error = JsValue>`.
 
 ```rust
 use wasm_react::{h, c, export_component, Component, VNode};
@@ -189,7 +187,7 @@ import { createRoot } from "react-dom/client";
 
 async function main() {
   const { WasmReact, App } = await import("./path/to/wasm-bindings.js");
-  WasmReact.useReact(React); // Tell WasmReact to use your React runtime
+  WasmReact.useReact(window.React); // Tell WasmReact to use your React runtime
 
   const root = createRoot(document.getElementById("root"));
   root.render(<App />);
@@ -209,7 +207,7 @@ import init, { WasmReact, App } from "./path/to/wasm-bindings.js";
 
 async function main() {
   await init(); // Need to load WASM first
-  WasmReact.useReact(React); // Tell WasmReact to use your React runtime
+  WasmReact.useReact(window.React); // Tell WasmReact to use your React runtime
 
   const root = ReactDOM.createRoot(document.getElementById("root"));
   root.render(React.createElement(App, {}));
