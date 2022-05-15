@@ -20,7 +20,7 @@ jobs:
         version: latest
     - name: Build
       run: |
-        wasm-pack build
+        wasm-pack build --debug
     - name: Build examples
       run: |
         npm run build-examples

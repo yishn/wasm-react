@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "build": "wasm-pack build --target web",
+    "build": "wasm-pack build --target web --debug",
     "start": "serve"
   },
   "devDependencies": {
