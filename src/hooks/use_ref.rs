@@ -6,57 +6,25 @@ use std::{
   marker::PhantomData,
   rc::Rc,
 };
-use wasm_bindgen::{
-  prelude::Closure, throw_val, JsCast, JsError, JsValue, UnwrapThrowExt,
-};
+use wasm_bindgen::{prelude::Closure, JsCast, JsValue, UnwrapThrowExt};
 
 /// Allows access to the underlying data persisted with [`use_ref()`].
 ///
 /// The rules of borrowing will be enforced at runtime through a [`RefCell`].
-///
-/// When the component unmounts, the underlying data is dropped. After that,
-/// trying to access the data will result in a **panic**.
 pub struct RefContainer<T> {
-  ptr: Rc<RefCell<*mut T>>,
+  inner: Rc<RefCell<T>>,
   js_ref: JsValue,
 }
 
 impl<T: 'static> RefContainer<T> {
-  fn check_dropped(&self) {
-    // Memory safety: Only yield underlying data if data has not been dropped
-    // already!
-
-    let dropped = Reflect::get(&self.js_ref, &"dropped".into())
-      .unwrap_throw()
-      .as_bool()
-      .unwrap_throw();
-
-    if dropped {
-      throw_val(
-        JsError::new(
-          "You're trying to use a hook on a component that has already been unmounted!",
-        )
-        .into(),
-      );
-    }
-  }
-
   /// Returns a reference to the underlying data.
   pub fn current(&self) -> Ref<'_, T> {
-    self.check_dropped();
-
-    Ref::map(self.ptr.borrow(), |ptr| {
-      Box::leak(unsafe { Box::from_raw(*ptr) })
-    })
+    self.inner.borrow()
   }
 
   /// Returns a mutable reference to the underlying data.
   pub fn current_mut(&mut self) -> RefMut<'_, T> {
-    self.check_dropped();
-
-    RefMut::map(self.ptr.borrow_mut(), |ptr| {
-      Box::leak(unsafe { Box::from_raw(*ptr) })
-    })
+    self.inner.borrow_mut()
   }
 
   /// Sets the underlying data to the given value.
@@ -74,7 +42,7 @@ impl<T> Persisted for RefContainer<T> {
 impl<T> Clone for RefContainer<T> {
   fn clone(&self) -> Self {
     Self {
-      ptr: self.ptr.clone(),
+      inner: self.inner.clone(),
       js_ref: self.js_ref.clone(),
     }
   }
@@ -90,13 +58,19 @@ impl<T> TryFrom<JsValue> for RefContainer<T> {
   type Error = JsValue;
 
   fn try_from(value: JsValue) -> Result<Self, Self::Error> {
-    Ok(RefContainer {
-      ptr: Rc::new(RefCell::new(react_bindings::cast_to_usize(&Reflect::get(
-        &value,
-        &"ptr".into(),
-      )?) as *mut T)),
+    let ptr =
+      react_bindings::cast_to_usize(&Reflect::get(&value, &"ptr".into())?)
+        as *const RefCell<T>;
+    let inner = unsafe { Rc::from_raw(ptr) };
+    let result = RefContainer {
+      inner: inner.clone(),
       js_ref: value,
-    })
+    };
+
+    // We're converting back to pointer since we do not want to drop the inner
+    // value when `RefContainer` is dropped.
+    Rc::into_raw(inner);
+    Ok(result)
   }
 }
 
@@ -104,8 +78,9 @@ impl<T> TryFrom<JsValue> for RefContainer<T> {
 /// of the component.
 ///
 /// Whenever the component is unmounted by React, the data will also be dropped.
-/// Keep in mind that [`use_ref()`] can only be mutated in Rust. If you need a
-/// ref to hold a DOM element, use [`use_js_ref()`] instead.
+/// Keep in mind that the inner value of [`use_ref()`] can only be accessed in
+/// Rust. If you need a ref to hold a DOM element (or a JS value in general),
+/// use [`use_js_ref()`] instead.
 ///
 /// The component will not rerender when you mutate the underlying data. If you
 /// want that, use [`use_state()`](crate::hooks::use_state()) instead.
@@ -141,24 +116,17 @@ impl<T> TryFrom<JsValue> for RefContainer<T> {
 /// ```
 pub fn use_ref<T: 'static>(init: T) -> RefContainer<T> {
   let js_ref = react_bindings::use_rust_ref(
-    Closure::once(move |_: Void| Box::into_raw(Box::new(init))).as_ref(),
-    &Closure::once_into_js(
-      move |unmounted: bool, ptr: usize, js_ref: JsValue| {
-        if unmounted {
-          let ptr = ptr as *mut T;
+    Closure::once(move |_: Void| Rc::into_raw(Rc::new(RefCell::new(init))))
+      .as_ref(),
+    &Closure::once_into_js(move |unmounted: bool, ptr: usize| {
+      if unmounted {
+        let ptr = ptr as *const RefCell<T>;
 
-          // A callback with `unmounted == true` can only be called once (look
-          // at `react-bindings.js#useRustRef`), so a double-free cannot happen!
-          drop(unsafe { Box::from_raw(ptr) });
-
-          // By setting `dropped` to `true`, we're signalling that the
-          // underlying data has already been dropped and that it is not safe
-          // for `RefContainer` to access it anymore.
-          Reflect::set(&js_ref, &"dropped".into(), &JsValue::TRUE)
-            .unwrap_throw();
-        }
-      },
-    ),
+        // A callback with `unmounted == true` can only be called once (look
+        // at `react-bindings.js#useRustRef`), so a double-free cannot happen!
+        drop(unsafe { Rc::from_raw(ptr) });
+      }
+    }),
   );
 
   RefContainer::try_from(js_ref).unwrap_throw()

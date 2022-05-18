@@ -48,7 +48,7 @@ export function useRustRef(create, handler) {
   if (ref.current == null) {
     // Create ref struct if called for the first time.
 
-    ref.current = { ptr: create(), dropped: false };
+    ref.current = { ptr: create() };
   } else {
     // The callback `handler` has to be called exactly one time so the Rust
     // memory of its corresponding closure will be freed. If this function has
@@ -58,10 +58,10 @@ export function useRustRef(create, handler) {
     // Otherwise, we have to call `handler` manually, so the closure can be
     // dropped on Rust side.
 
-    handler(false, ref.current.ptr, ref.current);
+    handler(false, ref.current.ptr);
   }
 
-  React.useEffect(() => () => handler(true, ref.current.ptr, ref.current), []);
+  React.useEffect(() => () => handler(true, ref.current.ptr), []);
 
   return ref.current;
 }
