@@ -7,11 +7,11 @@ use wasm_bindgen::UnwrapThrowExt;
 ///
 /// See [`create_context()`](crate::create_context()) for usage.
 pub fn use_context<T>(context: &'static LocalKey<Context<T>>) -> Rc<T> {
-  let js_ref = react_bindings::use_context(
-    &context.with(|context| context.as_ref().clone()),
-  );
-  let ref_container = RefContainer::<Rc<T>>::try_from(js_ref).unwrap_throw();
-  let value = ref_container.current();
+  context.with(|context| {
+    let js_ref = react_bindings::use_context(context.as_ref());
+    let ref_container = RefContainer::<Rc<T>>::try_from(js_ref).unwrap_throw();
+    let value = ref_container.current();
 
-  value.clone()
+    value.clone()
+  })
 }

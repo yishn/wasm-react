@@ -1,7 +1,7 @@
 use crate::{react_bindings, Component, ComponentWrapper};
 use js_sys::Array;
-use std::any::{type_name, TypeId};
-use wasm_bindgen::{JsCast, JsValue, UnwrapThrowExt};
+use std::any::type_name;
+use wasm_bindgen::{JsCast, JsValue};
 
 /// Represents a node in the virtual DOM of React.
 #[derive(Clone)]
@@ -35,8 +35,8 @@ impl From<VNode> for JsValue {
 impl<T: Component> From<T> for VNode {
   fn from(value: T) -> Self {
     VNode(react_bindings::create_rust_component(
+      // This does not uniquely identify the component, but it is good enough
       type_name::<T>(),
-      &format!("{:?}", TypeId::of::<T>()),
       &value.key().into(),
       &ComponentWrapper(Box::new(value)).into(),
     ))
@@ -147,7 +147,7 @@ impl TryFrom<JsValue> for VNodeList {
 
   fn try_from(value: JsValue) -> Result<Self, Self::Error> {
     let arr = if value.is_instance_of::<Array>() {
-      value.dyn_into::<Array>().unwrap_throw()
+      value.dyn_into::<Array>()?
     } else {
       react_bindings::children_to_array(&value)?
     };

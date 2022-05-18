@@ -9,7 +9,6 @@ extern "C" {
   #[wasm_bindgen(js_name = createRustComponent)]
   pub fn create_rust_component(
     name: &str,
-    type_id: &str,
     key: &JsValue,
     component: &JsValue,
   ) -> JsValue;

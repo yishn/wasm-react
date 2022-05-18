@@ -19,24 +19,22 @@ function renderRustComponent(props) {
   return component.render();
 }
 
-function getRustComponent(name, typeId) {
-  let key = `${typeId} (${name.replace(/(\w+::)+/g, "")})`;
-
-  if (components[key] == null) {
+function getRustComponent(name) {
+  if (components[name] == null) {
     // All Rust components have the same implementation in JS, but we need to
     // define them separately, so that React can distinguish them as different
     // components, and also so the names show up correctly in the React
     // Developer Tools.
     Object.assign(components, {
-      [key]: (props = {}) => renderRustComponent(props),
+      [name]: (props = {}) => renderRustComponent(props),
     });
   }
 
-  return components[key];
+  return components[name];
 }
 
-export function createRustComponent(name, typeId, key, component) {
-  return React.createElement(getRustComponent(name, typeId), {
+export function createRustComponent(name, key, component) {
+  return React.createElement(getRustComponent(name), {
     key,
     component,
   });

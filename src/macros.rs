@@ -210,7 +210,7 @@ macro_rules! classnames {
 ///
 /// ```js
 /// import React from "react";
-/// import init, { Counter } from "./path/to/wasm-bindings.js";
+/// import init, { Counter } from "./path/to/pkg/project.js";
 ///
 /// function SomeOtherJsComponent(props) {
 ///   return (

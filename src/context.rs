@@ -132,31 +132,30 @@ impl<T: 'static> ContextProvider<T> {
 
 impl<T: 'static> Component for ContextProvider<T> {
   fn render(&self) -> VNode {
-    let value = self.value.clone().unwrap_or_else(|| {
-      self.context.with(|context| context.fallback_value.clone())
-    });
-    let value_ref = use_ref(value.clone());
+    self.context.with(|context| {
+      let value = self
+        .value
+        .clone()
+        .unwrap_or_else(|| context.fallback_value.clone());
+      let value_ref = use_ref(value.clone());
 
-    use_effect(
-      {
-        let mut value_ref = value_ref.clone();
+      use_effect(
+        {
+          let mut value_ref = value_ref.clone();
 
-        move || {
-          value_ref.set_current(value);
-          || ()
-        }
-      },
-      Deps::all(),
-    );
+          move || {
+            value_ref.set_current(value);
+            || ()
+          }
+        },
+        Deps::all(),
+      );
 
-    create_element(
-      &Reflect::get(
-        &self.context.with(|context| context.js_context.clone()),
-        &"Provider".into(),
+      create_element(
+        &Reflect::get(&context.js_context, &"Provider".into()).unwrap_throw(),
+        Props::new().insert("value", value_ref.as_ref()),
+        self.children.clone(),
       )
-      .unwrap_throw(),
-      Props::new().insert("value", value_ref.as_ref()),
-      self.children.clone(),
-    )
+    })
   }
 }

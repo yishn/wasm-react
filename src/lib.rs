@@ -46,7 +46,7 @@ impl WasmReact {
   ///
   /// ```js
   /// import React from "react";
-  /// import init, { WasmReact } from "./path/to/wasm-bindings.js";
+  /// import init, { WasmReact } from "./path/to/pkg/project.js";
   ///
   /// async function main() {
   ///   await init();
