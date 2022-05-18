@@ -1,34 +1,37 @@
 use super::{use_ref, Deps};
-use crate::{callback::Void, react_bindings};
+use crate::react_bindings;
 use wasm_bindgen::{prelude::Closure, JsValue, UnwrapThrowExt};
 
 fn use_effect_inner<G, D>(
   effect: impl FnOnce() -> G + 'static,
   deps: Deps<D>,
-  f: impl Fn(&JsValue, u8),
+  f: impl FnOnce(&JsValue, u8),
 ) where
   G: FnOnce() + 'static,
   D: PartialEq + 'static,
 {
-  let effect = Closure::once(move |_: Void| {
-    let destructor = effect();
+  let create_effect_closure = move || {
+    Closure::once(move || {
+      let destructor = effect();
 
-    // The effect destructor will definitely be called exactly once by React
-    Closure::once_into_js(move |_: Void| destructor())
-  });
+      // The effect destructor will definitely be called exactly once by React
+      Closure::once_into_js(destructor)
+    })
+  };
+
   let mut ref_container =
-    use_ref(None::<(Closure<dyn FnMut(Void) -> JsValue>, Deps<D>, u8)>);
+    use_ref(None::<(Closure<dyn FnMut() -> JsValue>, Deps<D>, u8)>);
 
   let new_value = match ref_container.current_mut().take() {
     Some((old_effect, old_deps, counter)) => {
       if deps.is_all() || old_deps != deps {
-        Some((effect, deps, counter.wrapping_add(1)))
+        Some((create_effect_closure(), deps, counter.wrapping_add(1)))
       } else {
         // Dependencies didn't change
         Some((old_effect, old_deps, counter))
       }
     }
-    None => Some((effect, deps, 0)),
+    None => Some((create_effect_closure(), deps, 0)),
   };
 
   ref_container.set_current(new_value);
