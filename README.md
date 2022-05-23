@@ -187,7 +187,7 @@ import { createRoot } from "react-dom/client";
 
 async function main() {
   const { WasmReact, App } = await import("./path/to/pkg/project.js");
-  WasmReact.useReact(window.React); // Tell wasm-react to use your React runtime
+  WasmReact.useReact(React); // Tell wasm-react to use your React runtime
 
   const root = createRoot(document.getElementById("root"));
   root.render(<App />);
