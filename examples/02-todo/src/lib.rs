@@ -22,7 +22,7 @@ impl TryFrom<JsValue> for App {
 impl Component for App {
   fn render(&self) -> VNode {
     let tasks = use_state(|| vec![]);
-    let text = use_state(|| -> Rc<str> { "".into() });
+    let text = use_state(|| Rc::<str>::from(""));
 
     let handle_submit = use_callback(
       {
@@ -153,7 +153,7 @@ impl Component for TaskItem {
           })
           .to_closure()
       },
-      Deps::some(self.on_change.clone()),
+      Deps::some((self.id, self.on_change.clone())),
     );
 
     h!(li[."task-item"]).build(c![
