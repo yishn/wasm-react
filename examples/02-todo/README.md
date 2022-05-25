@@ -1,9 +1,12 @@
 # Todo
 
-To run this example, execute the following commands:
+To run this example, make sure you have [wasm-pack] and [sfz] installed. Execute
+the following commands:
 
 ```sh
-$ npm install
-$ npm run build
-$ npm start
+$ wasm-pack build --target web
+$ sfz
 ```
+
+[wasm-pack](https://rustwasm.github.io/wasm-pack/)
+[sfz](https://crates.io/crates/sfz)
