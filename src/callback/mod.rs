@@ -186,6 +186,13 @@ impl<T, U> Clone for Callback<T, U> {
   }
 }
 
+impl<T, U> Callable<T, U> for Callback<T, U> {
+  fn call(&self, arg: T) -> U {
+    let mut f = self.closure.borrow_mut();
+    f(arg)
+  }
+}
+
 /// This is a wrapper around a [`Callback`] which can persist through the
 /// lifetime of a component.
 ///
@@ -244,6 +251,12 @@ impl<T, U> Persisted for PersistedCallback<T, U> {
   }
 }
 
+impl<T, U> Callable<T, U> for PersistedCallback<T, U> {
+  fn call(&self, arg: T) -> U {
+    self.deref().call(arg)
+  }
+}
+
 /// A trait for callable structs with one and only one input argument and some
 /// return value.
 pub trait Callable<T, U = ()> {
@@ -257,26 +270,17 @@ impl<T, U, F: Fn(T) -> U> Callable<T, U> for F {
   }
 }
 
-impl<T, U> Callable<T, U> for Callback<T, U> {
-  fn call(&self, arg: T) -> U {
-    let mut f = self.closure.borrow_mut();
-    f(arg)
-  }
-}
-
-impl<T, U> Callable<T, U> for PersistedCallback<T, U> {
-  fn call(&self, arg: T) -> U {
-    self.deref().call(arg)
-  }
-}
-
 impl Callable<&JsValue, Result<JsValue, JsValue>> for Function {
   fn call(&self, arg: &JsValue) -> Result<JsValue, JsValue> {
     self.call1(&JsValue::undefined(), arg)
   }
 }
 
-impl<T, U: Default, F: Callable<T, U>> Callable<T, U> for Option<F> {
+impl<T, U, F> Callable<T, U> for Option<F>
+where
+  U: Default,
+  F: Callable<T, U>,
+{
   fn call(&self, arg: T) -> U {
     self.as_ref().map(|f| f.call(arg)).unwrap_or_default()
   }
