@@ -1,7 +1,7 @@
 use crate::hooks::State;
 use std::{cell::Ref, fmt::Debug, ops::Deref, rc::Rc};
 
-/// Allows read-only access to the underlying value.
+/// Allows read-only access to the underlying value of [`RcOrState`].
 pub enum RcOrStateRef<'a, T: 'static> {
   /// Contains a reference to an [`Rc`].
   Rc(&'a Rc<T>),
@@ -45,7 +45,10 @@ impl<T> Clone for RcOrState<T> {
   }
 }
 
-impl<T: Into<Rc<T>>> From<T> for RcOrState<T> {
+impl<T> From<T> for RcOrState<T>
+where
+  T: Into<Rc<T>>,
+{
   fn from(value: T) -> Self {
     RcOrState::Rc(value.into())
   }

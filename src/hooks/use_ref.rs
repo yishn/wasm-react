@@ -4,6 +4,7 @@ use std::{
   cell::{Ref, RefCell, RefMut},
   fmt::Debug,
   marker::PhantomData,
+  mem::ManuallyDrop,
   rc::Rc,
 };
 use wasm_bindgen::{prelude::Closure, JsCast, JsValue, UnwrapThrowExt};
@@ -31,6 +32,35 @@ impl<T: 'static> RefContainer<T> {
   pub fn set_current(&mut self, value: T) {
     *self.current_mut() = value;
   }
+
+  /// Converts a JS value into a `RefContainer`.
+  ///
+  /// # Safety
+  ///
+  /// The following assumptions must hold:
+  ///
+  /// - The JS value has been obtained by creating a [`RefContainer`] by
+  ///   [`use_ref()`] and converting it into [`JsValue`].
+  /// - The React component owning the [`RefContainer`] hasn't been unmounted.
+  ///
+  /// Otherwise this might lead to memory problems.
+  pub unsafe fn try_from_js(
+    js_value: &JsValue,
+  ) -> Result<RefContainer<T>, JsValue> {
+    let ptr =
+      react_bindings::cast_to_usize(&Reflect::get(js_value, &"ptr".into())?)
+        as *const RefCell<T>;
+
+    // We're wrapping the value in `ManuallyDrop` since we do not want to drop
+    // the inner value when this is goes out of scope.
+    let inner = ManuallyDrop::new(Rc::from_raw(ptr));
+    let result = RefContainer {
+      inner: (*inner).clone(),
+      js_ref: js_value.clone(),
+    };
+
+    Ok(result)
+  }
 }
 
 impl<T> Persisted for RefContainer<T> {
@@ -54,23 +84,9 @@ impl<T> AsRef<JsValue> for RefContainer<T> {
   }
 }
 
-impl<T> TryFrom<JsValue> for RefContainer<T> {
-  type Error = JsValue;
-
-  fn try_from(value: JsValue) -> Result<Self, Self::Error> {
-    let ptr =
-      react_bindings::cast_to_usize(&Reflect::get(&value, &"ptr".into())?)
-        as *const RefCell<T>;
-    let inner = unsafe { Rc::from_raw(ptr) };
-    let result = RefContainer {
-      inner: inner.clone(),
-      js_ref: value,
-    };
-
-    // We're converting back to pointer since we do not want to drop the inner
-    // value when `RefContainer` is dropped.
-    Rc::into_raw(inner);
-    Ok(result)
+impl<T> From<RefContainer<T>> for JsValue {
+  fn from(value: RefContainer<T>) -> Self {
+    value.js_ref
   }
 }
 
@@ -129,7 +145,7 @@ pub fn use_ref<T: 'static>(init: T) -> RefContainer<T> {
     }),
   );
 
-  RefContainer::try_from(js_ref).unwrap_throw()
+  unsafe { RefContainer::try_from_js(&js_ref).unwrap_throw() }
 }
 
 /// Allows access to the underlying JS data persisted with [`use_js_ref()`].

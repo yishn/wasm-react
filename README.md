@@ -21,7 +21,7 @@ can be exported to JS to be reused or rendered.
 
 - Provide bindings for any other library than `react`, e.g. `react-dom`.
 - Provide a reimplementation of the reconciliation algorithm or another runtime.
-- Performance
+- Emphasis on performance.
 
 ## Getting Started
 

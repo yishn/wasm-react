@@ -83,6 +83,6 @@ export function childrenToArray(children) {
   return React.Children.toArray(children);
 }
 
-export function cast(value) {
-  return value;
+export function castToUsize(value) {
+  return +value;
 }

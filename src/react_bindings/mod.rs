@@ -28,7 +28,7 @@ extern "C" {
   #[wasm_bindgen(js_name = childrenToArray, catch)]
   pub fn children_to_array(children: &JsValue) -> Result<Array, JsValue>;
 
-  #[wasm_bindgen(js_name = cast)]
+  #[wasm_bindgen(js_name = castToUsize)]
   pub fn cast_to_usize(value: &JsValue) -> usize;
 
   // From the React namespace:
