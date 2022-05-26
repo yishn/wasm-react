@@ -5,7 +5,7 @@ use wasm_react::{
   callback::Callback,
   export_component, h,
   hooks::{use_callback, use_state, Deps},
-  Component, ReadOrState, VNode,
+  Component, RcOrState, VNode,
 };
 use web_sys::{Event, HtmlInputElement};
 
@@ -97,7 +97,7 @@ impl Component for App {
 export_component!(App);
 
 struct TaskList {
-  tasks: ReadOrState<Vec<(bool, Rc<str>)>>,
+  tasks: RcOrState<Vec<(bool, Rc<str>)>>,
   on_change: Option<Callback<(usize, bool)>>,
 }
 

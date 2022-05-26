@@ -12,7 +12,7 @@ mod context;
 mod macros;
 mod marker;
 mod react_bindings;
-mod read_or_state;
+mod rc_or_state;
 mod vnode;
 
 pub mod callback;
@@ -27,7 +27,7 @@ pub use context::*;
 pub use marker::*;
 #[doc(hidden)]
 pub use paste::paste;
-pub use read_or_state::*;
+pub use rc_or_state::*;
 pub use vnode::*;
 
 /// Contains all functions exported to JS by `wasm-react`. These functions should
