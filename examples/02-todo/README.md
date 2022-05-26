@@ -1,6 +1,6 @@
 # Todo
 
-To run this example, make sure you have [wasm-pack] and [sfz] installed. Execute
+Make sure you have [wasm-pack] and [sfz] installed. To run this example, execute
 the following commands:
 
 ```sh
