@@ -9,10 +9,9 @@ const items = await fs.readdir(examplesPath);
 
 for (const item of items) {
   const examplePath = path.resolve(examplesPath, item);
-  const stat = await fs.stat(path.resolve(examplePath, "package.json"));
+  const stat = await fs.stat(path.resolve(examplePath, "Cargo.toml"));
 
   if (stat.isFile()) {
-    execSync("npm install", { cwd: examplePath });
-    execSync("npm run build", { cwd: examplePath });
+    execSync("wasm-pack build --target web", { cwd: examplePath });
   }
 }
