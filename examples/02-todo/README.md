@@ -8,5 +8,5 @@ $ wasm-pack build --target web
 $ sfz
 ```
 
-[wasm-pack](https://rustwasm.github.io/wasm-pack/)
-[sfz](https://crates.io/crates/sfz)
+[wasm-pack]: https://rustwasm.github.io/wasm-pack/
+[sfz]: https://crates.io/crates/sfz
