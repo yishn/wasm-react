@@ -11,7 +11,7 @@ use wasm_bindgen::UnwrapThrowExt;
 ///
 /// When the component unmounts, the underlying data is dropped. After that,
 /// trying to access the data will result in a **panic**.
-pub struct State<T: 'static> {
+pub struct State<T> {
   ref_container: RefContainer<Option<T>>,
   update: Function,
 }

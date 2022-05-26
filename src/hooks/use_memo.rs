@@ -7,9 +7,9 @@ use wasm_bindgen::UnwrapThrowExt;
 ///
 /// When the component unmounts, the underlying data is dropped. After that,
 /// trying to access the data will result in a **panic**.
-pub struct Memo<T: 'static, D: 'static>(RefContainer<Option<(T, Deps<D>)>>);
+pub struct Memo<T, D>(RefContainer<Option<(T, Deps<D>)>>);
 
-impl<T, D> Memo<T, D> {
+impl<T: 'static, D: 'static> Memo<T, D> {
   /// Returns a reference to the underlying memoized data.
   pub fn value(&self) -> Ref<'_, T> {
     Ref::map(self.0.current(), |x| &x.as_ref().unwrap_throw().0)
@@ -22,7 +22,7 @@ impl<T, D: PartialEq> Persisted for Memo<T, D> {
   }
 }
 
-impl<T: Debug, D: PartialEq> Debug for Memo<T, D> {
+impl<T: Debug + 'static, D: PartialEq + 'static> Debug for Memo<T, D> {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     self.value().fmt(f)
   }
