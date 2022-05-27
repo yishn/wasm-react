@@ -264,7 +264,10 @@ pub trait Callable<T, U = ()> {
   fn call(&self, arg: T) -> U;
 }
 
-impl<T, U, F: Fn(T) -> U> Callable<T, U> for F {
+impl<T, U, F> Callable<T, U> for F
+where
+  F: Fn(T) -> U,
+{
   fn call(&self, arg: T) -> U {
     self(arg)
   }

@@ -11,8 +11,8 @@ mod component;
 mod context;
 mod macros;
 mod marker;
-mod react_bindings;
 mod rc_or_state;
+mod react_bindings;
 mod vnode;
 
 pub mod callback;
