@@ -59,7 +59,7 @@ impl<T> From<Context<T>> for JsValue {
 ///
 ///     ContextProvider::from(&THEME_CONTEXT)
 ///       .value(Theme::DarkMode)
-///       .build(c![Toolbar])
+///       .build(c![Toolbar.build()])
 ///   }
 /// }
 ///
@@ -68,7 +68,7 @@ impl<T> From<Context<T>> for JsValue {
 /// impl Component for Toolbar {
 ///   fn render(&self) -> VNode {
 ///     // Theme context does not have to be passed down explicitly.
-///     h!(div).build(c![Button])
+///     h!(div).build(c![Button.build()])
 ///   }
 /// }
 ///
@@ -126,7 +126,16 @@ impl<T: 'static> ContextProvider<T> {
   /// Returns a [`VNode`] to be included in the render function of a component.
   pub fn build(mut self, children: VNodeList) -> VNode {
     self.children = children;
-    self.into()
+    Component::build(self)
+  }
+
+  /// Returns a [`VNode`] to be included in the render function of a component
+  /// with the given [React key].
+  ///
+  /// [React key]: https://reactjs.org/docs/lists-and-keys.html
+  pub fn build_with_key(mut self, key: Option<&str>, children: VNodeList) -> VNode {
+    self.children = children;
+    Component::build_with_key(self, key)
   }
 }
 

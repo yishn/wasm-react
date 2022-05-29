@@ -1,6 +1,5 @@
-use crate::{react_bindings, Component, ComponentWrapper};
+use crate::react_bindings;
 use js_sys::Array;
-use std::any::type_name;
 use wasm_bindgen::{JsCast, JsValue};
 
 /// Represents a node in the virtual DOM of React.
@@ -29,17 +28,6 @@ impl AsRef<JsValue> for VNode {
 impl From<VNode> for JsValue {
   fn from(value: VNode) -> Self {
     value.0
-  }
-}
-
-impl<T: Component> From<T> for VNode {
-  fn from(value: T) -> Self {
-    VNode(react_bindings::create_rust_component(
-      // This does not uniquely identify the component, but it is good enough
-      type_name::<T>(),
-      &value.key().into(),
-      &ComponentWrapper(Box::new(value)).into(),
-    ))
   }
 }
 

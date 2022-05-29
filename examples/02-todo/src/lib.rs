@@ -79,7 +79,8 @@ impl Component for App {
       TaskList {
         tasks: tasks.clone().into(),
         on_change: Some(handle_task_change.into()),
-      },
+      }
+      .build(),
       //
       h!(form).on_submit(&handle_submit).build(c![
         h!(input)
@@ -111,11 +112,14 @@ impl Component for TaskList {
           .value()
           .iter()
           .enumerate()
-          .map(|(i, (done, description))| TaskItem {
-            id: i,
-            description: description.clone(),
-            done: *done,
-            on_change: self.on_change.clone(),
+          .map(|(i, (done, description))| {
+            TaskItem {
+              id: i,
+              description: description.clone(),
+              done: *done,
+              on_change: self.on_change.clone(),
+            }
+            .build_with_key(Some(&i.to_string()))
           })
           .map(VNode::from)
       ])
@@ -131,10 +135,6 @@ struct TaskItem {
 }
 
 impl Component for TaskItem {
-  fn key(&self) -> Option<String> {
-    Some(self.id.to_string())
-  }
-
   fn render(&self) -> VNode {
     let handle_change = use_callback(
       {

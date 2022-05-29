@@ -62,7 +62,8 @@ macro_rules! h {
 ///
 ///   SomeComponent {
 ///     some_prop,
-///   },
+///   }
+///   .build(),
 ///
 ///   some_bool.then(||
 ///     h!(p).build(c!["Conditional rendering"]),

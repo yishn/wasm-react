@@ -1,5 +1,5 @@
-use crate::VNode;
-use std::{ops::Deref, rc::Rc};
+use crate::{react_bindings, VNode};
+use std::{any::type_name, ops::Deref, rc::Rc};
 use wasm_bindgen::prelude::*;
 
 /// Implement this trait on a struct to create a component with the struct as
@@ -32,11 +32,28 @@ pub trait Component: 'static {
   /// [`c!`](crate::c!) macro to include your component.
   fn render(&self) -> VNode;
 
-  /// Override this method to provide a [React key][key] when rendering.
+  /// Returns a [`VNode`] to be included in a render function with the given
+  /// [React key].
   ///
-  /// [key]: https://reactjs.org/docs/lists-and-keys.html
-  fn key(&self) -> Option<String> {
-    None
+  /// [React key]: https://reactjs.org/docs/lists-and-keys.html
+  fn build_with_key(self, key: Option<&str>) -> VNode
+  where
+    Self: Sized,
+  {
+    VNode(react_bindings::create_rust_component(
+      // This does not uniquely identify the component, but it is good enough
+      type_name::<Self>(),
+      &key.into(),
+      &ComponentWrapper(Box::new(self)).into(),
+    ))
+  }
+
+  /// Returns a [`VNode`] to be included in a render function.
+  fn build(self) -> VNode
+  where
+    Self: Sized,
+  {
+    self.build_with_key(None)
   }
 }
 

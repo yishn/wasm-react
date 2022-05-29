@@ -153,7 +153,8 @@ impl Component for App {
     h!(div).build(c![
       Counter {
         initial_counter: 0,
-      },
+      }
+      .build(),
     ])
   }
 }

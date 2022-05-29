@@ -58,22 +58,22 @@ impl Props {
   }
 
   /// Equivalent to `props[key] = value;`.
-  pub fn insert(self, prop: &str, value: &JsValue) -> Self {
-    Reflect::set(&self.0, &prop.into(), value).unwrap_throw();
+  pub fn insert(self, key: &str, value: &JsValue) -> Self {
+    Reflect::set(&self.0, &key.into(), value).unwrap_throw();
     self
   }
 
   /// Equivalent to `props[key] = f;`.
   pub fn insert_callback<T, U>(
     self,
-    prop: &str,
+    key: &str,
     f: &PersistedCallback<T, U>,
   ) -> Self
   where
     T: FromWasmAbi + 'static,
     U: IntoWasmAbi + 'static,
   {
-    Reflect::set(&self.0, &prop.into(), &*f.as_js()).unwrap_throw();
+    Reflect::set(&self.0, &key.into(), &f.as_js()).unwrap_throw();
     self
   }
 }

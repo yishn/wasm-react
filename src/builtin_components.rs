@@ -21,7 +21,7 @@ pub struct Fragment;
 
 impl Fragment {
   /// Builds a [`VNode`] of the component.
-  pub fn build(&self, children: VNodeList) -> VNode {
+  pub fn build(self, children: VNodeList) -> VNode {
     create_element(&react_bindings::FRAGMENT, Props::new(), children)
   }
 }
@@ -49,7 +49,7 @@ impl Fragment {
 ///     h!(div[."loading"]).build(c!["Loading..."]),
 ///   ])
 ///   .build(c![
-///     SomeLazyComponent { /* ... */ }
+///     SomeLazyComponent { /* ... */ }.build()
 ///   ])
 /// # }
 /// ```
@@ -70,12 +70,22 @@ impl Suspense {
     self
   }
 
-  /// Builds the [`VNode`] of the component.
-  pub fn build(&self, children: VNodeList) -> VNode {
+  /// Returns a [`VNode`] to be included in the render function of a component
+  /// with the given [React key].
+  ///
+  /// [React key]: https://reactjs.org/docs/lists-and-keys.html
+  pub fn build_with_key(self, key: Option<&str>, children: VNodeList) -> VNode {
     create_element(
       &react_bindings::SUSPENSE,
-      Props::new().insert("fallback", self.fallback.as_ref()),
+      Props::new()
+        .key(key)
+        .insert("fallback", self.fallback.as_ref()),
       children,
     )
+  }
+
+  /// Returns a [`VNode`] to be included in a render function.
+  pub fn build(self, children: VNodeList) -> VNode {
+    self.build_with_key(None, children)
   }
 }

@@ -85,7 +85,8 @@ impl<'a, T> Deref for RcOrStateRef<'a, T> {
 ///   h!(div).build(c![
 ///     TaskList {
 ///       tasks,
-///     },
+///     }
+///     .build(),
 ///   ])
 /// }
 /// # }
