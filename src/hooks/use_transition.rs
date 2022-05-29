@@ -4,7 +4,7 @@ use wasm_bindgen::{prelude::Closure, JsCast, UnwrapThrowExt};
 use crate::{callback::Callable, react_bindings};
 
 /// Allows access to the transition state.
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Transition {
   is_pending: bool,
   start_transition: Function,

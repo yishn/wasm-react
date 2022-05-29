@@ -32,6 +32,14 @@ pub trait Component: 'static {
   /// [`c!`](crate::c!) macro to include your component.
   fn render(&self) -> VNode;
 
+  /// Returns a [`VNode`] to be included in a render function.
+  fn build(self) -> VNode
+  where
+    Self: Sized,
+  {
+    self.build_with_key(None)
+  }
+
   /// Returns a [`VNode`] to be included in a render function with the given
   /// [React key].
   ///
@@ -46,14 +54,6 @@ pub trait Component: 'static {
       &key.into(),
       &ComponentWrapper(Box::new(self)).into(),
     ))
-  }
-
-  /// Returns a [`VNode`] to be included in a render function.
-  fn build(self) -> VNode
-  where
-    Self: Sized,
-  {
-    self.build_with_key(None)
   }
 }
 

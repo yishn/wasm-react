@@ -4,13 +4,14 @@ use crate::{
   react_bindings, Persisted, PersistedOrigin,
 };
 use js_sys::Function;
-use std::{cell::Ref, fmt::Debug};
+use std::cell::Ref;
 use wasm_bindgen::UnwrapThrowExt;
 
 /// Allows access to the underlying state data persisted with [`use_state()`].
 ///
 /// When the component unmounts, the underlying data is dropped. After that,
 /// trying to access the data will result in a **panic**.
+#[derive(Debug)]
 pub struct State<T> {
   ref_container: RefContainer<Option<T>>,
   update: Function,
@@ -52,12 +53,6 @@ impl<T> Clone for State<T> {
       ref_container: self.ref_container.clone(),
       update: self.update.clone(),
     }
-  }
-}
-
-impl<T: Debug + 'static> Debug for State<T> {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    self.value().fmt(f)
   }
 }
 

@@ -70,6 +70,11 @@ impl Suspense {
     self
   }
 
+  /// Returns a [`VNode`] to be included in a render function.
+  pub fn build(self, children: VNodeList) -> VNode {
+    self.build_with_key(None, children)
+  }
+
   /// Returns a [`VNode`] to be included in the render function of a component
   /// with the given [React key].
   ///
@@ -82,10 +87,5 @@ impl Suspense {
         .insert("fallback", self.fallback.as_ref()),
       children,
     )
-  }
-
-  /// Returns a [`VNode`] to be included in a render function.
-  pub fn build(self, children: VNodeList) -> VNode {
-    self.build_with_key(None, children)
   }
 }

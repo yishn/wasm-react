@@ -12,6 +12,7 @@ use wasm_bindgen::{prelude::Closure, JsCast, JsValue, UnwrapThrowExt};
 /// Allows access to the underlying data persisted with [`use_ref()`].
 ///
 /// The rules of borrowing will be enforced at runtime through a [`RefCell`].
+#[derive(Debug)]
 pub struct RefContainer<T> {
   inner: Rc<RefCell<T>>,
   js_ref: JsValue,

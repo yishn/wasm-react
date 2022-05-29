@@ -1,12 +1,9 @@
 use super::{use_ref, Deps, RefContainer};
 use crate::{Persisted, PersistedOrigin};
-use std::{cell::Ref, fmt::Debug};
+use std::cell::Ref;
 use wasm_bindgen::UnwrapThrowExt;
 
 /// Allows access to the underlying memoized data persisted with [`use_memo()`].
-///
-/// When the component unmounts, the underlying data is dropped. After that,
-/// trying to access the data will result in a **panic**.
 pub struct Memo<T, D>(RefContainer<Option<(T, Deps<D>)>>);
 
 impl<T: 'static, D: 'static> Memo<T, D> {
@@ -19,12 +16,6 @@ impl<T: 'static, D: 'static> Memo<T, D> {
 impl<T, D: PartialEq> Persisted for Memo<T, D> {
   fn ptr(&self) -> PersistedOrigin {
     self.0.ptr()
-  }
-}
-
-impl<T: Debug + 'static, D: PartialEq + 'static> Debug for Memo<T, D> {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    self.value().fmt(f)
   }
 }
 
