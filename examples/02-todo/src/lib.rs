@@ -131,6 +131,10 @@ struct TaskItem {
 }
 
 impl Component for TaskItem {
+  fn key(&self) -> Option<String> {
+    Some(self.id.to_string())
+  }
+
   fn render(&self) -> VNode {
     let handle_change = use_callback(
       {
