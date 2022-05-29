@@ -1,6 +1,9 @@
 /// A convenience macro to [`create_element()`](crate::create_element()) for
 /// creating HTML element nodes.
 ///
+/// Returns an [`H`](crate::props::H) struct that provides auto-completion for
+/// HTML attributes and events.
+///
 /// # Example
 ///
 /// ```
@@ -14,6 +17,13 @@
 /// # }
 ///
 /// // <div id="app"><h1>Hello World!</h1></div>
+///
+/// # fn g() -> VNode {
+/// h!("web-component")
+///   .build(c!["Hello World!"])
+/// # }
+///
+/// // <web-component>Hello World!</web-component>
 /// ```
 ///
 /// It is also possible to add an id and/or classes to the element using a terse
@@ -30,14 +40,17 @@
 /// ```
 #[macro_export]
 macro_rules! h {
-  ($tag:ident[#$id:literal $( $( $tt:tt )+ )?]) => {
-    $crate::props::H::new(stringify!($tag))
-      .id($id)
-      $( .class_name(&$crate::classnames![$( $tt )+]) )?
+  ($tag:literal $( [$( #$id:literal )? $( .$( $classnames:tt )+ )?] )?) => {
+    $crate::props::H::new($tag) $(
+      $( .id($id) )?
+      $( .class_name(&$crate::classnames![.$( $classnames )+]) )?
+    )?
   };
-  ($tag:ident $( [$( $tt:tt )*] )?) => {
-    $crate::props::H::new(stringify!($tag))
-      $( .class_name(&$crate::classnames![$( $tt )*]) )?
+  ($tag:ident $( [$( #$id:literal )? $( .$( $classnames:tt )+ )?] )?) => {
+    $crate::props::H::new(stringify!($tag)) $(
+      $( .id($id) )?
+      $( .class_name(&$crate::classnames![.$( $classnames )+]) )?
+    )?
   };
 }
 
@@ -78,17 +91,22 @@ macro_rules! h {
 /// ```
 #[macro_export]
 macro_rules! c {
+  [@single $list:ident <<] => {};
+
+  // Handle iterators
+  [@single $list:ident << ..$vnode_list:expr $(, $( $tail:tt )* )?] => {
+    $list.extend($vnode_list);
+    $crate::c![@single $list << $( $( $tail )* )?];
+  };
+
+  // Handle `Into<VNode>`
+  [@single $list:ident << $into_vnode:expr $(, $( $tail:tt )* )?] => {
+    $list.push(&$into_vnode.into());
+    $crate::c![@single $list << $( $( $tail )* )?];
+  };
+
   [] => {
     $crate::VNodeList::new()
-  };
-  [@single $list:ident <<] => {};
-  [@single $list:ident << ..$vnode_list:expr $(, $( $tt:tt )* )?] => {
-    $list.extend($vnode_list);
-    $crate::c![@single $list << $( $( $tt )* )?];
-  };
-  [@single $list:ident << $into_vnode:expr $(, $( $tt:tt )* )?] => {
-    $list.push(&$into_vnode.into());
-    $crate::c![@single $list << $( $( $tt )* )?];
   };
   [$( $tt:tt )*] => {
     {
@@ -132,26 +150,29 @@ macro_rules! classnames {
   [@single $result:ident <<] => {};
 
   // Handle string literals
-  [@single $result:ident << .$str:literal $( $tt:tt )*] => {
+  [@single $result:ident << .$str:literal $( $tail:tt )*] => {
     $crate::props::Classnames::append_to(&$str, &mut $result);
-    $crate::classnames![@single $result << $( $tt ) *];
+    $crate::classnames![@single $result << $( $tail ) *];
   };
 
   // Handle boolean variables
-  [@single $result:ident << .$bool:ident $( $tt:tt )*] => {
+  [@single $result:ident << .$bool:ident $( $tail:tt )*] => {
     $crate::props::Classnames::append_to(
       &$bool.then(|| stringify!($bool)),
       &mut $result
     );
-    $crate::classnames![@single $result << $( $tt ) *];
+    $crate::classnames![@single $result << $( $tail ) *];
   };
 
   // Handle block expressions
-  [@single $result:ident << .$block:block $( $tt:tt )*] => {
+  [@single $result:ident << .$block:block $( $tail:tt )*] => {
     $crate::props::Classnames::append_to(&$block, &mut $result);
-    $crate::classnames![@single $result << $( $tt ) *];
+    $crate::classnames![@single $result << $( $tail ) *];
   };
 
+  [] => {
+    String::new()
+  };
   [$( $tt:tt )*] => {
     {
       let mut result = String::new();

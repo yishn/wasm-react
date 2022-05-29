@@ -73,7 +73,7 @@ impl Component for App {
       Deps::none(),
     );
 
-    h!(div[."app"]).build(c![
+    h!(div[#"app"]).build(c![
       h!(h1).build(c!["Todo"]),
       //
       TaskList {
