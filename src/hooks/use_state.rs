@@ -8,9 +8,6 @@ use std::cell::Ref;
 use wasm_bindgen::UnwrapThrowExt;
 
 /// Allows access to the underlying state data persisted with [`use_state()`].
-///
-/// When the component unmounts, the underlying data is dropped. After that,
-/// trying to access the data will result in a **panic**.
 #[derive(Debug)]
 pub struct State<T> {
   ref_container: RefContainer<Option<T>>,

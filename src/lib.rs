@@ -19,6 +19,7 @@ pub mod callback;
 pub mod hooks;
 pub mod props;
 
+use props::Props;
 use wasm_bindgen::prelude::*;
 
 pub use builtin_components::*;
@@ -66,7 +67,7 @@ impl WasmReact {
 /// [`VNode::from()`].
 pub fn create_element(
   typ: &JsValue,
-  props: impl AsRef<JsValue>,
+  props: &Props,
   children: VNodeList,
 ) -> VNode {
   VNode(react_bindings::create_element(

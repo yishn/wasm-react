@@ -162,7 +162,7 @@ impl<T: 'static> Component for ContextProvider<T> {
 
       create_element(
         &Reflect::get(&context.js_context, &"Provider".into()).unwrap_throw(),
-        Props::new().insert("value", value_ref.as_ref()),
+        &Props::new().insert("value", value_ref.as_ref()),
         self.children.clone(),
       )
     })

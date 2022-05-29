@@ -1,5 +1,5 @@
 use crate::{react_bindings, VNode};
-use std::{any::type_name, ops::Deref, rc::Rc};
+use std::{any::type_name, rc::Rc};
 use wasm_bindgen::prelude::*;
 
 /// Implement this trait on a struct to create a component with the struct as
@@ -28,8 +28,8 @@ use wasm_bindgen::prelude::*;
 pub trait Component: 'static {
   /// The render function.
   ///
-  /// **Do not** call this method in another render function. Instead, use the
-  /// [`c!`](crate::c!) macro to include your component.
+  /// **Do not** call this method in another render function. Instead, use
+  /// [`Component::build()`] to include your component.
   fn render(&self) -> VNode;
 
   /// Returns a [`VNode`] to be included in a render function.
@@ -59,7 +59,7 @@ pub trait Component: 'static {
 
 impl<T: Component> Component for Rc<T> {
   fn render(&self) -> VNode {
-    self.deref().render()
+    <T as Component>::render(&self)
   }
 }
 

@@ -80,6 +80,6 @@ impl<'a> H<'a> {
   /// Builds the [`VNode`] and returns it with the given children. Use
   /// [`c!`](crate::c!) for easier construction of the children.
   pub fn build(self, children: VNodeList) -> VNode {
-    create_element(&self.tag.into(), self.props, children)
+    create_element(&self.tag.into(), &self.props, children)
   }
 }

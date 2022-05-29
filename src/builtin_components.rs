@@ -22,7 +22,7 @@ pub struct Fragment;
 impl Fragment {
   /// Builds a [`VNode`] of the component.
   pub fn build(self, children: VNodeList) -> VNode {
-    create_element(&react_bindings::FRAGMENT, Props::new(), children)
+    create_element(&react_bindings::FRAGMENT, &Props::new(), children)
   }
 }
 
@@ -82,7 +82,7 @@ impl Suspense {
   pub fn build_with_key(self, key: Option<&str>, children: VNodeList) -> VNode {
     create_element(
       &react_bindings::SUSPENSE,
-      Props::new()
+      &Props::new()
         .key(key)
         .insert("fallback", self.fallback.as_ref()),
       children,
