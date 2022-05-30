@@ -1,4 +1,4 @@
-let components = {};
+const components = {};
 
 export let React = undefined;
 

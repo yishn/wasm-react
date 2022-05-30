@@ -122,34 +122,36 @@ where
       js: Default::default(),
     }
   }
+
+  /// Returns a reference to `JsValue` of the callback.
+  pub fn as_js(&self) -> Ref<'_, JsValue>
+  where
+    T: FromWasmAbi,
+    U: IntoWasmAbi,
+  {
+    {
+      let mut borrow = self.js.borrow_mut();
+
+      if borrow.is_none() {
+        *borrow = Some(Closure::wrap(Box::new({
+          let closure = self.closure.clone();
+
+          move |arg| {
+            let mut f = closure.borrow_mut();
+            f(arg)
+          }
+        })));
+      }
+    }
+
+    Ref::map(self.js.borrow(), |x| x.as_ref().unwrap_throw().as_ref())
+  }
 }
 
 impl<T: 'static> Callback<T> {
   /// Returns a new [`Callback`] that does nothing.
   pub fn noop() -> Self {
     Callback::new(|_| ())
-  }
-}
-
-impl<T, U> Callback<T, U>
-where
-  T: FromWasmAbi + 'static,
-  U: IntoWasmAbi + 'static,
-{
-  /// Returns a reference to `JsValue` of the callback.
-  pub fn as_js(&self) -> Ref<'_, JsValue> {
-    if self.js.borrow().is_none() {
-      *self.js.borrow_mut() = Some(Closure::wrap(Box::new({
-        let closure = self.closure.clone();
-
-        move |arg| {
-          let mut f = closure.borrow_mut();
-          f(arg)
-        }
-      })));
-    }
-
-    Ref::map(self.js.borrow(), |x| x.as_ref().unwrap_throw().as_ref())
   }
 }
 

@@ -135,7 +135,7 @@ pub fn use_ref<T: 'static>(init: T) -> RefContainer<T> {
   let js_ref = react_bindings::use_rust_ref(
     Closure::once(move |_: Void| Rc::into_raw(Rc::new(RefCell::new(init))))
       .as_ref(),
-    &Closure::once_into_js(move |unmounted: bool, ptr: usize| {
+    &Closure::once_into_js(|unmounted: bool, ptr: usize| {
       if unmounted {
         let ptr = ptr as *const RefCell<T>;
 
