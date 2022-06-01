@@ -4,6 +4,7 @@ use std::cell::Ref;
 use wasm_bindgen::UnwrapThrowExt;
 
 /// Allows access to the underlying memoized data persisted with [`use_memo()`].
+#[derive(Debug)]
 pub struct Memo<T, D>(RefContainer<Option<(T, Deps<D>)>>);
 
 impl<T: 'static, D: 'static> Memo<T, D> {

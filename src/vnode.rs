@@ -3,7 +3,7 @@ use js_sys::Array;
 use wasm_bindgen::{JsCast, JsValue};
 
 /// Represents a node in the virtual DOM of React.
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct VNode(pub(crate) JsValue);
 
 impl VNode {
@@ -50,7 +50,7 @@ impl<'a> From<&'a String> for VNode {
 }
 
 macro_rules! impl_into_vnode {
-  ($($T:ty),*$(,)?) => {
+  { $( $T:ty ),*$( , )? } => {
     $(
       impl From<$T> for VNode {
         fn from(value: $T) -> Self {
@@ -84,7 +84,7 @@ impl_into_vnode! {
 ///   .collect::<VNodeList>()
 /// # }
 /// ```
-#[derive(Default, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct VNodeList {
   empty: bool,
   arr: Array,

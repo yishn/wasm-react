@@ -11,6 +11,7 @@ use web_sys::Element;
 
 /// The builder that powers [`h!`](crate::h!). This provides auto-completion for
 /// HTML attributes and events.
+#[derive(Debug, Clone)]
 pub struct H<'a> {
   pub(crate) tag: &'a str,
   pub(crate) props: Props,

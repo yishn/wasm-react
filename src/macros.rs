@@ -244,7 +244,7 @@ macro_rules! classnames {
 /// ```
 #[macro_export]
 macro_rules! export_component {
-  ($component:ident) => {
+  ($component:ty) => {
     $crate::paste! {
       #[allow(non_snake_case)]
       #[allow(dead_code)]

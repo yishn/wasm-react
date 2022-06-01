@@ -53,7 +53,7 @@ impl Fragment {
 ///   ])
 /// # }
 /// ```
-#[derive(Default, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct Suspense {
   fallback: VNodeList,
 }
