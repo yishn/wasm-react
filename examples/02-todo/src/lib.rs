@@ -95,7 +95,7 @@ impl Component for App {
   }
 }
 
-export_components!(App);
+export_components! { App }
 
 struct TaskList {
   tasks: RcOrState<Vec<(bool, Rc<str>)>>,
