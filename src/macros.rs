@@ -225,7 +225,7 @@ macro_rules! classnames {
 ///   }
 /// }
 ///
-/// export_component! { Counter }
+/// export_components! { Counter }
 /// ```
 ///
 /// In JS, you can use it like any other component:
@@ -243,10 +243,10 @@ macro_rules! classnames {
 /// }
 /// ```
 #[macro_export]
-macro_rules! export_component {
+macro_rules! export_components {
   {} => {};
   { $component:ident $( , $( $tail:tt )* )? } => {
-    $crate::export_component! { $component as $component $( , $( $tail )* )? }
+    $crate::export_components! { $component as $component $( , $( $tail )* )? }
   };
   { $component:ty as $name:ident $( , $( $tail:tt )* )? } => {
     $crate::paste! {
@@ -266,19 +266,18 @@ macro_rules! export_component {
       }
     }
 
-    $( $crate::export_component! { $( $tail )* } )?
+    $( $crate::export_components! { $( $tail )* } )?
   };
 }
 
 #[macro_export]
-macro_rules! import_component {
+macro_rules! import_components {
   { #[$meta:meta] } => {};
   { #[$meta:meta] $component:ident $( , $( $tail:tt )* )? } => {
-    $crate::import_component! {
+    $crate::import_components! {
       #[$meta]
-      $component as $component
+      $component as $component $( , $( $tail:tt )* )?
     }
-    $( $crate::import_component! { #[$meta] $( $tail )* } )?
   };
   { #[$meta:meta] $component:ident as $name:ident $( , $( $tail:tt )* )? } => {
     $crate::paste! {
@@ -296,6 +295,6 @@ macro_rules! import_component {
       }
     }
 
-    $( $crate::import_component! { #[$meta] $( $tail )* } )?
+    $( $crate::import_components! { #[$meta] $( $tail )* } )?
   };
 }

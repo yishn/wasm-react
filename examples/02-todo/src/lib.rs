@@ -3,7 +3,7 @@ use wasm_bindgen::{JsCast, JsValue, UnwrapThrowExt};
 use wasm_react::{
   c,
   callback::Callback,
-  export_component, h,
+  export_components, h,
   hooks::{use_callback, use_state, Deps},
   Component, RcOrState, VNode,
 };
@@ -95,7 +95,7 @@ impl Component for App {
   }
 }
 
-export_component!(App);
+export_components!(App);
 
 struct TaskList {
   tasks: RcOrState<Vec<(bool, Rc<str>)>>,

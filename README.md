@@ -127,12 +127,12 @@ impl Component for Counter {
 ### Export Component for JS Consumption
 
 First, you'll need [`wasm-pack`](https://rustwasm.github.io/wasm-pack/). You can
-use the `export_component!` macro to export your Rust component for JS
+use the `export_components!` macro to export your Rust component for JS
 consumption. Requirement is that your component implements
 `TryFrom<JsValue, Error = JsValue>`.
 
 ```rust
-use wasm_react::{h, c, export_component, Component, VNode};
+use wasm_react::{h, c, export_components, Component, VNode};
 use wasm_bindgen::JsValue;
 
 struct Counter {
@@ -167,7 +167,7 @@ impl TryFrom<JsValue> for App {
   }
 }
 
-export_component! { App }
+export_components! { App }
 ```
 
 Use `wasm-pack` to compile your Rust code into WASM:

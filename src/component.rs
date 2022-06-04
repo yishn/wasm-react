@@ -10,7 +10,7 @@ use wasm_bindgen::prelude::*;
 /// constructed in JS, these components cannot be exposed to JS. This means only
 /// components written in Rust can render a `Component` by default.
 ///
-/// See [`export_component!`](crate::export_component!) for how to expose
+/// See [`export_components!`](crate::export_components!) for how to expose
 /// components for JS consumption.
 ///
 /// # Example
