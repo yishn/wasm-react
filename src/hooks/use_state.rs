@@ -17,7 +17,9 @@ pub struct State<T> {
 impl<T: 'static> State<T> {
   /// Returns a reference to the value of the state.
   pub fn value(&self) -> Ref<'_, T> {
-    Ref::map(self.ref_container.current(), |x| x.as_ref().unwrap_throw())
+    Ref::map(self.ref_container.current(), |x| {
+      x.as_ref().expect_throw("no state value available")
+    })
   }
 
   /// Sets the state to the return value of the given mutator closure and
@@ -26,15 +28,27 @@ impl<T: 'static> State<T> {
     let new_state = mutator(&*self.value());
 
     self.ref_container.set_current(Some(new_state));
-    self.update.call(&Void.into()).unwrap_throw();
+    self
+      .update
+      .call(&Void.into())
+      .expect_throw("unable to call state update");
   }
 
   /// Updates the state with the given mutator closure and rerenders the
   /// component.
   pub fn update(&mut self, mutator: impl FnOnce(&mut T)) {
-    mutator(self.ref_container.current_mut().as_mut().unwrap_throw());
+    mutator(
+      self
+        .ref_container
+        .current_mut()
+        .as_mut()
+        .expect_throw("no state value available"),
+    );
 
-    self.update.call(&Void.into()).unwrap_throw();
+    self
+      .update
+      .call(&Void.into())
+      .expect_throw("unable to call state update");
   }
 }
 

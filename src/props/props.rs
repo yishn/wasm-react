@@ -59,7 +59,8 @@ impl Props {
 
   /// Equivalent to `props[key] = value;`.
   pub fn insert(self, key: &str, value: &JsValue) -> Self {
-    Reflect::set(&self.0, &key.into(), value).unwrap_throw();
+    Reflect::set(&self.0, &key.into(), value)
+      .expect_throw("cannot write into props object");
     self
   }
 
@@ -73,7 +74,8 @@ impl Props {
     T: FromWasmAbi + 'static,
     U: IntoWasmAbi + 'static,
   {
-    Reflect::set(&self.0, &key.into(), &f.as_js()).unwrap_throw();
+    Reflect::set(&self.0, &key.into(), &f.as_js())
+      .expect_throw("cannot write into props object");
     self
   }
 }

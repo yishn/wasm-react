@@ -14,7 +14,8 @@ impl<T: JsCast> JsRefContainer<T> {
 
   /// Returns the underlying JS data as [`JsValue`].
   pub fn current_untyped(&self) -> JsValue {
-    Reflect::get(&self.0, &"current".into()).unwrap_throw()
+    Reflect::get(&self.0, &"current".into())
+      .expect_throw("cannot read from ref container")
   }
 
   /// Sets the underlying JS data.
@@ -24,7 +25,7 @@ impl<T: JsCast> JsRefContainer<T> {
       &"current".into(),
       value.map(|t| t.as_ref()).unwrap_or(&JsValue::null()),
     )
-    .unwrap_throw();
+    .expect_throw("cannot write into ref container");
   }
 }
 
@@ -61,7 +62,7 @@ impl<T> From<JsRefContainer<T>> for JsValue {
 /// This hook can persist JS data through the entire lifetime of the component.
 ///
 /// Use this if you need JS to set the ref value. If you only need to mutate the
-/// data from Rust, use [`use_ref()`] instead.
+/// data from Rust, use [`use_ref()`](crate::hooks::use_ref()) instead.
 ///
 /// # Example
 ///

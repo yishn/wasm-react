@@ -20,7 +20,7 @@ use crate::{create_element, props::Props, react_bindings, VNode, VNodeList};
 pub struct Fragment;
 
 impl Fragment {
-  /// Builds a [`VNode`] of the component.
+  /// Returns a [`VNode`] to be included in a render function.
   pub fn build(self, children: VNodeList) -> VNode {
     create_element(&react_bindings::FRAGMENT, &Props::new(), children)
   }

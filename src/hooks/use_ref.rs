@@ -96,7 +96,7 @@ impl<T> From<RefContainer<T>> for JsValue {
 /// Whenever the component is unmounted by React, the data will also be dropped.
 /// Keep in mind that the inner value of [`use_ref()`] can only be accessed in
 /// Rust. If you need a ref to hold a DOM element (or a JS value in general),
-/// use [`use_js_ref()`] instead.
+/// use [`use_js_ref()`](crate::hooks::use_js_ref()) instead.
 ///
 /// The component will not rerender when you mutate the underlying data. If you
 /// want that, use [`use_state()`](crate::hooks::use_state()) instead.
@@ -145,5 +145,8 @@ pub fn use_ref<T: 'static>(init: T) -> RefContainer<T> {
     }),
   );
 
-  unsafe { RefContainer::try_from_js(&js_ref).unwrap_throw() }
+  unsafe {
+    RefContainer::try_from_js(&js_ref)
+      .expect_throw("trying to operate invalid ref container")
+  }
 }

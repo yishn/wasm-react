@@ -144,7 +144,9 @@ where
       }
     }
 
-    Ref::map(self.js.borrow(), |x| x.as_ref().unwrap_throw().as_ref())
+    Ref::map(self.js.borrow(), |x| {
+      x.as_ref().expect_throw("no closure available").as_ref()
+    })
   }
 }
 

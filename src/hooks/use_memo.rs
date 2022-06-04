@@ -10,7 +10,9 @@ pub struct Memo<T, D>(RefContainer<Option<(T, Deps<D>)>>);
 impl<T: 'static, D: 'static> Memo<T, D> {
   /// Returns a reference to the underlying memoized data.
   pub fn value(&self) -> Ref<'_, T> {
-    Ref::map(self.0.current(), |x| &x.as_ref().unwrap_throw().0)
+    Ref::map(self.0.current(), |x| {
+      &x.as_ref().expect_throw("no memo data available").0
+    })
   }
 }
 

@@ -134,7 +134,11 @@ impl<T: 'static> ContextProvider<T> {
   /// with the given [React key].
   ///
   /// [React key]: https://reactjs.org/docs/lists-and-keys.html
-  pub fn build_with_key(mut self, key: Option<&str>, children: VNodeList) -> VNode {
+  pub fn build_with_key(
+    mut self,
+    key: Option<&str>,
+    children: VNodeList,
+  ) -> VNode {
     self.children = children;
     Component::build_with_key(self, key)
   }
@@ -162,7 +166,8 @@ impl<T: 'static> Component for ContextProvider<T> {
       );
 
       create_element(
-        &Reflect::get(&context.js_context, &"Provider".into()).unwrap_throw(),
+        &Reflect::get(&context.js_context, &"Provider".into())
+          .expect_throw("cannot read from context object"),
         &Props::new().insert("value", value_ref.as_ref()),
         self.children.clone(),
       )

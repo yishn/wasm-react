@@ -21,7 +21,7 @@ impl Transition {
     self
       .start_transition
       .call(&Closure::once_into_js(f))
-      .unwrap_throw();
+      .expect_throw("unable to call start function");
   }
 }
 
@@ -60,8 +60,14 @@ impl Transition {
 pub fn use_transition() -> Transition {
   let result = react_bindings::use_transition();
 
-  let is_pending = result.get(0).as_bool().unwrap_throw();
-  let start_transition = result.get(1).dyn_into::<Function>().unwrap_throw();
+  let is_pending = result
+    .get(0)
+    .as_bool()
+    .expect_throw("unable to read pending state from transition");
+  let start_transition = result
+    .get(1)
+    .dyn_into::<Function>()
+    .expect_throw("unable to read start function from transition");
 
   Transition {
     is_pending,

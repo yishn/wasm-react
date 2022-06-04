@@ -9,8 +9,10 @@ use wasm_bindgen::UnwrapThrowExt;
 pub fn use_context<T>(context: &'static LocalKey<Context<T>>) -> Rc<T> {
   context.with(|context| {
     let js_ref = react_bindings::use_context(context.as_ref());
-    let ref_container =
-      unsafe { RefContainer::<Rc<T>>::try_from_js(&js_ref).unwrap_throw() };
+    let ref_container = unsafe {
+      RefContainer::<Rc<T>>::try_from_js(&js_ref)
+        .expect_throw("trying to operate invalid ref container")
+    };
     let value = ref_container.current();
 
     value.clone()

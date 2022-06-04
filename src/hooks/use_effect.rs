@@ -37,7 +37,8 @@ fn use_effect_inner<G, D>(
   ref_container.set_current(new_value);
 
   let value = ref_container.current();
-  let (effect, _, counter) = value.as_ref().unwrap_throw();
+  let (effect, _, counter) =
+    value.as_ref().expect_throw("no effect data available");
 
   f(effect.as_ref(), *counter);
 }

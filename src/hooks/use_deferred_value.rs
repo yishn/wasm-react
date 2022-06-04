@@ -11,7 +11,9 @@ pub struct DeferredValue<T>(RefContainer<Option<(T, u8)>>);
 impl<T: 'static> DeferredValue<T> {
   /// Returns a reference to the underlying deferred value.
   pub fn value(&self) -> Ref<'_, T> {
-    Ref::map(self.0.current(), |x| &x.as_ref().unwrap_throw().0)
+    Ref::map(self.0.current(), |x| {
+      &x.as_ref().expect_throw("no deferred value available").0
+    })
   }
 }
 
