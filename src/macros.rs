@@ -273,25 +273,34 @@ macro_rules! export_components {
 #[macro_export]
 macro_rules! import_components {
   { #[$meta:meta] } => {};
-  { #[$meta:meta] $vis:vis $component:ident $( , $( $tail:tt )* )? } => {
+  {
+    #[$meta:meta]
+    $vis:vis $component:ident $( , $( $tail:tt )* )?
+  } => {
     $crate::import_components! {
       #[$meta]
       $component as $vis $component $( , $( $tail:tt )* )?
     }
   };
-  { #[$meta:meta] $component:ident as $vis:vis $name:ident $( , $( $tail:tt )* )? } => {
+  {
+    #[$meta:meta]
+    $component:ident as $vis:vis $name:ident $( , $( $tail:tt )* )?
+  } => {
     $crate::paste! {
       #[$meta]
       extern "C" {
         #[wasm_bindgen(js_name = $component)]
-        static [<__WasmReact_Import_ $name>]: JsValue;
+        static [<__WASMREACT_IMPORT_ $name:upper>]: JsValue;
       }
 
       #[allow(non_snake_case)]
       $vis fn $name(
         props: &$crate::props::Props
       ) -> $crate::JsComponentWrapper<'_> {
-        $crate::JsComponentWrapper::new(&[<__WasmReact_Import_ $name>], props)
+        $crate::JsComponentWrapper::new(
+          &[<__WASMREACT_IMPORT_ $name:upper>],
+          props,
+        )
       }
     }
 
