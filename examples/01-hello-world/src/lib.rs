@@ -7,9 +7,11 @@ use wasm_react::{
 
 import_components! {
   #[wasm_bindgen(module = "/src/myComponent.js")]
+  /// This is a component imported from JS.
   MyComponent as pub MyJsComponent,
 }
 
+/// This is our Rust component.
 pub struct App {
   name: Option<String>,
 }

@@ -272,38 +272,45 @@ macro_rules! export_components {
 
 #[macro_export]
 macro_rules! import_components {
-  { #[$meta:meta] } => {};
+  { #[$from:meta] } => {};
   {
-    #[$meta:meta]
+    #[$from:meta]
+    $( #[$meta:meta] )*
     $vis:vis $component:ident $( , $( $tail:tt )* )?
   } => {
     $crate::import_components! {
-      #[$meta]
+      #[$from]
+      $( #[$meta] )*
       $component as $vis $component $( , $( $tail:tt )* )?
     }
   };
   {
-    #[$meta:meta]
+    #[$from:meta]
+    $( #[$meta:meta] )*
     $component:ident as $vis:vis $name:ident $( , $( $tail:tt )* )?
   } => {
     $crate::paste! {
-      #[$meta]
+      #[$from]
       extern "C" {
         #[wasm_bindgen(js_name = $component)]
         static [<__WASMREACT_IMPORT_ $name:upper>]: JsValue;
       }
 
-      #[allow(non_snake_case)]
-      $vis fn $name(
-        props: &$crate::props::Props
-      ) -> $crate::JsComponentWrapper<'_> {
-        $crate::JsComponentWrapper::new(
-          &[<__WASMREACT_IMPORT_ $name:upper>],
-          props,
-        )
+      $( #[$meta] )*
+      $vis struct $name<'a>(pub &'a $crate::props::Props);
+
+      impl<'a> $name<'a> {
+        /// Returns a `VNode` to be included in a render function.
+        pub fn build(self, children: $crate::VNodeList) -> $crate::VNode {
+          $crate::create_element(
+            &[<__WASMREACT_IMPORT_ $name:upper>],
+            self.0,
+            children
+          )
+        }
       }
     }
 
-    $( $crate::import_components! { #[$meta] $( $tail )* } )?
+    $( $crate::import_components! { #[$from] $( $tail )* } )?
   };
 }
