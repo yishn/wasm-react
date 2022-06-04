@@ -138,10 +138,10 @@ macro_rules! c {
 /// );
 ///
 /// let is_blue = Some("blue");
-/// let disabled = true;
+/// let disabled = "disabled".to_string();
 ///
 /// assert_eq!(
-///   classnames![."button".{is_blue}.disabled],
+///   classnames![."button".{is_blue}.{&disabled}],
 ///   "button blue disabled ",
 /// );
 /// ```
