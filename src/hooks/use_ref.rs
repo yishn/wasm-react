@@ -39,11 +39,11 @@ impl<T: 'static> RefContainer<T> {
   ///
   /// The following assumptions must hold:
   ///
-  /// - The JS value has been obtained by creating a [`RefContainer`] by
+  /// - The JS value has been obtained by creating a [`RefContainer`] using
   ///   [`use_ref()`] and converting it into [`JsValue`].
   /// - The React component owning the [`RefContainer`] hasn't been unmounted.
   ///
-  /// Otherwise this might lead to memory problems.
+  /// Otherwise this might lead to memory issues.
   pub unsafe fn try_from_js(
     js_value: &JsValue,
   ) -> Result<RefContainer<T>, JsValue> {
