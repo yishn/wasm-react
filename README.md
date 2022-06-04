@@ -167,7 +167,7 @@ impl TryFrom<JsValue> for App {
   }
 }
 
-export_component!(App);
+export_component! { App }
 ```
 
 Use `wasm-pack` to compile your Rust code into WASM:

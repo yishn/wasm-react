@@ -225,7 +225,7 @@ macro_rules! classnames {
 ///   }
 /// }
 ///
-/// export_component!(Counter);
+/// export_component! { Counter }
 /// ```
 ///
 /// In JS, you can use it like any other component:
@@ -244,13 +244,17 @@ macro_rules! classnames {
 /// ```
 #[macro_export]
 macro_rules! export_component {
-  ($component:ty) => {
+  {} => {};
+  { $component:ident $( , $( $tail:tt )* )? } => {
+    $crate::export_component! { $component as $component $( , $( $tail )* )? }
+  };
+  { $component:ty as $name:ident $( , $( $tail:tt )* )? } => {
     $crate::paste! {
       #[allow(non_snake_case)]
       #[allow(dead_code)]
       #[doc(hidden)]
-      #[wasm_bindgen::prelude::wasm_bindgen(js_name = $component)]
-      pub fn [<__WasmReact_ $component>](
+      #[wasm_bindgen::prelude::wasm_bindgen(js_name = $name)]
+      pub fn [<__WasmReact_Export_ $name>](
         props: wasm_bindgen::JsValue,
       ) -> Result<wasm_bindgen::JsValue, wasm_bindgen::JsValue>
       where
@@ -261,5 +265,37 @@ macro_rules! export_component {
         Ok($crate::Component::render(&component).into())
       }
     }
+
+    $( $crate::export_component! { $( $tail )* } )?
+  };
+}
+
+#[macro_export]
+macro_rules! import_component {
+  { #[$meta:meta] } => {};
+  { #[$meta:meta] $component:ident $( , $( $tail:tt )* )? } => {
+    $crate::import_component! {
+      #[$meta]
+      $component as $component
+    }
+    $( $crate::import_component! { #[$meta] $( $tail )* } )?
+  };
+  { #[$meta:meta] $component:ident as $name:ident $( , $( $tail:tt )* )? } => {
+    $crate::paste! {
+      #[$meta]
+      extern "C" {
+        #[wasm_bindgen(js_name = $component)]
+        static [<__WasmReact_Import_ $name>]: JsValue;
+      }
+
+      #[allow(non_snake_case)]
+      pub fn $name(
+        props: &$crate::props::Props
+      ) -> $crate::JsComponentWrapper<'_> {
+        $crate::JsComponentWrapper::new(&[<__WasmReact_Import_ $name>], props)
+      }
+    }
+
+    $( $crate::import_component! { #[$meta] $( $tail )* } )?
   };
 }

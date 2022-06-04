@@ -1,6 +1,14 @@
 use js_sys::Reflect;
-use wasm_bindgen::JsValue;
-use wasm_react::{c, export_component, h, Component, VNode};
+use wasm_bindgen::prelude::*;
+use wasm_react::{
+  c, export_component, h, import_component, props::Props, Component, Fragment,
+  VNode,
+};
+
+import_component! {
+  #[wasm_bindgen(module = "/src/myComponent.js")]
+  MyComponent as MyJsComponent,
+}
 
 pub struct App {
   name: Option<String>,
@@ -18,12 +26,19 @@ impl TryFrom<JsValue> for App {
 
 impl Component for App {
   fn render(&self) -> VNode {
-    h!(h1).build(c![if let Some(name) = self.name.as_ref() {
-      format!("Hello {}!", name)
-    } else {
-      "Hello World!".to_string()
-    }])
+    Fragment.build(c![
+      h!(h1).build(c![if let Some(name) = self.name.as_ref() {
+        format!("Hello {}!", name)
+      } else {
+        "Hello World!".to_string()
+      },]),
+      //
+      MyJsComponent(
+        &Props::new().insert("text", &"This is an imported component".into())
+      )
+      .build(c![]),
+    ])
   }
 }
 
-export_component!(App);
+export_component! { App }
