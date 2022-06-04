@@ -273,13 +273,13 @@ macro_rules! export_components {
 #[macro_export]
 macro_rules! import_components {
   { #[$meta:meta] } => {};
-  { #[$meta:meta] $component:ident $( , $( $tail:tt )* )? } => {
+  { #[$meta:meta] $vis:vis $component:ident $( , $( $tail:tt )* )? } => {
     $crate::import_components! {
       #[$meta]
-      $component as $component $( , $( $tail:tt )* )?
+      $component as $vis $component $( , $( $tail:tt )* )?
     }
   };
-  { #[$meta:meta] $component:ident as $name:ident $( , $( $tail:tt )* )? } => {
+  { #[$meta:meta] $component:ident as $vis:vis $name:ident $( , $( $tail:tt )* )? } => {
     $crate::paste! {
       #[$meta]
       extern "C" {
@@ -288,7 +288,7 @@ macro_rules! import_components {
       }
 
       #[allow(non_snake_case)]
-      pub fn $name(
+      $vis fn $name(
         props: &$crate::props::Props
       ) -> $crate::JsComponentWrapper<'_> {
         $crate::JsComponentWrapper::new(&[<__WasmReact_Import_ $name>], props)

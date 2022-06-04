@@ -7,7 +7,7 @@ use wasm_react::{
 
 import_components! {
   #[wasm_bindgen(module = "/src/myComponent.js")]
-  MyComponent as MyJsComponent,
+  MyComponent as pub MyJsComponent,
 }
 
 pub struct App {
