@@ -44,7 +44,7 @@ impl<T: 'static> RefContainer<T> {
   /// - The React component owning the [`RefContainer`] hasn't been unmounted.
   ///
   /// Otherwise this might lead to memory issues.
-  pub unsafe fn try_from_js(
+  pub unsafe fn try_from_js_ref(
     js_value: &JsValue,
   ) -> Result<RefContainer<T>, JsValue> {
     let ptr =
@@ -146,7 +146,7 @@ pub fn use_ref<T: 'static>(init: T) -> RefContainer<T> {
   );
 
   unsafe {
-    RefContainer::try_from_js(&js_ref)
+    RefContainer::try_from_js_ref(&js_ref)
       .expect_throw("trying to operate invalid ref container")
   }
 }
