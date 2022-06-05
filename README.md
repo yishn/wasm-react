@@ -3,17 +3,23 @@
 [![GitHub](https://img.shields.io/badge/GitHub-Repo-lightgrey?logo=github)](https://github.com/yishn/wasm-react)
 [![CI](https://github.com/yishn/wasm-react/actions/workflows/ci.yml/badge.svg)](https://github.com/yishn/wasm-react/actions/workflows/ci.yml)
 
-WIP: WASM bindings for [React](https://reactjs.org/).
+WIP: WASM bindings for [React].
 
 ## Introduction
 
 This library enables you to write and use React components in Rust, which then
 can be exported to JS to be reused or rendered.
 
+### Why React?
+
+React is one of the most popular UI framework for JS with a thriving community
+and lots of libraries written for it. Standing on the shoulder of giants, you
+can write complex frontend applications with Rust.
+
 ### Goals
 
 - Provide Rust bindings for the public API of `react` as close to the original
-  API as possible.
+  API as possible, but with Rust in mind.
 - Provide an ergonomic way to write components.
 - Provide ways to interact with components written in JS.
 
@@ -27,8 +33,7 @@ can be exported to JS to be reused or rendered.
 
 Make sure you have Rust and Cargo installed. You can include `wasm-react` by
 adding it to your `Cargo.toml`. Furthermore, if you want to expose your Rust
-components to JS, you also need `wasm-bindgen` and install
-[`wasm-pack`](https://rustwasm.github.io/wasm-pack/).
+components to JS, you also need `wasm-bindgen` and install [`wasm-pack`].
 
 ```toml
 [dependencies]
@@ -126,10 +131,9 @@ impl Component for Counter {
 
 ### Export Component for JS Consumption
 
-First, you'll need [`wasm-pack`](https://rustwasm.github.io/wasm-pack/). You can
-use the `export_components!` macro to export your Rust component for JS
-consumption. Requirement is that your component implements
-`TryFrom<JsValue, Error = JsValue>`.
+First, you'll need [`wasm-pack`]. You can use the `export_components!` macro to
+export your Rust component for JS consumption. Requirement is that your
+component implements `TryFrom<JsValue, Error = JsValue>`.
 
 ```rust
 use wasm_react::{h, c, export_components, Component, VNode};
@@ -177,7 +181,8 @@ $ wasm-pack build
 ```
 
 Depending on your JS project structure, you may want to specify the `--target`
-option, see [`wasm-pack` documentation](https://rustwasm.github.io/docs/wasm-pack/commands/build.html#target).
+option, see
+[`wasm-pack` documentation](https://rustwasm.github.io/docs/wasm-pack/commands/build.html#target).
 
 Assuming you use a bundler that supports JSX, and WASM imports in ES modules,
 like Webpack, you can use:
@@ -214,3 +219,6 @@ async function main() {
   root.render(React.createElement(App, {}));
 }
 ```
+
+[react]: https://reactjs.org/
+[`wasm-pack`]: https://rustwasm.github.io/wasm-pack/

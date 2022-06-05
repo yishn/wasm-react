@@ -242,6 +242,19 @@ macro_rules! classnames {
 ///   );
 /// }
 /// ```
+///
+/// You can export multiple components and also rename them:
+///
+/// ```
+/// # use wasm_react::*;
+/// # use wasm_bindgen::prelude::*;
+/// # pub struct App; pub struct Counter;
+/// # impl Component for App { fn render(&self) -> VNode { VNode::empty() } }
+/// # impl TryFrom<JsValue> for App { type Error = JsValue; fn try_from(_: JsValue) -> Result<Self, Self::Error> { todo!() } }
+/// # impl Component for Counter { fn render(&self) -> VNode { VNode::empty() } }
+/// # impl TryFrom<JsValue> for Counter { type Error = JsValue; fn try_from(_: JsValue) -> Result<Self, Self::Error> { todo!() } }
+/// export_components! { App as CounterApp, Counter }
+/// ```
 #[macro_export]
 macro_rules! export_components {
   {} => {};
@@ -270,6 +283,63 @@ macro_rules! export_components {
   };
 }
 
+/// This macro can be used to import JS React components for Rust consumption
+/// via `wasm-bindgen`.
+///
+/// Make sure that the components you import use the same React runtime as
+/// specified for `wasm-react`.
+///
+/// # Example
+///
+/// Assume the JS components are defined and exported in `/test/myComponents.js`:
+///
+/// ```js
+/// import "https://unpkg.com/react/umd/react.production.min.js";
+///
+/// export function MyComponent(props) { /* ... */ }
+/// export function PublicComponent(props) { /* ... */ }
+/// export function RenamedComponent(props) { /* ... */ }
+/// ```
+///
+/// Then you can import them using [`import_components!`]:
+///
+/// ```
+/// # use wasm_react::*;
+/// # use wasm_bindgen::prelude::*;
+/// import_components! {
+///   # #[wasm_bindgen(inline_js = "")]
+///   # }
+///   # stringify! {
+///   #[wasm_bindgen(module = "/test/myComponents.js")]
+///   # };
+///   # import_components! {
+///   # #[wasm_bindgen(inline_js = "")]
+///
+///   /// Some doc comment for the imported component.
+///   MyComponent,
+///   /// This imported component will be made public.
+///   pub PublicComponent,
+///   /// You can rename imported components.
+///   RenamedComponent as pub OtherComponent,
+/// }
+/// ```
+///
+/// Now you can include the imported components in your render function:
+///
+/// ```
+/// # use wasm_react::{*, props::*};
+/// # use wasm_bindgen::prelude::*;
+/// # import_components! { #[wasm_bindgen(inline_js = "")] MyComponent }
+/// # struct App;
+/// # impl Component for App {
+/// fn render(&self) -> VNode {
+///   h!(div).build(c![
+///     MyComponent(&Props::new().insert("prop", &"Hello World!".into()))
+///     .build(c![])
+///   ])
+/// }
+/// # }
+/// ```
 #[macro_export]
 macro_rules! import_components {
   { #[$from:meta] } => {};
@@ -281,7 +351,7 @@ macro_rules! import_components {
     $crate::import_components! {
       #[$from]
       $( #[$meta] )*
-      $component as $vis $component $( , $( $tail:tt )* )?
+      $component as $vis $component $( , $( $tail )* )?
     }
   };
   {
