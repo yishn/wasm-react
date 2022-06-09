@@ -24,27 +24,14 @@ impl<T: 'static> State<T> {
 
   /// Sets the state to the return value of the given mutator closure and
   /// rerenders the component.
-  pub fn set(&mut self, mutator: impl FnOnce(&T) -> T) {
-    let new_state = mutator(&*self.value());
+  pub fn set(&mut self, mutator: impl FnOnce(T) -> T) {
+    let value = self
+      .ref_container
+      .current_mut()
+      .take();
+    let new_value = value.map(|value| mutator(value));
 
-    self.ref_container.set_current(Some(new_state));
-    self
-      .update
-      .call(&Void.into())
-      .expect_throw("unable to call state update");
-  }
-
-  /// Updates the state with the given mutator closure and rerenders the
-  /// component.
-  pub fn update(&mut self, mutator: impl FnOnce(&mut T)) {
-    mutator(
-      self
-        .ref_container
-        .current_mut()
-        .as_mut()
-        .expect_throw("no state value available"),
-    );
-
+    self.ref_container.set_current(new_value);
     self
       .update
       .call(&Void.into())
@@ -90,7 +77,11 @@ impl<T> Clone for State<T> {
 ///     let mut state = state.clone();
 ///
 ///     move || {
-///       state.set(|_| State { greet: "Welcome!" });
+///       state.set(|mut state| {
+///         state.greet = "Welcome!";
+///         state
+///       });
+///
 ///       || ()
 ///     }
 ///   }, Deps::some(( /* ... */ )));

@@ -33,7 +33,10 @@ impl Component for App {
           evt.prevent_default();
 
           if !text.value().is_empty() {
-            tasks.update(|tasks| tasks.push((false, text.value().clone())));
+            tasks.set(|mut tasks| {
+              tasks.push((false, text.value().clone()));
+              tasks
+            });
             text.set(|_| "".into());
           }
         }
@@ -65,8 +68,9 @@ impl Component for App {
         let mut tasks = tasks.clone();
 
         move |(id, done): (usize, bool)| {
-          tasks.update(|tasks| {
+          tasks.set(|mut tasks| {
             tasks.get_mut(id).map(|task: &mut (bool, _)| task.0 = done);
+            tasks
           })
         }
       },
