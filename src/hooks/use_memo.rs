@@ -1,5 +1,5 @@
 use super::{use_ref, Deps, RefContainer};
-use crate::{Persisted, PersistedOrigin};
+use crate::{ValueContainer, ValueContainerRef, Persisted, PersistedOrigin};
 use std::cell::Ref;
 use wasm_bindgen::UnwrapThrowExt;
 
@@ -22,9 +22,15 @@ impl<T, D: PartialEq> Persisted for Memo<T, D> {
   }
 }
 
-impl<T, D: PartialEq> Clone for Memo<T, D> {
+impl<T, D> Clone for Memo<T, D> {
   fn clone(&self) -> Self {
     Self(self.0.clone())
+  }
+}
+
+impl<T: 'static, D: 'static> ValueContainer<T> for Memo<T, D> {
+  fn value(&self) -> ValueContainerRef<'_, T> {
+    ValueContainerRef::Ref(self.value())
   }
 }
 

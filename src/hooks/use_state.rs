@@ -1,7 +1,7 @@
 use super::{use_ref, RefContainer};
 use crate::{
   callback::{Callable, Void},
-  react_bindings, Persisted, PersistedOrigin,
+  react_bindings, ValueContainer, ValueContainerRef, Persisted, PersistedOrigin,
 };
 use js_sys::Function;
 use std::cell::Ref;
@@ -25,10 +25,7 @@ impl<T: 'static> State<T> {
   /// Sets the state to the return value of the given mutator closure and
   /// rerenders the component.
   pub fn set(&mut self, mutator: impl FnOnce(T) -> T) {
-    let value = self
-      .ref_container
-      .current_mut()
-      .take();
+    let value = self.ref_container.current_mut().take();
     let new_value = value.map(|value| mutator(value));
 
     self.ref_container.set_current(new_value);
@@ -36,6 +33,12 @@ impl<T: 'static> State<T> {
       .update
       .call(&Void.into())
       .expect_throw("unable to call state update");
+  }
+}
+
+impl<T: 'static> ValueContainer<T> for State<T> {
+  fn value(&self) -> ValueContainerRef<'_, T> {
+    ValueContainerRef::Ref(self.value())
   }
 }
 

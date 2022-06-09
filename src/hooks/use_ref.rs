@@ -1,4 +1,7 @@
-use crate::{callback::Void, react_bindings, Persisted, PersistedOrigin};
+use crate::{
+  callback::Void, react_bindings, ValueContainer, ValueContainerRef, Persisted,
+  PersistedOrigin,
+};
 use js_sys::Reflect;
 use std::{
   cell::{Ref, RefCell, RefMut},
@@ -60,6 +63,12 @@ impl<T: 'static> RefContainer<T> {
     };
 
     Ok(result)
+  }
+}
+
+impl<T: 'static> ValueContainer<T> for RefContainer<T> {
+  fn value(&self) -> ValueContainerRef<'_, T> {
+    ValueContainerRef::Ref(self.current())
   }
 }
 
