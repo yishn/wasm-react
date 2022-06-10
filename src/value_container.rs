@@ -7,6 +7,7 @@ use std::{
 
 /// Allows read-only access to the underlying value of [`ValueContainer`].
 #[non_exhaustive]
+#[derive(Debug)]
 pub enum ValueContainerRef<'a, T> {
   #[doc(hidden)]
   #[non_exhaustive]
