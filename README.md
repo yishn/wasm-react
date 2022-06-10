@@ -1,7 +1,9 @@
 # wasm-react
 
 [![GitHub](https://img.shields.io/badge/GitHub-Repo-lightgrey?logo=github)](https://github.com/yishn/wasm-react)
+[![crates.io](https://img.shields.io/crates/v/wasm-react)](https://crates.io/crates/wasm-react)
 [![CI](https://github.com/yishn/wasm-react/actions/workflows/ci.yml/badge.svg)](https://github.com/yishn/wasm-react/actions/workflows/ci.yml)
+[![docs.rs](https://img.shields.io/docsrs/wasm-react)](https://docs.rs/wasm-react/)
 
 WIP: WASM bindings for [React].
 
