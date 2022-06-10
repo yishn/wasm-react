@@ -8,7 +8,7 @@
 /// Cloning a struct with this trait will not duplicate the underlying data, but
 /// only a pointer, so cloning is a fast way to make the underlying data
 /// available for a closure, by moving a clone of the pointer inside it.
-pub trait Persisted: Clone {
+pub trait Persisted: Clone + 'static {
   #[doc(hidden)]
   fn ptr(&self) -> PersistedOrigin;
 }

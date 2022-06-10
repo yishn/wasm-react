@@ -29,7 +29,7 @@ impl<T: JsCast> JsRefContainer<T> {
   }
 }
 
-impl<T> Persisted for JsRefContainer<T> {
+impl<T: 'static> Persisted for JsRefContainer<T> {
   fn ptr(&self) -> PersistedOrigin {
     PersistedOrigin
   }

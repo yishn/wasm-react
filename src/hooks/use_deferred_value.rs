@@ -17,7 +17,7 @@ impl<T: 'static> DeferredValue<T> {
   }
 }
 
-impl<T> Persisted for DeferredValue<T> {
+impl<T: 'static> Persisted for DeferredValue<T> {
   fn ptr(&self) -> crate::PersistedOrigin {
     self.0.ptr()
   }

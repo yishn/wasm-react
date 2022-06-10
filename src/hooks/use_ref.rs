@@ -89,7 +89,7 @@ impl<T: 'static> ValueContainer<T> for RefContainer<T> {
   }
 }
 
-impl<T> Persisted for RefContainer<T> {
+impl<T: 'static> Persisted for RefContainer<T> {
   fn ptr(&self) -> PersistedOrigin {
     PersistedOrigin
   }

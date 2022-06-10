@@ -249,7 +249,7 @@ impl<T, U> From<PersistedCallback<T, U>> for Callback<T, U> {
   }
 }
 
-impl<T, U> Persisted for PersistedCallback<T, U> {
+impl<T: 'static, U: 'static> Persisted for PersistedCallback<T, U> {
   fn ptr(&self) -> PersistedOrigin {
     PersistedOrigin
   }

@@ -46,7 +46,7 @@ impl<T: 'static> ValueContainer<T> for State<T> {
   }
 }
 
-impl<T> Persisted for State<T> {
+impl<T: 'static> Persisted for State<T> {
   fn ptr(&self) -> PersistedOrigin {
     self.ref_container.ptr()
   }
