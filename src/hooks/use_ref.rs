@@ -13,7 +13,12 @@ use wasm_bindgen::{prelude::Closure, JsValue, UnwrapThrowExt};
 
 /// Allows access to the underlying data persisted with [`use_ref()`].
 ///
-/// The rules of borrowing will be enforced at runtime through a [`RefCell`].
+/// # Panics
+///
+/// The rules of borrowing will be enforced at runtime through a [`RefCell`],
+/// therefore the methods [`RefContainer::current()`],
+/// [`RefContainer::current_mut()`], and [`RefContainer::set_current()`] may
+/// panic accordingly.
 #[derive(Debug)]
 pub struct RefContainer<T> {
   inner: Rc<RefCell<T>>,
@@ -22,21 +27,33 @@ pub struct RefContainer<T> {
 
 impl<T: 'static> RefContainer<T> {
   /// Returns a reference to the underlying data.
+  ///
+  /// # Panics
+  ///
+  /// Panics if the underlying data is currently mutably borrowed.
   pub fn current(&self) -> Ref<'_, T> {
     self.inner.borrow()
   }
 
   /// Returns a mutable reference to the underlying data.
+  ///
+  /// # Panics
+  ///
+  /// Panics if the underlying data is currently borrowed.
   pub fn current_mut(&mut self) -> RefMut<'_, T> {
     self.inner.borrow_mut()
   }
 
   /// Sets the underlying data to the given value.
+  ///
+  /// # Panics
+  ///
+  /// Panics if the underlying data is currently borrowed.
   pub fn set_current(&mut self, value: T) {
     *self.current_mut() = value;
   }
 
-  /// Converts a JS value into a `RefContainer`.
+  /// Converts a JS value into a [`RefContainer`].
   ///
   /// # Safety
   ///

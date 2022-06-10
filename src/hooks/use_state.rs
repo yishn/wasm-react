@@ -24,6 +24,10 @@ impl<T: 'static> State<T> {
 
   /// Sets the state to the return value of the given mutator closure and
   /// rerenders the component.
+  ///
+  /// # Panics
+  ///
+  /// Panics if the value is currently borrowed.
   pub fn set(&mut self, mutator: impl FnOnce(T) -> T) {
     let value = self.ref_container.current_mut().take();
     let new_value = value.map(|value| mutator(value));
