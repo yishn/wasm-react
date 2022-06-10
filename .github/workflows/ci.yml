@@ -21,6 +21,9 @@ jobs:
     - name: Build
       run: |
         wasm-pack build --debug
+    - name: Build doc
+      run: |
+        cargo doc
     - name: Build examples
       run: |
         npm run build-examples
