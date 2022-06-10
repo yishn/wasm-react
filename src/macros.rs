@@ -54,8 +54,7 @@ macro_rules! h {
   };
 }
 
-/// This macro will take various objects of [`Into<VNode>`](crate::VNode) or
-/// [`Iterator<Item = VNode>`](crate::VNode) and builds a [`VNodeList`].
+/// This macro can take various objects to build a [`VNodeList`].
 ///
 /// [`VNodeList`]: crate::VNodeList
 ///
@@ -250,31 +249,37 @@ macro_rules! classnames {
 /// # use wasm_bindgen::prelude::*;
 /// # pub struct App; pub struct Counter;
 /// # impl Component for App { fn render(&self) -> VNode { VNode::empty() } }
-/// # impl TryFrom<JsValue> for App { type Error = JsValue; fn try_from(_: JsValue) -> Result<Self, Self::Error> { todo!() } }
+/// # impl TryFrom<JsValue> for App {
+/// #   type Error = JsValue;
+/// #   fn try_from(_: JsValue) -> Result<Self, Self::Error> { todo!() }
+/// # }
 /// # impl Component for Counter { fn render(&self) -> VNode { VNode::empty() } }
-/// # impl TryFrom<JsValue> for Counter { type Error = JsValue; fn try_from(_: JsValue) -> Result<Self, Self::Error> { todo!() } }
+/// # impl TryFrom<JsValue> for Counter {
+/// #   type Error = JsValue;
+/// #   fn try_from(_: JsValue) -> Result<Self, Self::Error> { todo!() }
+/// # }
 /// export_components! { App as CounterApp, Counter }
 /// ```
 #[macro_export]
 macro_rules! export_components {
   {} => {};
-  { $component:ident $( , $( $tail:tt )* )? } => {
-    $crate::export_components! { $component as $component $( , $( $tail )* )? }
+  { $Component:ident $( , $( $tail:tt )* )? } => {
+    $crate::export_components! { $Component as $Component $( , $( $tail )* )? }
   };
-  { $component:ty as $name:ident $( , $( $tail:tt )* )? } => {
+  { $Component:ty as $Name:ident $( , $( $tail:tt )* )? } => {
     $crate::paste! {
       #[allow(non_snake_case)]
       #[allow(dead_code)]
       #[doc(hidden)]
-      #[wasm_bindgen::prelude::wasm_bindgen(js_name = $name)]
-      pub fn [<__WasmReact_Export_ $name>](
+      #[wasm_bindgen::prelude::wasm_bindgen(js_name = $Name)]
+      pub fn [<__WasmReact_Export_ $Name>](
         props: wasm_bindgen::JsValue,
       ) -> Result<wasm_bindgen::JsValue, wasm_bindgen::JsValue>
       where
-        $component: $crate::Component
+        $Component: $crate::Component
           + TryFrom<wasm_bindgen::JsValue, Error = wasm_bindgen::JsValue>,
       {
-        let component = $component::try_from(props)?;
+        let component = $Component::try_from(props)?;
         Ok($crate::Component::render(&component).into())
       }
     }
@@ -346,34 +351,34 @@ macro_rules! import_components {
   {
     #[$from:meta]
     $( #[$meta:meta] )*
-    $vis:vis $component:ident $( , $( $tail:tt )* )?
+    $vis:vis $Component:ident $( , $( $tail:tt )* )?
   } => {
     $crate::import_components! {
       #[$from]
       $( #[$meta] )*
-      $component as $vis $component $( , $( $tail )* )?
+      $Component as $vis $Component $( , $( $tail )* )?
     }
   };
   {
     #[$from:meta]
     $( #[$meta:meta] )*
-    $component:ident as $vis:vis $name:ident $( , $( $tail:tt )* )?
+    $Component:ident as $vis:vis $Name:ident $( , $( $tail:tt )* )?
   } => {
     $crate::paste! {
       #[$from]
       extern "C" {
-        #[wasm_bindgen(js_name = $component)]
-        static [<__WASMREACT_IMPORT_ $name:upper>]: JsValue;
+        #[wasm_bindgen(js_name = $Component)]
+        static [<__WASMREACT_IMPORT_ $Name:upper>]: JsValue;
       }
 
       $( #[$meta] )*
-      $vis struct $name<'a>(pub &'a $crate::props::Props);
+      $vis struct $Name<'a>(pub &'a $crate::props::Props);
 
-      impl<'a> $name<'a> {
+      impl<'a> $Name<'a> {
         /// Returns a `VNode` to be included in a render function.
         pub fn build(self, children: $crate::VNodeList) -> $crate::VNode {
           $crate::create_element(
-            &[<__WASMREACT_IMPORT_ $name:upper>],
+            &[<__WASMREACT_IMPORT_ $Name:upper>],
             self.0,
             children
           )
