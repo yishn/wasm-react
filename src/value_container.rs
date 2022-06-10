@@ -8,9 +8,11 @@ use std::{
 /// Allows read-only access to the underlying value of [`ValueContainer`].
 #[non_exhaustive]
 pub enum ValueContainerRef<'a, T> {
-  /// Contains an immutable borrow.
+  #[doc(hidden)]
+  #[non_exhaustive]
   Simple(&'a T),
-  /// Contains a [`Ref`] reference.
+  #[doc(hidden)]
+  #[non_exhaustive]
   Ref(Ref<'a, T>),
 }
 
@@ -50,6 +52,7 @@ macro_rules! define_value_container {
     pub enum ValueContainer<T> {
       $(
         #[doc(hidden)]
+        #[non_exhaustive]
         $Variant($Ty),
       )*
     }
@@ -89,4 +92,3 @@ define_value_container! {
   Memo(x: Memo<T>) => Ref(x.value()),
   DeferredValue(x: DeferredValue<T>) => Ref(x.value()),
 }
-
