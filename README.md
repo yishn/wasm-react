@@ -1,4 +1,4 @@
-# wasm-react
+# wasm-react 🦀⚛️
 
 [![GitHub](https://img.shields.io/badge/GitHub-Repo-lightgrey?logo=github)](https://github.com/yishn/wasm-react)
 [![crates.io](https://img.shields.io/crates/v/wasm-react)](https://crates.io/crates/wasm-react)
@@ -16,7 +16,7 @@ can be exported to JS to be reused or rendered.
 
 React is one of the most popular UI framework for JS with a thriving community
 and lots of libraries written for it. Standing on the shoulder of giants, you
-can write complex frontend applications with Rust.
+will be able to write complex frontend applications with Rust.
 
 ### Goals
 
