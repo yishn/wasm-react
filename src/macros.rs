@@ -296,7 +296,7 @@ macro_rules! export_components {
 ///
 /// # Example
 ///
-/// Assume the JS components are defined and exported in `/js/myComponents.js`:
+/// Assume the JS components are defined and exported in `/.dummy/myComponents.js`:
 ///
 /// ```js
 /// import "https://unpkg.com/react/umd/react.production.min.js";
@@ -312,7 +312,7 @@ macro_rules! export_components {
 /// # use wasm_react::*;
 /// # use wasm_bindgen::prelude::*;
 /// import_components! {
-///   #[wasm_bindgen(module = "/js/myComponents.js")]
+///   #[wasm_bindgen(module = "/.dummy/myComponents.js")]
 ///
 ///   /// Some doc comment for the imported component.
 ///   MyComponent,

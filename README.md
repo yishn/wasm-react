@@ -137,7 +137,7 @@ You can use `import_components!` together with `wasm-bindgen` to import JS
 components for Rust consumption. First, prepare your JS component:
 
 ```js
-// /js/myComponents.js
+// /.dummy/myComponents.js
 import "https://unpkg.com/react/umd/react.production.min.js";
 
 export function MyComponent(props) {
@@ -154,7 +154,7 @@ use wasm_react::props::Props;
 use wasm_bindgen::prelude::*;
 
 import_components! {
-  #[wasm_bindgen(module = "/js/myComponents.js")]
+  #[wasm_bindgen(module = "/.dummy/myComponents.js")]
 
   MyComponent
 }
