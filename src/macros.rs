@@ -296,7 +296,7 @@ macro_rules! export_components {
 ///
 /// # Example
 ///
-/// Assume the JS components are defined and exported in `/test/myComponents.js`:
+/// Assume the JS components are defined and exported in `/js/myComponents.js`:
 ///
 /// ```js
 /// import "https://unpkg.com/react/umd/react.production.min.js";
@@ -312,13 +312,7 @@ macro_rules! export_components {
 /// # use wasm_react::*;
 /// # use wasm_bindgen::prelude::*;
 /// import_components! {
-///   # #[wasm_bindgen(inline_js = "")]
-///   # }
-///   # stringify! {
-///   #[wasm_bindgen(module = "/test/myComponents.js")]
-///   # };
-///   # import_components! {
-///   # #[wasm_bindgen(inline_js = "")]
+///   #[wasm_bindgen(module = "/js/myComponents.js")]
 ///
 ///   /// Some doc comment for the imported component.
 ///   MyComponent,
@@ -368,7 +362,7 @@ macro_rules! import_components {
       #[$from]
       extern "C" {
         #[wasm_bindgen(js_name = $Component)]
-        static [<__WASMREACT_IMPORT_ $Name:upper>]: JsValue;
+        static [<__WASMREACT_IMPORT_ $Name:upper>]: wasm_bindgen::JsValue;
       }
 
       $( #[$meta] )*

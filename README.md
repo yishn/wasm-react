@@ -129,11 +129,51 @@ impl Component for Counter {
 }
 ```
 
-### Export Component for JS Consumption
+### Import Components for Rust Consumption
 
-First, you'll need [`wasm-pack`]. You can use the `export_components!` macro to
-export your Rust component for JS consumption. Requirement is that your
-component implements `TryFrom<JsValue, Error = JsValue>`.
+You can use `import_components!` together with `wasm-bindgen` to import JS
+components for Rust consumption. First, prepare your JS component:
+
+```js
+// /js/myComponents.js
+import "https://unpkg.com/react/umd/react.production.min.js";
+
+export function MyComponent(props) {
+  /* … */
+}
+```
+
+Make sure the component uses the same React runtime as specified for
+`wasm-react`. Afterwards, use `import_components!`:
+
+```rust
+use wasm_react::{h, c, import_components, Component, VNode};
+use wasm_react::props::Props;
+use wasm_bindgen::prelude::*;
+
+import_components! {
+  #[wasm_bindgen(module = "/js/myComponents.js")]
+
+  MyComponent
+}
+
+struct App;
+
+impl Component for App {
+  fn render(&self) -> VNode {
+    h!(div).build(c![
+      MyComponent(&Props::new().insert("prop", &"Hello World!".into()))
+      .build(c![]),
+    ])
+  }
+}
+```
+
+### Export Components for JS Consumption
+
+First, you'll need [`wasm-pack`]. You can use `export_components!` to export
+your Rust component for JS consumption. Requirement is that your component
+implements `TryFrom<JsValue, Error = JsValue>`.
 
 ```rust
 use wasm_react::{h, c, export_components, Component, VNode};
@@ -145,7 +185,7 @@ struct Counter {
 
 impl Component for Counter {
   fn render(&self) -> VNode {
-    /* ... */
+    /* … */
     VNode::empty()
   }
 }
@@ -220,13 +260,114 @@ async function main() {
 }
 ```
 
+### Passing Down State as Prop
+
+Say you define a component with the following struct:
+
+```rust
+use std::rc::Rc;
+
+struct TaskList {
+  tasks: Vec<Rc<str>>
+}
+```
+
+You want to include `TaskList` in a container component `App` where `tasks` is
+managed by a state:
+
+```rust
+use std::rc::Rc;
+use wasm_react::{h, c, Component, VNode};
+use wasm_react::hooks::{use_state, State};
+
+struct TaskList {
+  tasks: Vec<Rc<str>>
+}
+
+impl Component for TaskList {
+  fn render(&self) -> VNode {
+    /* … */
+    VNode::default()
+  }
+}
+
+struct App;
+
+impl Component for App {
+  fn render(&self) -> VNode {
+    let tasks: State<Vec<Rc<str>>> = use_state(|| vec![]);
+
+    h!(div).build(c![
+      TaskList {
+        tasks: todo!(), // Oops, `tasks.value()` does not fit the type
+      }
+      .build(),
+    ])
+  }
+}
+```
+
+Changing the type of `tasks` to fit `tasks.value()` doesn't work, since
+`tasks.value()` returns a non-`'static` reference while component structs can
+only contain `'static` values. You can clone the underlying `Vec`, but this
+introduces unnecessary overhead. In this situation you might think you can
+simply change the type of `TaskList` to a `State`:
+
+```rust
+use std::rc::Rc;
+use wasm_react::{h, c, Component, VNode};
+use wasm_react::hooks::{use_state, State};
+
+struct TaskList {
+  tasks: State<Vec<Rc<str>>>
+}
+```
+
+This works as long as the prop `tasks` is guaranteed to come from a state. But
+this assumption may not hold. You might want to pass on `Rc<Vec<Rc<str>>>` or
+`Memo<Vec<Rc<str>>>` instead in the future or somewhere else. To be as generic
+as possible, you can use `ValueContainer`:
+
+```rust
+use std::rc::Rc;
+use wasm_react::{h, c, Component, ValueContainer, VNode};
+use wasm_react::hooks::{use_state, State};
+
+struct TaskList {
+  tasks: ValueContainer<Vec<Rc<str>>>
+}
+
+impl Component for TaskList {
+  fn render(&self) -> VNode {
+    /* Do something with `self.tasks.value()`… */
+    VNode::default()
+  }
+}
+
+struct App;
+
+impl Component for App {
+  fn render(&self) -> VNode {
+    let tasks: State<Vec<Rc<str>>> = use_state(|| vec![]);
+
+    h!(div).build(c![
+      TaskList {
+        tasks: tasks.clone().into(),
+      }
+      .build(),
+    ])
+  }
+}
+```
+
 ## License
 
 Licensed under either of
 
 - Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE) or
   <https://www.apache.org/licenses/LICENSE-2.0>)
-- MIT license ([LICENSE-MIT](LICENSE-MIT) or <https://opensource.org/licenses/MIT>)
+- MIT license ([LICENSE-MIT](LICENSE-MIT) or
+  <https://opensource.org/licenses/MIT>)
 
 at your option.
 
