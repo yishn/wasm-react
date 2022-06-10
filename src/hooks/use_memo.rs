@@ -1,36 +1,30 @@
 use super::{use_ref, Deps, RefContainer};
-use crate::{Persisted, PersistedOrigin, ValueContainer, ValueContainerRef};
+use crate::{Persisted, PersistedOrigin};
 use std::cell::Ref;
 use wasm_bindgen::UnwrapThrowExt;
 
 /// Allows access to the underlying memoized data persisted with [`use_memo()`].
 #[derive(Debug)]
-pub struct Memo<T, D>(RefContainer<Option<(T, Deps<D>)>>);
+pub struct Memo<T>(RefContainer<Option<T>>);
 
-impl<T: 'static, D: 'static> Memo<T, D> {
+impl<T: 'static> Memo<T> {
   /// Returns a reference to the underlying memoized data.
   pub fn value(&self) -> Ref<'_, T> {
     Ref::map(self.0.current(), |x| {
-      &x.as_ref().expect_throw("no memo data available").0
+      x.as_ref().expect_throw("no memo data available")
     })
   }
 }
 
-impl<T: 'static, D: PartialEq + 'static> Persisted for Memo<T, D> {
+impl<T: 'static> Persisted for Memo<T> {
   fn ptr(&self) -> PersistedOrigin {
     self.0.ptr()
   }
 }
 
-impl<T, D> Clone for Memo<T, D> {
+impl<T> Clone for Memo<T> {
   fn clone(&self) -> Self {
     Self(self.0.clone())
-  }
-}
-
-impl<T: 'static, D: 'static> ValueContainer<T> for Memo<T, D> {
-  fn value(&self) -> ValueContainerRef<'_, T> {
-    ValueContainerRef::Ref(self.value())
   }
 }
 
@@ -57,22 +51,25 @@ impl<T: 'static, D: 'static> ValueContainer<T> for Memo<T, D> {
 /// }
 /// # }
 /// ```
-pub fn use_memo<T, D>(create: impl FnOnce() -> T, deps: Deps<D>) -> Memo<T, D>
+pub fn use_memo<T, D>(create: impl FnOnce() -> T, deps: Deps<D>) -> Memo<T>
 where
   T: 'static,
   D: PartialEq + 'static,
 {
-  let mut ref_container = use_ref(None::<(T, Deps<D>)>);
+  let mut deps_ref_container = use_ref(None::<Deps<D>>);
+  let mut value_ref_container = use_ref(None::<T>);
+
   let need_update = {
-    let current = ref_container.current();
-    let old_deps = current.as_ref().map(|memo| &memo.1);
+    let current = deps_ref_container.current();
+    let old_deps = current.as_ref();
 
     deps.is_all() || Some(&deps) != old_deps
   };
 
   if need_update {
-    ref_container.set_current(Some((create(), deps)));
+    deps_ref_container.set_current(Some(deps));
+    value_ref_container.set_current(Some(create()));
   }
 
-  Memo(ref_container)
+  Memo(value_ref_container)
 }

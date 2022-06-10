@@ -1,3 +1,4 @@
+use crate::hooks::{DeferredValue, RefContainer, State, Memo};
 use std::{
   cell::{Ref, RefCell},
   ops::Deref,
@@ -34,54 +35,58 @@ impl<'a, T> Deref for ValueContainerRef<'a, T> {
   }
 }
 
-/// An abstraction over structs that contain a value which can be accessed
-/// through an immutable borrow or [`Ref`].
-///
-/// All hook containers implement this trait and also [`Rc<T>`] and
-/// [`Rc<RefCell<T>>`].
-pub trait ValueContainer<T>: 'static {
-  /// Returns a read-only reference to the underlying value.
-  fn value(&self) -> ValueContainerRef<'_, T>;
+macro_rules! define_value_container {
+  {
+    $(
+      $Variant:ident($id:ident: $Ty:ty) => $RefVariant:ident($expr:expr) $(,)?
+    )*
+  } => {
+    /// An abstraction over structs that contain a value which can be accessed
+    /// through an immutable borrow or [`Ref`].
+    ///
+    /// Can contain all hook containers and [`Rc<T>`], [`Rc<RefCell<T>>`].
+    #[non_exhaustive]
+    #[derive(Debug)]
+    pub enum ValueContainer<T> {
+      $(
+        #[doc(hidden)]
+        $Variant($Ty),
+      )*
+    }
+
+    impl<T: 'static> ValueContainer<T> {
+      /// Returns a read-only reference to the underlying value.
+      pub fn value(&self) -> ValueContainerRef<'_, T> {
+        match self {
+          $( Self::$Variant($id) => ValueContainerRef::$RefVariant($expr), )*
+        }
+      }
+    }
+
+    impl<T> Clone for ValueContainer<T> {
+      fn clone(&self) -> Self {
+        match self {
+          $( Self::$Variant(x) => Self::$Variant(x.clone()), )*
+        }
+      }
+    }
+
+    $(
+      impl<T> From<$Ty> for ValueContainer<T> {
+        fn from(value: $Ty) -> Self {
+          Self::$Variant(value)
+        }
+      }
+    )*
+  };
 }
 
-impl<T: 'static> ValueContainer<T> for T {
-  fn value(&self) -> ValueContainerRef<'_, T> {
-    ValueContainerRef::Simple(&self)
-  }
+define_value_container! {
+  Rc(x: Rc<T>) => Simple(x.deref()),
+  RcRefCell(x: Rc<RefCell<T>>) => Ref(x.borrow()),
+  RefContainer(x: RefContainer<T>) => Ref(x.current()),
+  State(x: State<T>) => Ref(x.value()),
+  Memo(x: Memo<T>) => Ref(x.value()),
+  DeferredValue(x: DeferredValue<T>) => Ref(x.value()),
 }
 
-impl<T: 'static> ValueContainer<T> for &'static T {
-  fn value(&self) -> ValueContainerRef<'_, T> {
-    ValueContainerRef::Simple(self)
-  }
-}
-
-impl<T: 'static> ValueContainer<T> for Rc<T> {
-  fn value(&self) -> ValueContainerRef<'_, T> {
-    ValueContainerRef::Simple(&**self)
-  }
-}
-
-impl<T: 'static> ValueContainer<T> for Rc<RefCell<T>> {
-  fn value(&self) -> ValueContainerRef<'_, T> {
-    ValueContainerRef::Ref(self.borrow())
-  }
-}
-
-/// A struct wrapper for the [`ValueContainer`] trait.
-pub struct ValContainer<T>(Box<dyn ValueContainer<T>>);
-
-impl<T> ValContainer<T> {
-  /// Creates a new [`ValContainer`] struct from a [`ValueContainer`].
-  pub fn new(value: impl ValueContainer<T>) -> Self {
-    Self(Box::new(value))
-  }
-}
-
-impl<T> Deref for ValContainer<T> {
-  type Target = dyn ValueContainer<T>;
-
-  fn deref(&self) -> &Self::Target {
-    self.0.deref()
-  }
-}

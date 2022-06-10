@@ -1,7 +1,7 @@
 use super::{use_ref, RefContainer};
 use crate::{
   callback::{Callable, Void},
-  react_bindings, ValueContainer, ValueContainerRef, Persisted, PersistedOrigin,
+  react_bindings, Persisted, PersistedOrigin,
 };
 use js_sys::Function;
 use std::cell::Ref;
@@ -37,12 +37,6 @@ impl<T: 'static> State<T> {
       .update
       .call(&Void.into())
       .expect_throw("unable to call state update");
-  }
-}
-
-impl<T: 'static> ValueContainer<T> for State<T> {
-  fn value(&self) -> ValueContainerRef<'_, T> {
-    ValueContainerRef::Ref(self.value())
   }
 }
 

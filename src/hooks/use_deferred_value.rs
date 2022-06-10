@@ -1,5 +1,5 @@
 use super::{use_ref, RefContainer};
-use crate::{react_bindings, ValueContainer, ValueContainerRef, Persisted};
+use crate::{react_bindings, Persisted};
 use std::cell::Ref;
 use wasm_bindgen::UnwrapThrowExt;
 
@@ -26,12 +26,6 @@ impl<T: 'static> Persisted for DeferredValue<T> {
 impl<T> Clone for DeferredValue<T> {
   fn clone(&self) -> Self {
     Self(self.0.clone())
-  }
-}
-
-impl<T: 'static> ValueContainer<T> for DeferredValue<T> {
-  fn value(&self) -> ValueContainerRef<'_, T> {
-    ValueContainerRef::Ref(self.value())
   }
 }
 

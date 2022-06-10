@@ -5,7 +5,7 @@ use wasm_react::{
   callback::Callback,
   export_components, h,
   hooks::{use_callback, use_state, Deps},
-  Component, VNode, ValContainer,
+  Component, VNode, ValueContainer,
 };
 use web_sys::{Event, HtmlInputElement};
 
@@ -81,7 +81,7 @@ impl Component for App {
       h!(h1).build(c!["Todo"]),
       //
       TaskList {
-        tasks: ValContainer::new(tasks.clone()),
+        tasks: tasks.clone().into(),
         on_change: Some(handle_task_change.into()),
       }
       .build(),
@@ -102,7 +102,7 @@ impl Component for App {
 export_components! { App }
 
 struct TaskList {
-  tasks: ValContainer<Vec<(bool, Rc<str>)>>,
+  tasks: ValueContainer<Vec<(bool, Rc<str>)>>,
   on_change: Option<Callback<(usize, bool)>>,
 }
 
