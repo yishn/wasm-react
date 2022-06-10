@@ -226,8 +226,8 @@ Depending on your JS project structure, you may want to specify the `--target`
 option, see
 [`wasm-pack` documentation](https://rustwasm.github.io/docs/wasm-pack/commands/build.html#target).
 
-Assuming you use a bundler that supports JSX, and WASM imports in ES modules,
-like Webpack, you can use:
+Assuming you use a bundler that supports JSX and WASM imports in ES modules like
+Webpack, you can use:
 
 ```js
 import React from "react";
