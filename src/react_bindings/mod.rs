@@ -6,6 +6,13 @@ extern "C" {
   #[wasm_bindgen(js_name = useReact)]
   pub fn use_react(value: &JsValue);
 
+  #[wasm_bindgen(js_name = createElement)]
+  pub fn create_element(
+    name: &JsValue,
+    props: &JsValue,
+    children: &JsValue,
+  ) -> JsValue;
+
   #[wasm_bindgen(js_name = createRustComponent)]
   pub fn create_rust_component(
     name: &str,
@@ -38,13 +45,6 @@ extern "C" {
 
   #[wasm_bindgen(js_namespace = React, js_name = Suspense)]
   pub static SUSPENSE: JsValue;
-
-  #[wasm_bindgen(js_namespace = React, js_name = createElement)]
-  pub fn create_element(
-    name: &JsValue,
-    props: &JsValue,
-    children: &JsValue,
-  ) -> JsValue;
 
   #[wasm_bindgen(js_namespace = React, js_name = createContext)]
   pub fn create_context(value: &JsValue) -> JsValue;

@@ -33,6 +33,10 @@ function getRustComponent(name) {
   return components[name];
 }
 
+export function createElement(name, props, children = []) {
+  return React.createElement(name, props, ...children);
+}
+
 export function createRustComponent(name, key, component) {
   return React.createElement(getRustComponent(name), {
     key,
