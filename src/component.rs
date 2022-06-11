@@ -1,4 +1,4 @@
-use crate::{create_element, props::Props, react_bindings, VNode, VNodeList};
+use crate::{react_bindings, VNode};
 use std::{any::type_name, rc::Rc};
 use wasm_bindgen::prelude::*;
 
@@ -72,24 +72,5 @@ impl ComponentWrapper {
   #[wasm_bindgen]
   pub fn render(&self) -> JsValue {
     self.0.render().into()
-  }
-}
-
-#[doc(hidden)]
-pub struct JsComponentWrapper<'a> {
-  js_value: &'static JsValue,
-  props: &'a Props,
-}
-
-impl<'a> JsComponentWrapper<'a> {
-  pub fn new(js_component: &'static JsValue, props: &'a Props) -> Self {
-    JsComponentWrapper {
-      js_value: js_component,
-      props,
-    }
-  }
-
-  pub fn build(self, children: VNodeList) -> VNode {
-    create_element(self.js_value, self.props, children)
   }
 }
