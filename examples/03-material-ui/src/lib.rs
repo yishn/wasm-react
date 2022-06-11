@@ -1,6 +1,8 @@
 use wasm_bindgen::prelude::*;
 use wasm_react::{
-  c, export_components, h, import_components, props::Props, Component,
+  c, export_components, h, import_components,
+  props::{Props, Style},
+  Component,
 };
 
 import_components! {
@@ -21,7 +23,7 @@ impl Component for App {
             &Props::new()
               .insert("color", &"inherit".into())
               .insert("edge", &"start".into())
-              .insert("sx", Props::new().insert("mr", &2.into()).as_ref())
+              .insert("sx", Style::new().margin_right(2).as_ref())
           )
           .build(c![MenuIcon(&Props::new()).build(c![])]),
           //
@@ -30,10 +32,7 @@ impl Component for App {
               .insert("variant", &"h6".into())
               .insert("color", &"inherit".into())
               .insert("component", &"h1".into())
-              .insert(
-                "sx",
-                Props::new().insert("flexGrow", &1.into()).as_ref()
-              )
+              .insert("sx", Style::new().flex_grow(1).as_ref())
           )
           .build(c!["MUI Example Application"]),
           //
