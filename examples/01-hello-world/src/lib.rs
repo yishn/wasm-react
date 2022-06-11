@@ -19,7 +19,7 @@ impl TryFrom<JsValue> for App {
 impl Component for App {
   fn render(&self) -> VNode {
     h!(h1).build(c![if let Some(name) = self.name.as_ref() {
-      format!("Hello {}!", name)
+      format!("Hello {name}!")
     } else {
       "Hello World!".to_string()
     }])
