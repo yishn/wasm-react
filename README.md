@@ -5,7 +5,7 @@
 [![CI](https://github.com/yishn/wasm-react/actions/workflows/ci.yml/badge.svg)](https://github.com/yishn/wasm-react/actions/workflows/ci.yml)
 [![docs.rs](https://img.shields.io/docsrs/wasm-react)](https://docs.rs/wasm-react/)
 
-WIP: WASM bindings for [React].
+WASM bindings for [React].
 
 ## Introduction
 
