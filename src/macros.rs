@@ -361,7 +361,7 @@ macro_rules! import_components {
     $crate::paste! {
       #[$from]
       extern "C" {
-        #[wasm_bindgen(js_name = $Component)]
+        #[wasm_bindgen::prelude::wasm_bindgen(js_name = $Component)]
         static [<__WASMREACT_IMPORT_ $Name:upper>]: wasm_bindgen::JsValue;
       }
 
