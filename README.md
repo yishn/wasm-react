@@ -131,46 +131,6 @@ impl Component for Counter {
 }
 ```
 
-### Import Components for Rust Consumption
-
-You can use `import_components!` together with `wasm-bindgen` to import JS
-components for Rust consumption. First, prepare your JS component:
-
-```js
-// /.dummy/myComponents.js
-import "https://unpkg.com/react/umd/react.production.min.js";
-
-export function MyComponent(props) {
-  /* … */
-}
-```
-
-Make sure the component uses the same React runtime as specified for
-`wasm-react`. Afterwards, use `import_components!`:
-
-```rust
-use wasm_react::{h, c, import_components, Component, VNode};
-use wasm_react::props::Props;
-use wasm_bindgen::prelude::*;
-
-import_components! {
-  #[wasm_bindgen(module = "/.dummy/myComponents.js")]
-
-  MyComponent
-}
-
-struct App;
-
-impl Component for App {
-  fn render(&self) -> VNode {
-    h!(div).build(c![
-      MyComponent(&Props::new().insert("prop", &"Hello World!".into()))
-      .build(c![]),
-    ])
-  }
-}
-```
-
 ### Export Components for JS Consumption
 
 First, you'll need [`wasm-pack`]. You can use `export_components!` to export
@@ -259,6 +219,46 @@ async function main() {
 
   const root = ReactDOM.createRoot(document.getElementById("root"));
   root.render(React.createElement(App, {}));
+}
+```
+
+### Import Components for Rust Consumption
+
+You can use `import_components!` together with `wasm-bindgen` to import JS
+components for Rust consumption. First, prepare your JS component:
+
+```js
+// /.dummy/myComponents.js
+import "https://unpkg.com/react/umd/react.production.min.js";
+
+export function MyComponent(props) {
+  /* … */
+}
+```
+
+Make sure the component uses the same React runtime as specified for
+`wasm-react`. Afterwards, use `import_components!`:
+
+```rust
+use wasm_react::{h, c, import_components, Component, VNode};
+use wasm_react::props::Props;
+use wasm_bindgen::prelude::*;
+
+import_components! {
+  #[wasm_bindgen(module = "/.dummy/myComponents.js")]
+
+  MyComponent
+}
+
+struct App;
+
+impl Component for App {
+  fn render(&self) -> VNode {
+    h!(div).build(c![
+      MyComponent(&Props::new().insert("prop", &"Hello World!".into()))
+      .build(c![]),
+    ])
+  }
 }
 ```
 
