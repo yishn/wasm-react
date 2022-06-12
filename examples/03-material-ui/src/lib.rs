@@ -54,7 +54,7 @@ impl Component for App {
                 Typography::new()
                   .attr("variant", &"h5".into())
                   .attr("component", &"h2".into())
-                  .attr("sx", &Style::new().margin_bottom(1.5).as_ref())
+                  .attr("sx", Style::new().margin_bottom(1.5).as_ref())
                   .build(c!["Hello World!"]),
                 Typography::new().attr("variant", &"body2".into()).build(c![
                   r"Lorem ipsum dolor sit amet, consectetur adipiscing elit,
