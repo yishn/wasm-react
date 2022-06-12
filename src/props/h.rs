@@ -9,19 +9,40 @@ use wasm_bindgen::{
 };
 use web_sys::Element;
 
-pub trait HType {
-  fn with<T>(&self, f: impl FnOnce(&JsValue) -> T) -> T;
-}
+#[doc(hidden)]
+#[derive(Debug, Clone, Copy)]
+pub struct HtmlTag<'a>(pub &'a str);
 
-impl<'a> HType for &'a JsValue {
-  fn with<T>(&self, f: impl FnOnce(&JsValue) -> T) -> T {
-    f(&self)
+impl<'a> AsRef<str> for HtmlTag<'a> {
+  fn as_ref(&self) -> &str {
+    &self.0
   }
 }
 
-impl<'a> HType for &'a str {
-  fn with<T>(&self, f: impl FnOnce(&JsValue) -> T) -> T {
-    f(&(*self).into())
+#[doc(hidden)]
+#[derive(Debug, Clone, Copy)]
+pub struct ImportedComponent<'a>(pub &'a JsValue);
+
+impl<'a> AsRef<JsValue> for ImportedComponent<'a> {
+  fn as_ref(&self) -> &JsValue {
+    &self.0
+  }
+}
+
+#[doc(hidden)]
+pub trait HType {
+  fn with_js<T>(&self, f: impl FnOnce(&JsValue) -> T) -> T;
+}
+
+impl<'a> HType for ImportedComponent<'a> {
+  fn with_js<T>(&self, f: impl FnOnce(&JsValue) -> T) -> T {
+    f(&self.as_ref())
+  }
+}
+
+impl<'a> HType for HtmlTag<'a> {
+  fn with_js<T>(&self, f: impl FnOnce(&JsValue) -> T) -> T {
+    f(&self.as_ref().into())
   }
 }
 
@@ -99,6 +120,6 @@ impl<T: HType> H<T> {
   pub fn build(self, children: VNodeList) -> VNode {
     self
       .typ
-      .with(|typ| create_element(typ, &self.props, children))
+      .with_js(|typ| create_element(typ, &self.props, children))
   }
 }

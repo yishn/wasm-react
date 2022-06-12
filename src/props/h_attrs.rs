@@ -1,4 +1,4 @@
-use super::H;
+use super::{HtmlTag, H};
 use super::{Props, Style};
 use std::borrow::Cow;
 use wasm_bindgen::JsValue;
@@ -22,7 +22,7 @@ macro_rules! impl_attr {
 }
 
 /// Provides auto-completion for DOM attributes on [`H`].
-impl<'a> H<&'a str> {
+impl<'a> H<HtmlTag<'a>> {
   /// Equivalent to `props.dangerouslySetInnerHTML = { __html: value.__html };`.
   ///
   /// See also [React documentation](https://reactjs.org/docs/dom-elements.html#dangerouslysetinnerhtml).

@@ -41,13 +41,13 @@
 #[macro_export]
 macro_rules! h {
   ($tag:literal $( [$( #$id:literal )? $( .$( $classnames:tt )+ )?] )?) => {
-    $crate::props::H::new($tag) $(
+    $crate::props::H::new($crate::props::HtmlTag($tag)) $(
       $( .id($id) )?
       $( .class_name(&$crate::classnames![.$( $classnames )+]) )?
     )?
   };
   ($tag:ident $( [$( #$id:literal )? $( .$( $classnames:tt )+ )?] )?) => {
-    $crate::props::H::new(stringify!($tag)) $(
+    $crate::props::H::new($crate::props::HtmlTag(stringify!($tag))) $(
       $( .id($id) )?
       $( .class_name(&$crate::classnames![.$( $classnames )+]) )?
     )?
@@ -370,8 +370,14 @@ macro_rules! import_components {
       $vis struct $Name;
 
       impl $Name {
-        pub fn new() -> $crate::props::H<&'static JsValue> {
-          $crate::props::H::new(&[<__WASMREACT_IMPORT_ $Name:upper>])
+        pub fn new()
+          -> $crate::props::H<$crate::props::ImportedComponent<'static>>
+        {
+          $crate::props::H::new(
+            $crate::props::ImportedComponent(
+              &[<__WASMREACT_IMPORT_ $Name:upper>]
+            )
+          )
         }
       }
     }
