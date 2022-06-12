@@ -333,15 +333,18 @@ macro_rules! export_components {
 /// # impl Component for App {
 /// fn render(&self) -> VNode {
 ///   h!(div).build(c![
-///     MyComponent::new().attr("prop", &"Hello World!".into())
-///     .build(c![])
+///     MyComponent::new()
+///       .attr("prop", &"Hello World!".into())
+///       .build(c![])
 ///   ])
 /// }
 /// # }
 /// ```
 ///
+/// # Defining Custom Convenience Methods
+///
 /// `MyComponent::new()` returns an [`H<MyComponent>`](crate::props::H) which
-/// can be used to define more convenience methods by using a new trait:
+/// can be used to define convenience methods by using a new extension trait:
 ///
 /// ```
 /// # use wasm_react::{*, props::*};
@@ -363,8 +366,9 @@ macro_rules! export_components {
 /// # impl Component for App {
 /// fn render(&self) -> VNode {
 ///   h!(div).build(c![
-///     MyComponent::new().prop("Hello World!")
-///     .build(c![])
+///     MyComponent::new()
+///       .prop("Hello World!")
+///       .build(c![])
 ///   ])
 /// }
 /// # }

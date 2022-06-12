@@ -74,9 +74,7 @@ impl Props {
     T: FromWasmAbi + 'static,
     U: IntoWasmAbi + 'static,
   {
-    Reflect::set(&self.0, &key.into(), &f.as_js())
-      .expect_throw("cannot write into props object");
-    self
+    self.insert(key, &f.as_js())
   }
 }
 
