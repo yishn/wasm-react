@@ -1,8 +1,8 @@
 /// A convenience macro to [`create_element()`](crate::create_element()) for
 /// creating HTML element nodes.
 ///
-/// Returns an [`H`](crate::props::H) struct that provides auto-completion for
-/// HTML attributes and events.
+/// Returns an [`H<HtmlTag>`](crate::props::H) struct that provides
+/// auto-completion for HTML attributes and events.
 ///
 /// # Example
 ///
@@ -370,6 +370,8 @@ macro_rules! import_components {
       $vis struct $Name;
 
       impl $Name {
+        /// Returns an `H<ImportedComponent>` struct that provides convenience
+        /// methods for adding props.
         pub fn new()
           -> $crate::props::H<$crate::props::ImportedComponent<'static>>
         {

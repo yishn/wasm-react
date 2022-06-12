@@ -29,8 +29,19 @@ impl<'a> AsRef<JsValue> for ImportedComponent<'a> {
   }
 }
 
-#[doc(hidden)]
-pub trait HType {
+mod private {
+  use super::{HtmlTag, ImportedComponent};
+
+  pub trait Sealed {}
+  impl<'a> Sealed for ImportedComponent<'a> {}
+  impl<'a> Sealed for HtmlTag<'a> {}
+}
+
+/// A marker trait for the component type that [`H`] is supposed to build.
+///
+/// Can either be `HtmlTag` or `ImportedComponent`.
+pub trait HType: private::Sealed {
+  #[doc(hidden)]
   fn with_js<T>(&self, f: impl FnOnce(&JsValue) -> T) -> T;
 }
 
@@ -46,8 +57,11 @@ impl<'a> HType for HtmlTag<'a> {
   }
 }
 
-/// The builder that powers [`h!`](crate::h!). This provides auto-completion for
-/// HTML attributes and events.
+/// The component builder that powers [`h!`](crate::h!), which provides
+/// convenience methods for adding props.
+///
+/// In case `T` is `HtmlTag`, [`H<T>`] also provides auto-completion for HTML
+/// attributes and events.
 #[derive(Debug, Clone)]
 pub struct H<T: HType> {
   pub(crate) typ: T,
