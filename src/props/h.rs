@@ -19,36 +19,12 @@ impl<'a> AsRef<str> for HtmlTag<'a> {
   }
 }
 
-#[doc(hidden)]
-#[derive(Debug, Clone, Copy)]
-pub struct ImportedComponent<'a>(pub &'a JsValue);
-
-impl<'a> AsRef<JsValue> for ImportedComponent<'a> {
-  fn as_ref(&self) -> &JsValue {
-    &self.0
-  }
-}
-
-mod private {
-  use super::{HtmlTag, ImportedComponent};
-
-  pub trait Sealed {}
-  impl<'a> Sealed for ImportedComponent<'a> {}
-  impl<'a> Sealed for HtmlTag<'a> {}
-}
-
 /// A marker trait for the component type that [`H`] is supposed to build.
 ///
-/// Can either be `HtmlTag` or `ImportedComponent`.
-pub trait HType: private::Sealed {
-  #[doc(hidden)]
+/// Can either be `HtmlTag` or any imported component.
+pub trait HType {
+  /// Acquires a reference to the [`JsValue`] of this component type.
   fn with_js<T>(&self, f: impl FnOnce(&JsValue) -> T) -> T;
-}
-
-impl<'a> HType for ImportedComponent<'a> {
-  fn with_js<T>(&self, f: impl FnOnce(&JsValue) -> T) -> T {
-    f(&self.as_ref())
-  }
 }
 
 impl<'a> HType for HtmlTag<'a> {
@@ -63,7 +39,7 @@ impl<'a> HType for HtmlTag<'a> {
 /// In case `T` is `HtmlTag`, [`H<T>`] also provides auto-completion for HTML
 /// attributes and events.
 #[derive(Debug, Clone)]
-pub struct H<T: HType> {
+pub struct H<T> {
   pub(crate) typ: T,
   pub(crate) props: Props,
 }

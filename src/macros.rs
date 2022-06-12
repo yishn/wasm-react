@@ -370,16 +370,16 @@ macro_rules! import_components {
       $vis struct $Name;
 
       impl $Name {
-        /// Returns an `H<ImportedComponent>` struct that provides convenience
-        /// methods for adding props.
-        pub fn new()
-          -> $crate::props::H<$crate::props::ImportedComponent<'static>>
-        {
-          $crate::props::H::new(
-            $crate::props::ImportedComponent(
-              &[<__WASMREACT_IMPORT_ $Name:upper>]
-            )
-          )
+        #[doc = "Returns an `H<" $Name ">` struct that provides convenience "
+                "methods for adding props."]
+        pub fn new() -> $crate::props::H<$Name> {
+          $crate::props::H::new($Name)
+        }
+      }
+
+      impl $crate::props::HType for $Name {
+        fn with_js<T>(&self, f: impl FnOnce(&JsValue) -> T) -> T {
+          f(&[<__WASMREACT_IMPORT_ $Name:upper>])
         }
       }
     }
