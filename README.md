@@ -354,6 +354,8 @@ impl Component for App {
 
     h!(div).build(c![
       TaskList {
+        // Cloning `State` has low cost as opposed to cloning the underlying
+        // `Vec`.
         tasks: tasks.clone().into(),
       }
       .build(),
