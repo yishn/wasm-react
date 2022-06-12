@@ -366,16 +366,12 @@ macro_rules! import_components {
       }
 
       $( #[$meta] )*
-      $vis struct $Name<'a>(pub &'a $crate::props::Props);
+      #[derive(Debug, Clone, Copy)]
+      $vis struct $Name;
 
-      impl<'a> $Name<'a> {
-        /// Returns a `VNode` to be included in a render function.
-        pub fn build(self, children: $crate::VNodeList) -> $crate::VNode {
-          $crate::create_element(
-            &[<__WASMREACT_IMPORT_ $Name:upper>],
-            self.0,
-            children
-          )
+      impl $Name {
+        pub fn new() -> $crate::props::H<&'static JsValue> {
+          $crate::props::H::new(&[<__WASMREACT_IMPORT_ $Name:upper>])
         }
       }
     }

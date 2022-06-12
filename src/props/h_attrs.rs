@@ -22,7 +22,7 @@ macro_rules! impl_attr {
 }
 
 /// Provides auto-completion for DOM attributes on [`H`].
-impl<'a> H<'a> {
+impl<'a> H<&'a str> {
   /// Equivalent to `props.dangerouslySetInnerHTML = { __html: value.__html };`.
   ///
   /// See also [React documentation](https://reactjs.org/docs/dom-elements.html#dangerouslysetinnerhtml).
@@ -46,7 +46,9 @@ impl<'a> H<'a> {
   pub fn dangerously_set_inner_html(self, value: &DangerousHtml) -> Self {
     self.attr(
       "dangerouslySetInnerHTML",
-      Props::new().insert("__html", &value.__html[..].into()).as_ref(),
+      Props::new()
+        .insert("__html", &value.__html[..].into())
+        .as_ref(),
     )
   }
 

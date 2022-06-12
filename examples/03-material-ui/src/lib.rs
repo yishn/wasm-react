@@ -1,8 +1,6 @@
 use wasm_bindgen::prelude::*;
 use wasm_react::{
-  c, export_components, import_components,
-  props::{Props, Style},
-  Component,
+  c, export_components, import_components, props::Style, Component,
 };
 
 import_components! {
@@ -15,80 +13,68 @@ pub struct App;
 
 impl Component for App {
   fn render(&self) -> wasm_react::VNode {
-    BoxComponent(&Props::new()).build(c![
+    BoxComponent::new().build(c![
       //
-      AppBar(&Props::new()).build(c![
+      AppBar::new().build(c![
         //
-        Toolbar(&Props::new()).build(c![
-          IconButton(
-            &Props::new()
-              .insert("color", &"inherit".into())
-              .insert("edge", &"start".into())
-              .insert("sx", Style::new().margin_right(2).as_ref())
-          )
-          .build(c![MenuIcon(&Props::new()).build(c![])]),
+        Toolbar::new().build(c![
+          IconButton::new()
+            .attr("color", &"inherit".into())
+            .attr("edge", &"start".into())
+            .attr("sx", Style::new().margin_right(2).as_ref())
+            .build(c![MenuIcon::new().build(c![])]),
           //
-          Typography(
-            &Props::new()
-              .insert("variant", &"h6".into())
-              .insert("color", &"inherit".into())
-              .insert("component", &"h1".into())
-              .insert("sx", Style::new().flex_grow(1).as_ref())
-          )
-          .build(c!["MUI Example Application"]),
+          Typography::new()
+            .attr("variant", &"h6".into())
+            .attr("color", &"inherit".into())
+            .attr("component", &"h1".into())
+            .attr("sx", Style::new().flex_grow(1).as_ref())
+            .build(c!["MUI Example Application"]),
         ]),
       ]),
       //
-      Container(
-        &Props::new().insert(
+      Container::new()
+        .attr(
           "sx",
-          &Style::new()
+          Style::new()
             .margin_top(8)
             .padding_top(2)
             .padding_bottom(2)
             .as_ref()
         )
-      )
-      .build(c![
-        //
-        Card(
-          &Props::new()
-            .insert("variant", &"outlined".into())
-            .insert("sx", Style::new().max_width(345).as_ref())
-        )
         .build(c![
           //
-          CardContent(&Props::new()).build(c![
-            //
-            Typography(
-              &Props::new()
-                .insert("variant", &"h5".into())
-                .insert("component", &"h2".into())
-                .insert("sx", &Style::new().margin_bottom(1.5).as_ref())
-            )
-            .build(c!["Hello World!"]),
-            Typography(
-              //
-              &Props::new().insert("variant", &"body2".into())
-            )
+          Card::new()
+            .attr("variant", &"outlined".into())
+            .attr("sx", Style::new().max_width(345).as_ref())
             .build(c![
-              "Lorem ipsum dolor sit amet, consectetur adipiscing elit, ",
-              "sed do eiusmod tempor incididunt ut labore et dolore magna ",
-              "aliqua. Ut enim ad minim veniam, quis nostrud exercitation ",
-              "ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis ",
-              "aute irure dolor in reprehenderit in voluptate velit esse ",
-              "cillum dolore eu fugiat nulla pariatur. Excepteur sint ",
-              "occaecat cupidatat non proident, sunt in culpa qui officia ",
-              "deserunt mollit anim id est laborum."
+              //
+              CardContent::new().build(c![
+                //
+                Typography::new()
+                  .attr("variant", &"h5".into())
+                  .attr("component", &"h2".into())
+                  .attr("sx", &Style::new().margin_bottom(1.5).as_ref())
+                  .build(c!["Hello World!"]),
+                Typography::new().attr("variant", &"body2".into()).build(c![
+                  r"Lorem ipsum dolor sit amet, consectetur adipiscing elit,
+                  sed do eiusmod tempor incididunt ut labore et dolore magna
+                  aliqua. Ut enim ad minim veniam, quis nostrud exercitation
+                  ullamco laboris nisi ut aliquip ex ea commodo consequat.
+                  Duis aute irure dolor in reprehenderit in voluptate velit
+                  esse cillum dolore eu fugiat nulla pariatur. Excepteur sint
+                  occaecat cupidatat non proident, sunt in culpa qui officia
+                  deserunt mollit anim id est laborum."
+                ])
+              ]),
+              CardActions::new().build(c![
+                //
+                Button::new()
+                  .attr("size", &"small".into())
+                  .build(c!["Learn More"])
+              ])
             ])
-          ]),
-          CardActions(&Props::new()).build(c![
-            //
-            Button(&Props::new().insert("size", &"small".into()))
-              .build(c!["Learn More"])
-          ])
-        ])
-      ]),
+        ]),
     ])
   }
 }

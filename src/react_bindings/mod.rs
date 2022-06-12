@@ -8,7 +8,7 @@ extern "C" {
 
   #[wasm_bindgen(js_name = createElement)]
   pub fn create_element(
-    name: &JsValue,
+    typ: &JsValue,
     props: &JsValue,
     children: &JsValue,
   ) -> JsValue;

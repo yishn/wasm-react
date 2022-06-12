@@ -9,20 +9,36 @@ use wasm_bindgen::{
 };
 use web_sys::Element;
 
+pub trait HType {
+  fn with<T>(&self, f: impl FnOnce(&JsValue) -> T) -> T;
+}
+
+impl<'a> HType for &'a JsValue {
+  fn with<T>(&self, f: impl FnOnce(&JsValue) -> T) -> T {
+    f(&self)
+  }
+}
+
+impl<'a> HType for &'a str {
+  fn with<T>(&self, f: impl FnOnce(&JsValue) -> T) -> T {
+    f(&(*self).into())
+  }
+}
+
 /// The builder that powers [`h!`](crate::h!). This provides auto-completion for
 /// HTML attributes and events.
 #[derive(Debug, Clone)]
-pub struct H<'a> {
-  pub(crate) tag: &'a str,
+pub struct H<T: HType> {
+  pub(crate) typ: T,
   pub(crate) props: Props,
 }
 
-impl<'a> H<'a> {
+impl<T: HType> H<T> {
   /// Creates a new instance of [`H`]. It is recommended to use the
   /// [`h!`](crate::h!) macro instead.
-  pub fn new(tag: &'a str) -> Self {
+  pub fn new(typ: T) -> Self {
     Self {
-      tag,
+      typ,
       props: Props::new(),
     }
   }
@@ -65,14 +81,14 @@ impl<'a> H<'a> {
   }
 
   /// Sets a callback value to an attribute on the [`VNode`].
-  pub fn attr_callback<T, U>(
+  pub fn attr_callback<U, V>(
     mut self,
     key: &str,
-    f: &PersistedCallback<T, U>,
+    f: &PersistedCallback<U, V>,
   ) -> Self
   where
-    T: FromWasmAbi + 'static,
-    U: IntoWasmAbi + 'static,
+    U: FromWasmAbi + 'static,
+    V: IntoWasmAbi + 'static,
   {
     self.props = self.props.insert_callback(key, f);
     self
@@ -81,6 +97,8 @@ impl<'a> H<'a> {
   /// Builds the [`VNode`] and returns it with the given children. Use
   /// [`c!`](crate::c!) for easier construction of the children.
   pub fn build(self, children: VNodeList) -> VNode {
-    create_element(&self.tag.into(), &self.props, children)
+    self
+      .typ
+      .with(|typ| create_element(typ, &self.props, children))
   }
 }
