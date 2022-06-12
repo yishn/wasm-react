@@ -51,7 +51,7 @@ impl Transition {
 ///
 /// h!(div).build(c![
 ///   transition.is_pending().then(||
-///     h!(div).build(c!["Loading..."])
+///     h!(div).build(c!["Loading…"])
 ///   ),
 ///   h!(button).on_click(&handle_click).build(c![]),
 /// ])

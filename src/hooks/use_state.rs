@@ -85,7 +85,7 @@ impl<T> Clone for State<T> {
 ///
 ///       || ()
 ///     }
-///   }, Deps::some(( /* ... */ )));
+///   }, Deps::some(( /* … */ )));
 ///
 ///   h!(div).build(c![state.value().greet])
 /// }

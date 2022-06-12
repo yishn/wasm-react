@@ -169,7 +169,7 @@ where
 
 impl<T, U> Debug for Callback<T, U> {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    f.write_str("Callback(|_| { ... })")
+    f.write_str("Callback(|_| { … })")
   }
 }
 
@@ -217,7 +217,7 @@ pub struct PersistedCallback<T, U = ()>(pub(crate) Callback<T, U>);
 
 impl<T, U> Debug for PersistedCallback<T, U> {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    f.write_str("PersistedCallback(|_| { ... })")
+    f.write_str("PersistedCallback(|_| { … })")
   }
 }
 

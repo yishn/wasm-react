@@ -88,7 +88,7 @@ impl Component for App {
       //
       h!(form).on_submit(&handle_submit).build(c![
         h!(input)
-          .placeholder("Add new item...")
+          .placeholder("Add new item…")
           .value(&**text.value())
           .on_change(&handle_input)
           .build(c![]),

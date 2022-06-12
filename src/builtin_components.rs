@@ -46,10 +46,10 @@ impl Fragment {
 /// # fn f() -> VNode {
 /// Suspense::new()
 ///   .fallback(c![
-///     h!(div[."loading"]).build(c!["Loading..."]),
+///     h!(div[."loading"]).build(c!["Loading…"]),
 ///   ])
 ///   .build(c![
-///     SomeLazyComponent { /* ... */ }.build()
+///     SomeLazyComponent { /* … */ }.build()
 ///   ])
 /// # }
 /// ```
