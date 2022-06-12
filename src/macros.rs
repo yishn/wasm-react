@@ -209,7 +209,7 @@ macro_rules! classnames {
 ///
 /// impl Component for Counter {
 ///   # fn render(&self) -> VNode { VNode::empty() }
-///   /* ... */
+///   /* … */
 /// }
 ///
 /// impl TryFrom<JsValue> for Counter {
@@ -301,9 +301,9 @@ macro_rules! export_components {
 /// ```js
 /// import "https://unpkg.com/react/umd/react.production.min.js";
 ///
-/// export function MyComponent(props) { /* ... */ }
-/// export function PublicComponent(props) { /* ... */ }
-/// export function RenamedComponent(props) { /* ... */ }
+/// export function MyComponent(props) { /* … */ }
+/// export function PublicComponent(props) { /* … */ }
+/// export function RenamedComponent(props) { /* … */ }
 /// ```
 ///
 /// Then you can import them using [`import_components!`]:
@@ -334,6 +334,36 @@ macro_rules! export_components {
 /// fn render(&self) -> VNode {
 ///   h!(div).build(c![
 ///     MyComponent::new().attr("prop", &"Hello World!".into())
+///     .build(c![])
+///   ])
+/// }
+/// # }
+/// ```
+///
+/// `MyComponent::new()` returns an [`H<MyComponent>`](crate::props::H) which
+/// can be used to define more convenience methods by using a new trait:
+///
+/// ```
+/// # use wasm_react::{*, props::*};
+/// # use wasm_bindgen::prelude::*;
+/// # import_components! { #[wasm_bindgen(inline_js = "")] MyComponent }
+/// trait HMyComponentExt {
+///   fn prop(self, value: &str) -> Self;
+/// }
+///
+/// impl HMyComponentExt for H<MyComponent> {
+///   fn prop(self, value: &str) -> Self {
+///     self.attr("prop", &value.into())
+///   }
+/// }
+///
+/// /* … */
+///
+/// # struct App;
+/// # impl Component for App {
+/// fn render(&self) -> VNode {
+///   h!(div).build(c![
+///     MyComponent::new().prop("Hello World!")
 ///     .build(c![])
 ///   ])
 /// }

@@ -1,6 +1,8 @@
 use wasm_bindgen::prelude::*;
 use wasm_react::{
-  c, export_components, import_components, props::Style, Component,
+  c, export_components, import_components,
+  props::{HType, Style, H},
+  Component,
 };
 
 import_components! {
@@ -9,52 +11,64 @@ import_components! {
   Container, Card, CardContent, CardActions, MenuIcon
 }
 
+pub trait MuiComponent: HType {}
+
+macro_rules! impl_mui_component {
+  { $( $Component:ty ),* } => {
+    $( impl MuiComponent for $Component {} )*
+  };
+}
+
+impl_mui_component! {
+  AppBar, Toolbar, Typography, IconButton, Button, BoxComponent,
+  Container, Card, CardContent, CardActions, MenuIcon
+}
+
+pub trait HMuiComponentExt {
+  fn sx(self, style: &Style) -> Self;
+}
+
+impl<T: MuiComponent> HMuiComponentExt for H<T> {
+  fn sx(self, style: &Style) -> Self {
+    self.attr("sx", style.as_ref())
+  }
+}
+
 pub struct App;
 
 impl Component for App {
   fn render(&self) -> wasm_react::VNode {
     BoxComponent::new().build(c![
-      //
       AppBar::new().build(c![
         //
         Toolbar::new().build(c![
           IconButton::new()
             .attr("color", &"inherit".into())
             .attr("edge", &"start".into())
-            .attr("sx", Style::new().margin_right(2).as_ref())
+            .sx(&Style::new().margin_right(2))
             .build(c![MenuIcon::new().build(c![])]),
-          //
           Typography::new()
             .attr("variant", &"h6".into())
             .attr("color", &"inherit".into())
             .attr("component", &"h1".into())
-            .attr("sx", Style::new().flex_grow(1).as_ref())
+            .sx(&Style::new().flex_grow(1))
             .build(c!["MUI Example Application"]),
         ]),
       ]),
       //
       Container::new()
-        .attr(
-          "sx",
-          Style::new()
-            .margin_top(8)
-            .padding_top(2)
-            .padding_bottom(2)
-            .as_ref()
-        )
+        .sx(&Style::new().margin_top(8).padding_top(2).padding_bottom(2))
         .build(c![
           //
           Card::new()
             .attr("variant", &"outlined".into())
-            .attr("sx", Style::new().max_width(345).as_ref())
+            .sx(&Style::new().max_width(345))
             .build(c![
-              //
               CardContent::new().build(c![
-                //
                 Typography::new()
                   .attr("variant", &"h5".into())
                   .attr("component", &"h2".into())
-                  .attr("sx", Style::new().margin_bottom(1.5).as_ref())
+                  .sx(&Style::new().margin_bottom(1.5))
                   .build(c!["Hello World!"]),
                 Typography::new().attr("variant", &"body2".into()).build(c![
                   r"Lorem ipsum dolor sit amet, consectetur adipiscing elit,
