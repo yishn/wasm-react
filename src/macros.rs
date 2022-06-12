@@ -333,7 +333,7 @@ macro_rules! export_components {
 /// # impl Component for App {
 /// fn render(&self) -> VNode {
 ///   h!(div).build(c![
-///     MyComponent(&Props::new().insert("prop", &"Hello World!".into()))
+///     MyComponent::new().attr("prop", &"Hello World!".into())
 ///     .build(c![])
 ///   ])
 /// }
