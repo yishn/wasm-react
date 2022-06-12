@@ -1,8 +1,8 @@
 /// A convenience macro to [`create_element()`](crate::create_element()) for
 /// creating HTML element nodes.
 ///
-/// Returns an [`H`](crate::props::H) struct that provides auto-completion for
-/// HTML attributes and events.
+/// Returns an [`H<HtmlTag>`](crate::props::H) struct that provides
+/// auto-completion for HTML attributes and events.
 ///
 /// # Example
 ///
@@ -41,13 +41,13 @@
 #[macro_export]
 macro_rules! h {
   ($tag:literal $( [$( #$id:literal )? $( .$( $classnames:tt )+ )?] )?) => {
-    $crate::props::H::new($tag) $(
+    $crate::props::H::new($crate::props::HtmlTag($tag)) $(
       $( .id($id) )?
       $( .class_name(&$crate::classnames![.$( $classnames )+]) )?
     )?
   };
   ($tag:ident $( [$( #$id:literal )? $( .$( $classnames:tt )+ )?] )?) => {
-    $crate::props::H::new(stringify!($tag)) $(
+    $crate::props::H::new($crate::props::HtmlTag(stringify!($tag))) $(
       $( .id($id) )?
       $( .class_name(&$crate::classnames![.$( $classnames )+]) )?
     )?
@@ -333,7 +333,7 @@ macro_rules! export_components {
 /// # impl Component for App {
 /// fn render(&self) -> VNode {
 ///   h!(div).build(c![
-///     MyComponent(&Props::new().insert("prop", &"Hello World!".into()))
+///     MyComponent::new().attr("prop", &"Hello World!".into())
 ///     .build(c![])
 ///   ])
 /// }
@@ -366,15 +366,19 @@ macro_rules! import_components {
       }
 
       $( #[$meta] )*
-      $vis struct $Name<'a>(pub &'a $crate::props::Props);
+      #[derive(Debug, Clone, Copy)]
+      $vis struct $Name;
 
-      impl<'a> $Name<'a> {
-        /// Returns a `VNode` to be included in a render function.
-        pub fn build(self, children: $crate::VNodeList) -> $crate::VNode {
-          $crate::create_element(
-            &[<__WASMREACT_IMPORT_ $Name:upper>],
-            self.0,
-            children
+      impl $Name {
+        /// Returns an `H<ImportedComponent>` struct that provides convenience
+        /// methods for adding props.
+        pub fn new()
+          -> $crate::props::H<$crate::props::ImportedComponent<'static>>
+        {
+          $crate::props::H::new(
+            $crate::props::ImportedComponent(
+              &[<__WASMREACT_IMPORT_ $Name:upper>]
+            )
           )
         }
       }

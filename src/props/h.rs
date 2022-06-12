@@ -9,20 +9,71 @@ use wasm_bindgen::{
 };
 use web_sys::Element;
 
-/// The builder that powers [`h!`](crate::h!). This provides auto-completion for
-/// HTML attributes and events.
+#[doc(hidden)]
+#[derive(Debug, Clone, Copy)]
+pub struct HtmlTag<'a>(pub &'a str);
+
+impl<'a> AsRef<str> for HtmlTag<'a> {
+  fn as_ref(&self) -> &str {
+    &self.0
+  }
+}
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Copy)]
+pub struct ImportedComponent<'a>(pub &'a JsValue);
+
+impl<'a> AsRef<JsValue> for ImportedComponent<'a> {
+  fn as_ref(&self) -> &JsValue {
+    &self.0
+  }
+}
+
+mod private {
+  use super::{HtmlTag, ImportedComponent};
+
+  pub trait Sealed {}
+  impl<'a> Sealed for ImportedComponent<'a> {}
+  impl<'a> Sealed for HtmlTag<'a> {}
+}
+
+/// A marker trait for the component type that [`H`] is supposed to build.
+///
+/// Can either be `HtmlTag` or `ImportedComponent`.
+pub trait HType: private::Sealed {
+  #[doc(hidden)]
+  fn with_js<T>(&self, f: impl FnOnce(&JsValue) -> T) -> T;
+}
+
+impl<'a> HType for ImportedComponent<'a> {
+  fn with_js<T>(&self, f: impl FnOnce(&JsValue) -> T) -> T {
+    f(&self.as_ref())
+  }
+}
+
+impl<'a> HType for HtmlTag<'a> {
+  fn with_js<T>(&self, f: impl FnOnce(&JsValue) -> T) -> T {
+    f(&self.as_ref().into())
+  }
+}
+
+/// The component builder that powers [`h!`](crate::h!), which provides
+/// convenience methods for adding props.
+///
+/// In case `T` is `HtmlTag`, [`H<T>`] also provides auto-completion for HTML
+/// attributes and events.
 #[derive(Debug, Clone)]
-pub struct H<'a> {
-  pub(crate) tag: &'a str,
+pub struct H<T: HType> {
+  pub(crate) typ: T,
   pub(crate) props: Props,
 }
 
-impl<'a> H<'a> {
+impl<T: HType> H<T> {
   /// Creates a new instance of [`H`]. It is recommended to use the
   /// [`h!`](crate::h!) macro instead.
-  pub fn new(tag: &'a str) -> Self {
+  pub fn new(typ: T) -> Self {
     Self {
-      tag,
+      typ,
       props: Props::new(),
     }
   }
@@ -65,14 +116,14 @@ impl<'a> H<'a> {
   }
 
   /// Sets a callback value to an attribute on the [`VNode`].
-  pub fn attr_callback<T, U>(
+  pub fn attr_callback<U, V>(
     mut self,
     key: &str,
-    f: &PersistedCallback<T, U>,
+    f: &PersistedCallback<U, V>,
   ) -> Self
   where
-    T: FromWasmAbi + 'static,
-    U: IntoWasmAbi + 'static,
+    U: FromWasmAbi + 'static,
+    V: IntoWasmAbi + 'static,
   {
     self.props = self.props.insert_callback(key, f);
     self
@@ -81,6 +132,8 @@ impl<'a> H<'a> {
   /// Builds the [`VNode`] and returns it with the given children. Use
   /// [`c!`](crate::c!) for easier construction of the children.
   pub fn build(self, children: VNodeList) -> VNode {
-    create_element(&self.tag.into(), &self.props, children)
+    self
+      .typ
+      .with_js(|typ| create_element(typ, &self.props, children))
   }
 }
