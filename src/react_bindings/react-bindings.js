@@ -88,5 +88,5 @@ export function childrenToArray(children) {
 }
 
 export function castToUsize(value) {
-  return +value;
+  return value;
 }
