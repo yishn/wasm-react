@@ -110,9 +110,13 @@ impl Component for TaskList {
   fn render(&self) -> VNode {
     h!(div[."task-list"]).build(c![
       //
-      h!(ul).build(c![
-        ..self.tasks.value().iter().enumerate().map(
-          |(i, (done, description))| {
+      h!(ul).build(
+        self
+          .tasks
+          .value()
+          .iter()
+          .enumerate()
+          .map(|(i, (done, description))| {
             TaskItem {
               id: i,
               description: description.clone(),
@@ -120,9 +124,9 @@ impl Component for TaskList {
               on_change: self.on_change.clone(),
             }
             .build_with_key(Some(&i.to_string()))
-          }
-        )
-      ])
+          })
+          .collect()
+      )
     ])
   }
 }
