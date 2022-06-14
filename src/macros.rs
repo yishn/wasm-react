@@ -258,16 +258,30 @@ macro_rules! classnames {
 /// #   type Error = JsValue;
 /// #   fn try_from(_: JsValue) -> Result<Self, Self::Error> { todo!() }
 /// # }
-/// export_components! { App as CounterApp, Counter }
+/// export_components! {
+///   /// Some doc comment for the exported component.
+///   App as CounterApp,
+///   Counter
+/// }
 /// ```
 #[macro_export]
 macro_rules! export_components {
   {} => {};
-  { $Component:ident $( , $( $tail:tt )* )? } => {
-    $crate::export_components! { $Component as $Component $( , $( $tail )* )? }
+  {
+    $( #[$meta:meta] )*
+    $Component:ident $( , $( $tail:tt )* )?
+  } => {
+    $crate::export_components! {
+      $( #[$meta] )*
+      $Component as $Component $( , $( $tail )* )?
+    }
   };
-  { $Component:ty as $Name:ident $( , $( $tail:tt )* )? } => {
+  {
+    $( #[$meta:meta] )*
+    $Component:ty as $Name:ident $( , $( $tail:tt )* )?
+  } => {
     $crate::paste! {
+      $( #[$meta] )*
       #[allow(non_snake_case)]
       #[allow(dead_code)]
       #[doc(hidden)]

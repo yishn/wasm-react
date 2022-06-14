@@ -99,7 +99,10 @@ impl Component for App {
   }
 }
 
-export_components! { App }
+export_components! {
+  /// This is the entry component for our Todo application
+  App
+}
 
 struct TaskList {
   tasks: ValueContainer<Vec<(bool, Rc<str>)>>,
