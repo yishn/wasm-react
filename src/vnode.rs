@@ -109,13 +109,6 @@ impl VNodeList {
     self.empty = false;
     self.arr.push(node.as_ref());
   }
-
-  /// Adds the given node list to the list.
-  pub fn extend(&mut self, iter: impl Iterator<Item = VNode>) {
-    for node in iter {
-      self.push(&node);
-    }
-  }
 }
 
 impl AsRef<JsValue> for VNodeList {
