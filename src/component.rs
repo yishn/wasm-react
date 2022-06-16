@@ -1,5 +1,8 @@
 use crate::{react_bindings, VNode};
-use std::{any::type_name, rc::Rc};
+use std::{
+  any::{type_name, Any},
+  rc::Rc,
+};
 use wasm_bindgen::prelude::*;
 
 /// Implement this trait on a struct to create a component with the struct as
@@ -72,5 +75,36 @@ impl ComponentWrapper {
   #[wasm_bindgen]
   pub fn render(&self) -> JsValue {
     self.0.render().into()
+  }
+}
+
+#[doc(hidden)]
+pub trait MemoComponent: Component {
+  fn eq(&self, other: &dyn Any) -> bool;
+}
+
+impl<T: Component + PartialEq> MemoComponent for T {
+  fn eq(&self, other: &dyn Any) -> bool {
+    other
+      .downcast_ref::<T>()
+      .map(|other| PartialEq::eq(self, other))
+      .unwrap_or(false)
+  }
+}
+
+#[doc(hidden)]
+#[wasm_bindgen(js_name = __WasmReact_MemoComponentWrapper)]
+pub struct MemoComponentWrapper(pub(crate) Box<dyn MemoComponent>);
+
+#[wasm_bindgen(js_class = __WasmReact_MemoComponentWrapper)]
+impl MemoComponentWrapper {
+  #[wasm_bindgen]
+  pub fn render(&self) -> JsValue {
+    self.0.render().into()
+  }
+
+  #[wasm_bindgen]
+  pub fn eq(&self, other: &MemoComponentWrapper) -> bool {
+    self.0.eq(&other.0)
   }
 }
