@@ -1,8 +1,8 @@
 use crate::{
   props::{HType, H},
-  react_bindings, VNodeList,
+  react_bindings, Component, MemoComponentWrapper, VNode, VNodeList,
 };
-use std::borrow::Cow;
+use std::{any::type_name, borrow::Cow};
 use wasm_bindgen::JsValue;
 
 /// Can be used to create a [React fragment][fragment].
@@ -84,5 +84,63 @@ impl H<Suspense> {
   /// Sets a fallback when loading lazy descendant components.
   pub fn fallback(self, children: VNodeList) -> Self {
     self.attr("fallback", children.as_ref())
+  }
+}
+
+/// Wraps your component to let React skip rendering it if props haven't changed.
+///
+/// If your component renders the same result given the same props, you can
+/// memoize your component with [`Memo`] for a performance boost.
+///
+/// You have to implement [`PartialEq`] on your [`Component`] for this to work.
+///
+/// # Example
+///
+/// ```
+/// # use std::rc::Rc;
+/// # use wasm_react::*;
+/// #[derive(PartialEq)]
+/// struct MessageBox {
+///   message: Rc<str>,
+/// }
+///
+/// impl Component for MessageBox {
+///   fn render(&self) -> VNode {
+///     h!(h1[."message-box"]).build(c![&*self.message])
+///   }
+/// }
+///
+/// struct App;
+///
+/// impl Component for App {
+///   fn render(&self) -> VNode {
+///     h!(div[#"app"]).build(c![
+///       Memo(MessageBox {
+///         message: Rc::from("Hello World!"),
+///       })
+///       .build()
+///     ])
+///   }
+/// }
+/// ```
+pub struct Memo<T: Component + PartialEq>(pub T);
+
+impl<T: Component + PartialEq> Memo<T> {
+  /// Returns a [`VNode`] to be included in a render function.
+  pub fn build(self) -> VNode {
+    self.build_with_key(None)
+  }
+
+  /// Returns a [`VNode`] to be included in a render function with the given
+  /// [React key].
+  ///
+  /// [React key]: https://reactjs.org/docs/lists-and-keys.html
+  pub fn build_with_key(self, key: Option<&str>) -> VNode {
+    VNode(react_bindings::create_rust_memo_component(
+      // This does not uniquely identify the component, but it is good enough
+      type_name::<T>(),
+      key,
+      MemoComponentWrapper(Box::new(self.0)),
+    ))
   }
 }

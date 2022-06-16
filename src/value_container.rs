@@ -1,4 +1,4 @@
-use crate::hooks::{DeferredValue, RefContainer, State, Memo};
+use crate::hooks::{DeferredValue, MemoValue, RefContainer, State};
 use std::{
   cell::{Ref, RefCell},
   ops::Deref,
@@ -90,6 +90,12 @@ define_value_container! {
   RcRefCell(x: Rc<RefCell<T>>) => Ref(x.borrow()),
   RefContainer(x: RefContainer<T>) => Ref(x.current()),
   State(x: State<T>) => Ref(x.value()),
-  Memo(x: Memo<T>) => Ref(x.value()),
+  Memo(x: MemoValue<T>) => Ref(x.value()),
   DeferredValue(x: DeferredValue<T>) => Ref(x.value()),
+}
+
+impl<T: PartialEq + 'static> PartialEq for ValueContainer<T> {
+  fn eq(&self, other: &Self) -> bool {
+    T::eq(&self.value(), &other.value())
+  }
 }

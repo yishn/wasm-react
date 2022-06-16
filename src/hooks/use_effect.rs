@@ -81,7 +81,7 @@ where
   use_effect_inner(effect, deps, react_bindings::use_rust_effect);
 }
 
-/// Like [`use_effect()`], but it fires synchronously after all DOM mutations.
+/// Same as [`use_effect()`], but it fires synchronously after all DOM mutations.
 ///
 /// See [React documentation](https://reactjs.org/docs/hooks-reference.html#uselayouteffect).
 pub fn use_layout_effect<G, D>(

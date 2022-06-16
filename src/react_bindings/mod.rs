@@ -1,3 +1,4 @@
+use crate::{ComponentWrapper, MemoComponentWrapper};
 use js_sys::{Array, Function};
 use wasm_bindgen::prelude::*;
 
@@ -16,8 +17,15 @@ extern "C" {
   #[wasm_bindgen(js_name = createRustComponent)]
   pub fn create_rust_component(
     name: &str,
-    key: &JsValue,
-    component: &JsValue,
+    key: Option<&str>,
+    component: ComponentWrapper,
+  ) -> JsValue;
+
+  #[wasm_bindgen(js_name = createRustMemoComponent)]
+  pub fn create_rust_memo_component(
+    name: &str,
+    key: Option<&str>,
+    component: MemoComponentWrapper,
   ) -> JsValue;
 
   #[wasm_bindgen(js_name = useRustRef)]
