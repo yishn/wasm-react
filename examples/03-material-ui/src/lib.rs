@@ -1,7 +1,7 @@
 use wasm_bindgen::prelude::*;
 use wasm_react::{
   c, export_components, import_components,
-  props::{HType, Style, H},
+  props::{Style, H},
   Component,
 };
 
@@ -11,27 +11,25 @@ import_components! {
   Container, Card, CardContent, CardActions, MenuIcon
 }
 
-pub trait MuiComponent: HType {}
+pub trait HMuiComponentExt {
+  fn sx(self, style: &Style) -> Self;
+}
 
 macro_rules! impl_mui_component {
   { $( $Component:ty ),* } => {
-    $( impl MuiComponent for $Component {} )*
+    $(
+      impl HMuiComponentExt for H<$Component> {
+        fn sx(self, style: &Style) -> Self {
+          self.attr("sx", style.as_ref())
+        }
+      }
+    )*
   };
 }
 
 impl_mui_component! {
   AppBar, Toolbar, Typography, IconButton, Button, BoxComponent,
   Container, Card, CardContent, CardActions, MenuIcon
-}
-
-pub trait HMuiComponentExt {
-  fn sx(self, style: &Style) -> Self;
-}
-
-impl<T: MuiComponent> HMuiComponentExt for H<T> {
-  fn sx(self, style: &Style) -> Self {
-    self.attr("sx", style.as_ref())
-  }
 }
 
 pub struct App;
