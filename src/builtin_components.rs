@@ -87,7 +87,7 @@ impl H<Suspense> {
   }
 }
 
-/// Wraps your component to let React skip rendering it if props haven't changed.
+/// Wraps your component to let React skip rendering if props haven't changed.
 ///
 /// If your component renders the same result given the same props, you can
 /// memoize your component with [`Memo`] for a performance boost.
