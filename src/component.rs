@@ -54,8 +54,8 @@ pub trait Component: 'static {
     VNode(react_bindings::create_rust_component(
       // This does not uniquely identify the component, but it is good enough
       type_name::<Self>(),
-      &key.into(),
-      &ComponentWrapper(Box::new(self)).into(),
+      key,
+      ComponentWrapper(Box::new(self)),
     ))
   }
 }
@@ -78,8 +78,7 @@ impl ComponentWrapper {
   }
 }
 
-#[doc(hidden)]
-pub trait MemoComponent: Component {
+pub(crate) trait MemoComponent: Component {
   fn eq(&self, other: &dyn Any) -> bool;
 }
 

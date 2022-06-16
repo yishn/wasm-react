@@ -8,8 +8,12 @@ export function useReact(value) {
   }
 }
 
+export function createElement(name, props, children = []) {
+  return React.createElement(name, props, ...children);
+}
+
 function renderRustComponent(props) {
-  // `component` is a `ComponentWrapper`
+  // `component` is a `ComponentWrapper` or `MemoComponentWrapper`
   let component = props.component;
 
   // We need to free up the memory on Rust side whenever the old props
@@ -33,12 +37,38 @@ function getRustComponent(name) {
   return components[name];
 }
 
-export function createElement(name, props, children = []) {
-  return React.createElement(name, props, ...children);
-}
-
 export function createRustComponent(name, key, component) {
   return React.createElement(getRustComponent(name), {
+    key,
+    component,
+  });
+}
+
+function getRustMemoComponent(name) {
+  const memoName = `wasm_react::Memo<${name}>`;
+
+  if (components[memoName] == null) {
+    Object.assign(components, {
+      [memoName]: React.memo(getRustComponent(name), (prevProps, nextProps) => {
+        // `component` is a `MemoComponentWrapper`
+        const equal = prevProps.component.eq(nextProps.component);
+
+        if (equal) {
+          // Since rerender is going to be prevented, we need to dispose of
+          // `nextProps` manually.
+          nextProps.component.free();
+        }
+
+        return equal;
+      }),
+    });
+  }
+
+  return components[name];
+}
+
+export function createRustMemoComponent(name, key, component) {
+  return React.createElement(getRustMemoComponent(name), {
     key,
     component,
   });
