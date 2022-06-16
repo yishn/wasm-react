@@ -64,7 +64,7 @@ function getRustMemoComponent(name) {
     });
   }
 
-  return components[name];
+  return components[memoName];
 }
 
 export function createRustMemoComponent(name, key, component) {

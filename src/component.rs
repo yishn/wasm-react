@@ -79,10 +79,15 @@ impl ComponentWrapper {
 }
 
 pub(crate) trait MemoComponent: Component {
+  fn as_any(&self) -> &dyn Any;
   fn eq(&self, other: &dyn Any) -> bool;
 }
 
 impl<T: Component + PartialEq> MemoComponent for T {
+  fn as_any(&self) -> &dyn Any {
+    self
+  }
+
   fn eq(&self, other: &dyn Any) -> bool {
     other
       .downcast_ref::<T>()
@@ -104,6 +109,6 @@ impl MemoComponentWrapper {
 
   #[wasm_bindgen]
   pub fn eq(&self, other: &MemoComponentWrapper) -> bool {
-    self.0.eq(&other.0)
+    self.0.eq(other.0.as_any())
   }
 }
