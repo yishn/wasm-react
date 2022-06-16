@@ -1,6 +1,6 @@
 use crate::{
   props::{HType, H},
-  react_bindings, VNode, VNodeList,
+  react_bindings, VNodeList,
 };
 use wasm_bindgen::JsValue;
 
@@ -14,7 +14,7 @@ use wasm_bindgen::JsValue;
 /// # use wasm_react::*;
 /// #
 /// # fn f() -> VNode {
-/// Fragment.build(c![
+/// Fragment::new().build(c![
 ///   h!(h1).build(c!["Hello World!"]),
 ///   h!(div).build(c!["No wrapper element"]),
 /// ])
@@ -30,9 +30,9 @@ impl HType for Fragment {
 }
 
 impl Fragment {
-  /// Returns a [`VNode`] to be included in a render function.
-  pub fn build(self, children: VNodeList) -> VNode {
-    H::new(Fragment).build(children)
+  /// Creates a new `React.Fragment` component builder.
+  pub fn new() -> H<Fragment> {
+    H::new(Fragment)
   }
 }
 
@@ -75,7 +75,7 @@ impl HType for Suspense {
 impl Suspense {
   /// Creates a new `React.Suspense` component builder.
   pub fn new() -> H<Suspense> {
-    H::new(Suspense::default())
+    H::new(Suspense)
   }
 }
 
