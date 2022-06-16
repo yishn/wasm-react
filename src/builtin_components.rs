@@ -1,4 +1,8 @@
-use crate::{create_element, props::Props, react_bindings, VNode, VNodeList};
+use crate::{
+  props::{HType, H},
+  react_bindings, VNode, VNodeList,
+};
+use wasm_bindgen::JsValue;
 
 /// Can be used to create a [React fragment][fragment].
 ///
@@ -19,10 +23,16 @@ use crate::{create_element, props::Props, react_bindings, VNode, VNodeList};
 #[derive(Debug, Default, Clone, Copy)]
 pub struct Fragment;
 
+impl HType for Fragment {
+  fn with_js<T>(&self, f: impl FnOnce(&JsValue) -> T) -> T {
+    f(&react_bindings::FRAGMENT)
+  }
+}
+
 impl Fragment {
   /// Returns a [`VNode`] to be included in a render function.
   pub fn build(self, children: VNodeList) -> VNode {
-    create_element(&react_bindings::FRAGMENT, &Props::new(), children)
+    H::new(Fragment).build(children)
   }
 }
 
@@ -53,39 +63,25 @@ impl Fragment {
 ///   ])
 /// # }
 /// ```
-#[derive(Debug, Default, Clone)]
-pub struct Suspense {
-  fallback: VNodeList,
+#[derive(Debug, Default, Clone, Copy)]
+pub struct Suspense;
+
+impl HType for Suspense {
+  fn with_js<T>(&self, f: impl FnOnce(&JsValue) -> T) -> T {
+    f(&react_bindings::SUSPENSE)
+  }
 }
 
 impl Suspense {
   /// Creates a new `React.Suspense` component builder.
-  pub fn new() -> Self {
-    Self::default()
+  pub fn new() -> H<Suspense> {
+    H::new(Suspense::default())
   }
+}
 
+impl H<Suspense> {
   /// Sets a fallback when loading lazy descendant components.
-  pub fn fallback(mut self, children: VNodeList) -> Self {
-    self.fallback = children;
-    self
-  }
-
-  /// Returns a [`VNode`] to be included in a render function.
-  pub fn build(self, children: VNodeList) -> VNode {
-    self.build_with_key(None, children)
-  }
-
-  /// Returns a [`VNode`] to be included in the render function of a component
-  /// with the given [React key].
-  ///
-  /// [React key]: https://reactjs.org/docs/lists-and-keys.html
-  pub fn build_with_key(self, key: Option<&str>, children: VNodeList) -> VNode {
-    create_element(
-      &react_bindings::SUSPENSE,
-      &Props::new()
-        .key(key)
-        .insert("fallback", self.fallback.as_ref()),
-      children,
-    )
+  pub fn fallback(self, children: VNodeList) -> Self {
+    self.attr("fallback", children.as_ref())
   }
 }
