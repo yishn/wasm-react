@@ -133,14 +133,14 @@ where
       let mut borrow = self.js.borrow_mut();
 
       if borrow.is_none() {
-        *borrow = Some(Closure::wrap(Box::new({
+        *borrow = Some(Closure::new({
           let closure = self.closure.clone();
 
           move |arg| {
             let mut f = closure.borrow_mut();
             f(arg)
           }
-        })));
+        }));
       }
     }
 
