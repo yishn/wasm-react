@@ -426,8 +426,8 @@ macro_rules! import_components {
       }
 
       impl $crate::props::HType for $Name {
-        fn with_js<T>(&self, f: impl FnOnce(&JsValue) -> T) -> T {
-          f(&[<__WASMREACT_IMPORT_ $Name:upper>])
+        fn as_js(&self) -> std::borrow::Cow<'_, JsValue> {
+          std::borrow::Cow::Borrowed(&[<__WASMREACT_IMPORT_ $Name:upper>])
         }
       }
     }

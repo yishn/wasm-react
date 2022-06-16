@@ -2,6 +2,7 @@ use crate::{
   props::{HType, H},
   react_bindings, VNodeList,
 };
+use std::borrow::Cow;
 use wasm_bindgen::JsValue;
 
 /// Can be used to create a [React fragment][fragment].
@@ -24,8 +25,8 @@ use wasm_bindgen::JsValue;
 pub struct Fragment;
 
 impl HType for Fragment {
-  fn with_js<T>(&self, f: impl FnOnce(&JsValue) -> T) -> T {
-    f(&react_bindings::FRAGMENT)
+  fn as_js(&self) -> Cow<'_, JsValue> {
+    Cow::Borrowed(&react_bindings::FRAGMENT)
   }
 }
 
@@ -67,8 +68,8 @@ impl Fragment {
 pub struct Suspense;
 
 impl HType for Suspense {
-  fn with_js<T>(&self, f: impl FnOnce(&JsValue) -> T) -> T {
-    f(&react_bindings::SUSPENSE)
+  fn as_js(&self) -> Cow<'_, JsValue> {
+    Cow::Borrowed(&react_bindings::SUSPENSE)
   }
 }
 

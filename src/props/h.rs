@@ -3,6 +3,7 @@ use crate::{
   callback::PersistedCallback, create_element, hooks::JsRefContainer, VNode,
   VNodeList,
 };
+use std::borrow::Cow;
 use wasm_bindgen::{
   convert::{FromWasmAbi, IntoWasmAbi},
   JsValue,
@@ -23,13 +24,13 @@ impl<'a> AsRef<str> for HtmlTag<'a> {
 ///
 /// Can either be `HtmlTag` or any imported component.
 pub trait HType {
-  /// Acquires a reference to the [`JsValue`] of this component type.
-  fn with_js<T>(&self, f: impl FnOnce(&JsValue) -> T) -> T;
+  /// Returns a reference to the [`JsValue`] of this component type.
+  fn as_js(&self) -> Cow<'_, JsValue>;
 }
 
 impl<'a> HType for HtmlTag<'a> {
-  fn with_js<T>(&self, f: impl FnOnce(&JsValue) -> T) -> T {
-    f(&self.as_ref().into())
+  fn as_js(&self) -> Cow<'_, JsValue> {
+    Cow::Owned(self.0.into())
   }
 }
 
@@ -108,8 +109,6 @@ impl<T: HType> H<T> {
   /// Builds the [`VNode`] and returns it with the given children. Use
   /// [`c!`](crate::c!) for easier construction of the children.
   pub fn build(self, children: VNodeList) -> VNode {
-    self
-      .typ
-      .with_js(|typ| create_element(typ, &self.props, children))
+    create_element(&self.typ.as_js(), &self.props, children)
   }
 }
