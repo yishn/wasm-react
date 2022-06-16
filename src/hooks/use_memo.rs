@@ -5,9 +5,9 @@ use wasm_bindgen::UnwrapThrowExt;
 
 /// Allows access to the underlying memoized data persisted with [`use_memo()`].
 #[derive(Debug)]
-pub struct Memo<T>(RefContainer<Option<T>>);
+pub struct MemoValue<T>(RefContainer<Option<T>>);
 
-impl<T: 'static> Memo<T> {
+impl<T: 'static> MemoValue<T> {
   /// Returns a reference to the underlying memoized data.
   pub fn value(&self) -> Ref<'_, T> {
     Ref::map(self.0.current(), |x| {
@@ -16,13 +16,13 @@ impl<T: 'static> Memo<T> {
   }
 }
 
-impl<T: 'static> Persisted for Memo<T> {
+impl<T: 'static> Persisted for MemoValue<T> {
   fn ptr(&self) -> PersistedOrigin {
     self.0.ptr()
   }
 }
 
-impl<T> Clone for Memo<T> {
+impl<T> Clone for MemoValue<T> {
   fn clone(&self) -> Self {
     Self(self.0.clone())
   }
@@ -51,7 +51,7 @@ impl<T> Clone for Memo<T> {
 /// }
 /// # }
 /// ```
-pub fn use_memo<T, D>(create: impl FnOnce() -> T, deps: Deps<D>) -> Memo<T>
+pub fn use_memo<T, D>(create: impl FnOnce() -> T, deps: Deps<D>) -> MemoValue<T>
 where
   T: 'static,
   D: PartialEq + 'static,
@@ -71,5 +71,5 @@ where
     value_ref_container.set_current(Some(create()));
   }
 
-  Memo(value_ref_container)
+  MemoValue(value_ref_container)
 }
