@@ -166,7 +166,7 @@ impl<T: 'static> Component for ContextProvider<T> {
       );
 
       create_element(
-        &Reflect::get(&context.js_context, &"Provider".into())
+        &Reflect::get(context.as_ref(), &"Provider".into())
           .expect_throw("cannot read from context object"),
         &Props::new().insert("value", value_ref.as_ref()),
         self.children.clone(),
