@@ -41,7 +41,7 @@ pub struct WasmReact;
 impl WasmReact {
   /// Set the React runtime that `wasm-react` should use.
   ///
-  /// Calling this function the multiple times will result in no-ops.
+  /// Calling this function multiple times will result in no-ops.
   ///
   /// # Example
   ///
