@@ -5,7 +5,7 @@ use wasm_react::{
   callback::Callback,
   export_components, h,
   hooks::{use_callback, use_state, Deps},
-  Component, Memo, VNode, ValueContainer,
+  Component, VNode, ValueContainer,
 };
 use web_sys::{Event, HtmlInputElement};
 
@@ -120,12 +120,13 @@ impl Component for TaskList {
           .iter()
           .enumerate()
           .map(|(i, (done, description))| {
-            Memo(TaskItem {
+            TaskItem {
               id: i,
               description: description.clone(),
               done: *done,
               on_change: self.on_change.clone(),
-            })
+            }
+            .memoized()
             .build_with_key(Some(&i.to_string()))
           })
           .collect()
