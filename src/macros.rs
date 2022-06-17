@@ -94,7 +94,7 @@ macro_rules! c {
 
   // Handle iterators
   [@single $list:ident << ..$vnode_list:expr $(, $( $tail:tt )* )?] => {
-    $list.extend($vnode_list);
+    $list.push(&$vnode_list.collect::<$crate::VNodeList>().into());
     $crate::c![@single $list << $( $( $tail )* )?];
   };
 

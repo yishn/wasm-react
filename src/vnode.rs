@@ -123,6 +123,12 @@ impl From<VNodeList> for JsValue {
   }
 }
 
+impl From<VNodeList> for VNode {
+  fn from(value: VNodeList) -> Self {
+    VNode(value.into())
+  }
+}
+
 impl TryFrom<JsValue> for VNodeList {
   type Error = JsValue;
 
