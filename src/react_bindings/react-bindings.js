@@ -129,6 +129,6 @@ export function childrenToArray(children) {
   return React.Children.toArray(children);
 }
 
-export function castToUsize(value) {
+export function cast(value) {
   return value;
 }

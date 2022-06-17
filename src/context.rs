@@ -142,7 +142,10 @@ impl<T: 'static> Component for ContextProvider<T> {
             props = props.insert(
               "value",
               Props::new()
-                .insert("ptr", &(Rc::as_ptr(value) as usize).into())
+                .insert(
+                  "ptr",
+                  &react_bindings::cast_usize_to_js(Rc::as_ptr(value) as usize),
+                )
                 .as_ref(),
             );
           }
