@@ -32,7 +32,8 @@ impl Component for App {
           let value = theme.value();
           value.clone()
         }))
-        .build(c![])
+        .children(c![])
+        .build()
     ])
   }
 }

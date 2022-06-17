@@ -55,7 +55,7 @@ impl<T> From<Context<T>> for JsValue {
 ///     // In this example, we are passing down `Theme::DarkMode`.
 ///
 ///     ContextProvider::from(&THEME_CONTEXT)
-///       .value(Some(Theme::DarkMode).into())
+///       .value(Some(Theme::DarkMode.into()))
 ///       .children(c![Toolbar.build()])
 ///       .build()
 ///   }
