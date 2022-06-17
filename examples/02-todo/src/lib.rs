@@ -123,7 +123,8 @@ impl Component for TaskList {
               on_change: self.on_change.clone(),
             }
             .memoized()
-            .build_with_key(Some(&i.to_string()))
+            .key(Some(&i.to_string()))
+            .build()
           }
         )
       ])

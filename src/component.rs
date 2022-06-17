@@ -35,26 +35,22 @@ pub trait Component: 'static {
   /// [`Component::build()`] to include your component.
   fn render(&self) -> VNode;
 
-  /// Returns a [`VNode`] to be included in a render function.
-  fn build(self) -> VNode
+  fn key(self, key: Option<&str>) -> Keyed<Self>
   where
     Self: Sized,
   {
-    self.build_with_key(None)
+    Keyed(self, key)
   }
 
-  /// Returns a [`VNode`] to be included in a render function with the given
-  /// [React key].
-  ///
-  /// [React key]: https://reactjs.org/docs/lists-and-keys.html
-  fn build_with_key(self, key: Option<&str>) -> VNode
+  /// Returns a [`VNode`] to be included in a render function.
+  fn build(self) -> VNode
   where
     Self: Sized,
   {
     VNode(react_bindings::create_rust_component(
       // This does not uniquely identify the component, but it is good enough
       type_name::<Self>(),
-      key,
+      None,
       ComponentWrapper(Box::new(self)),
     ))
   }
@@ -111,26 +107,48 @@ impl<T: Component> Component for Rc<T> {
   }
 }
 
+pub struct Keyed<'a, T>(pub(crate) T, pub(crate) Option<&'a str>);
+
+impl<T: Component> Keyed<'_, T> {
+  /// Returns a [`VNode`] to be included in a render function.
+  pub fn build(self) -> VNode {
+    VNode(react_bindings::create_rust_component(
+      // This does not uniquely identify the component, but it is good enough
+      type_name::<Self>(),
+      self.1,
+      ComponentWrapper(Box::new(self.0)),
+    ))
+  }
+}
+
+impl<T: Component + PartialEq> Keyed<'_, Memoized<T>> {
+  /// Returns a [`VNode`] to be included in a render function.
+  pub fn build(self) -> VNode {
+    VNode(react_bindings::create_rust_memo_component(
+      // This does not uniquely identify the component, but it is good enough
+      type_name::<T>(),
+      self.1,
+      MemoComponentWrapper(Box::new(self.0 .0)),
+    ))
+  }
+}
+
 /// Wraps your component to let React skip rendering if props haven't changed.
 ///
 /// See [`Component::memoized()`].
 pub struct Memoized<T>(pub(crate) T);
 
 impl<T: Component + PartialEq> Memoized<T> {
-  /// Returns a [`VNode`] to be included in a render function.
-  pub fn build(self) -> VNode {
-    self.build_with_key(None)
+  pub fn key(self, key: Option<&str>) -> Keyed<Self> {
+    Keyed(self, key)
   }
 
-  /// Returns a [`VNode`] to be included in a render function with the given
-  /// [React key].
-  ///
-  /// [React key]: https://reactjs.org/docs/lists-and-keys.html
-  pub fn build_with_key(self, key: Option<&str>) -> VNode {
+  /// Returns a [`VNode`] to be included in a render function.
+  pub fn build(self) -> VNode {
     VNode(react_bindings::create_rust_memo_component(
       // This does not uniquely identify the component, but it is good enough
       type_name::<T>(),
-      key,
+      None,
       MemoComponentWrapper(Box::new(self.0)),
     ))
   }
