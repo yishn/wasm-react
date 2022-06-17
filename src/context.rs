@@ -1,8 +1,5 @@
 use crate::{
-  c, create_element,
-  hooks::{use_memo, Deps},
-  props::Props,
-  react_bindings, Component, VNode, VNodeList,
+  c, create_element, props::Props, react_bindings, Component, VNode, VNodeList,
 };
 use js_sys::Reflect;
 use std::{marker::PhantomData, rc::Rc, thread::LocalKey};
@@ -93,8 +90,8 @@ impl<T> From<Context<T>> for JsValue {
 /// ```
 pub fn create_context<T: 'static>(init: T) -> Context<T> {
   Context {
-    js_context: react_bindings::create_context(
-      Rc::into_raw(Rc::new(init)) as usize
+    js_context: react_bindings::create_rust_context(
+      Rc::into_raw(Rc::new(init)) as usize,
     ),
     phantom: PhantomData,
   }
@@ -111,7 +108,7 @@ pub struct ContextProvider<T: 'static> {
 }
 
 impl<T: 'static> ContextProvider<T> {
-  /// Creates a new `ContextProvider` from the given context.
+  /// Creates a new [`ContextProvider`] from the given context.
   pub fn from(context: &'static LocalKey<Context<T>>) -> Self {
     Self {
       context,
@@ -149,20 +146,19 @@ impl<T: 'static> ContextProvider<T> {
 impl<T: 'static> Component for ContextProvider<T> {
   fn render(&self) -> VNode {
     self.context.with(|context| {
-      let memo = use_memo(
-        || self.value.clone(),
-        Deps::some(self.value.as_ref().map(Rc::as_ptr)),
-      );
-
       create_element(
         &Reflect::get(context.as_ref(), &"Provider".into())
           .expect_throw("cannot read from context object"),
         &{
-          let value = memo.value();
           let mut props = Props::new();
 
-          if let Some(value) = value.as_ref() {
-            props = props.insert("value", &(Rc::as_ptr(value) as usize).into());
+          if let Some(value) = self.value.as_ref() {
+            props = props.insert(
+              "value",
+              Props::new()
+                .insert("ptr", &(Rc::as_ptr(value) as usize).into())
+                .as_ref(),
+            );
           }
 
           props
