@@ -55,13 +55,10 @@ extern "C" {
   pub static SUSPENSE: JsValue;
 
   #[wasm_bindgen(js_namespace = React, js_name = createContext)]
-  pub fn create_context(value: &JsValue) -> JsValue;
+  pub fn create_context(value: usize) -> JsValue;
 
   #[wasm_bindgen(js_namespace = React, js_name = useContext)]
-  pub fn use_context(context: &JsValue) -> JsValue;
-
-  #[wasm_bindgen(js_namespace = React, js_name = useCallback)]
-  pub fn use_callback(f: &JsValue, deps: &JsValue) -> Function;
+  pub fn use_context(context: &JsValue) -> usize;
 
   #[wasm_bindgen(js_namespace = React, js_name = useRef)]
   pub fn use_ref(init: &JsValue) -> JsValue;
