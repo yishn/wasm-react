@@ -24,19 +24,19 @@ function renderRustComponent(props) {
 }
 
 function getRustComponent(name) {
-  const key = `Rust (${name})`;
-
-  if (components[key] == null) {
+  if (components[name] == null) {
     // All Rust components have the same implementation in JS, but we need to
     // define them separately, so that React can distinguish them as different
     // components, and also so the names show up correctly in the React
     // Developer Tools.
     Object.assign(components, {
-      [key]: (props = {}) => renderRustComponent(props),
+      [name]: (props = {}) => renderRustComponent(props),
     });
+
+    components[name].displayName = name;
   }
 
-  return components[key];
+  return components[name];
 }
 
 export function createRustComponent(name, key, component) {
@@ -47,7 +47,7 @@ export function createRustComponent(name, key, component) {
 }
 
 function getRustMemoComponent(name) {
-  const key = `Rust (wasm_react::Memoized<${name}>)`;
+  const key = `wasm_react::Memoized<${name}>`;
 
   if (components[key] == null) {
     Object.assign(components, {
@@ -64,6 +64,8 @@ function getRustMemoComponent(name) {
         return equal;
       }),
     });
+
+    components[key].displayName = key;
   }
 
   return components[key];
