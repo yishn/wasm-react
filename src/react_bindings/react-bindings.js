@@ -36,7 +36,7 @@ function getRustComponent(name) {
     });
   }
 
-  return components[name];
+  return components[key];
 }
 
 export function createRustComponent(name, key, component) {
