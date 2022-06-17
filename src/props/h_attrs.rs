@@ -58,6 +58,11 @@ impl<'a> H<HtmlTag<'a>> {
     self.attr("className", &value.into())
   }
 
+  /// Sets the style attribute.
+  pub fn style(self, style: &Style) -> Self {
+    self.attr("style", style.as_ref())
+  }
+
   impl_attr! {
     // Standard HTML Attributes
     accesskey, "accessKey" => &str;
@@ -71,7 +76,6 @@ impl<'a> H<HtmlTag<'a>> {
     placeholder, "placeholder" => &str;
     slot, "slot" => &str;
     spellcheck, "spellCheck" => bool;
-    style, "style" => Style;
     tabindex, "tabIndex" => i32;
     title, "title" => &str;
     translate, "translate" => &str;

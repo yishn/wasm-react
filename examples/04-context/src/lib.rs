@@ -1,8 +1,14 @@
+mod button;
+mod card;
+
+use button::Button;
+use card::Card;
 use std::rc::Rc;
 use wasm_bindgen::JsValue;
 use wasm_react::{
-  c, create_context, export_components, h, hooks::use_state, Component,
-  Context, ContextProvider, VNode,
+  c, create_context, export_components, h,
+  hooks::{use_callback, use_state, Deps},
+  Component, Context, ContextProvider, VNode,
 };
 
 pub enum Theme {
@@ -25,6 +31,23 @@ impl Component for App {
       Theme::DarkMode => "dark",
     };
 
+    let handle_toggle_theme = use_callback(
+      {
+        let mut theme = theme.clone();
+
+        move |_| {
+          theme.set(|theme| {
+            match *theme {
+              Theme::LightMode => Theme::DarkMode,
+              Theme::DarkMode => Theme::LightMode,
+            }
+            .into()
+          })
+        }
+      },
+      Deps::none(),
+    );
+
     h!(div[.{theme_class}]).build(c![
       //
       ContextProvider::from(&THEME_CONTEXT)
@@ -32,7 +55,33 @@ impl Component for App {
           let value = theme.value();
           value.clone()
         }))
-        .children(c![])
+        .children(c![
+          h!(p).build(c![
+            //
+            h!(label).build(c![
+              h!(input)
+                .html_type("checkbox")
+                .checked(match **theme.value() {
+                  Theme::LightMode => false,
+                  Theme::DarkMode => true,
+                })
+                .on_change(&handle_toggle_theme)
+                .build(c![]),
+              "Dark Mode"
+            ]),
+          ]),
+          //
+          Card::new()
+            .children(c![
+              h!(p).build(c!["Hello World!"]),
+              h!(p).build(c![
+                Button::new().text("OK").build(),
+                " ",
+                Button::new().text("Cancel").build()
+              ])
+            ])
+            .build()
+        ])
         .build()
     ])
   }
