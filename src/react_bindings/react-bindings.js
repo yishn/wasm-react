@@ -115,6 +115,14 @@ export function useRustLayoutEffect(effect, dep) {
   React.useLayoutEffect(effect, [dep]);
 }
 
+export function createRustContext(ptr) {
+  return React.createContext({ ptr });
+}
+
+export function useRustContext(context) {
+  return React.useContext(context).ptr;
+}
+
 export function childrenToArray(children) {
   return React.Children.toArray(children);
 }

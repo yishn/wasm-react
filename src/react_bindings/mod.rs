@@ -40,6 +40,12 @@ extern "C" {
   #[wasm_bindgen(js_name = useRustLayoutEffect)]
   pub fn use_rust_layout_effect(effect: &JsValue, dep: u8);
 
+  #[wasm_bindgen(js_name = createRustContext)]
+  pub fn create_rust_context(value: usize) -> JsValue;
+
+  #[wasm_bindgen(js_name = useRustContext)]
+  pub fn use_rust_context(context: &JsValue) -> usize;
+
   #[wasm_bindgen(js_name = childrenToArray, catch)]
   pub fn children_to_array(children: &JsValue) -> Result<Array, JsValue>;
 
@@ -53,15 +59,6 @@ extern "C" {
 
   #[wasm_bindgen(js_namespace = React, js_name = Suspense)]
   pub static SUSPENSE: JsValue;
-
-  #[wasm_bindgen(js_namespace = React, js_name = createContext)]
-  pub fn create_context(value: &JsValue) -> JsValue;
-
-  #[wasm_bindgen(js_namespace = React, js_name = useContext)]
-  pub fn use_context(context: &JsValue) -> JsValue;
-
-  #[wasm_bindgen(js_namespace = React, js_name = useCallback)]
-  pub fn use_callback(f: &JsValue, deps: &JsValue) -> Function;
 
   #[wasm_bindgen(js_namespace = React, js_name = useRef)]
   pub fn use_ref(init: &JsValue) -> JsValue;

@@ -1,11 +1,8 @@
 use crate::{
-  c, create_element,
-  hooks::{use_effect, use_ref, Deps},
-  props::Props,
-  react_bindings, Component, VNode, VNodeList,
+  c, create_element, props::Props, react_bindings, Component, VNode, VNodeList,
 };
 use js_sys::Reflect;
-use std::{rc::Rc, thread::LocalKey};
+use std::{marker::PhantomData, rc::Rc, thread::LocalKey};
 use wasm_bindgen::{JsValue, UnwrapThrowExt};
 
 /// Represents a [React context][context] that can hold a global state.
@@ -15,8 +12,8 @@ use wasm_bindgen::{JsValue, UnwrapThrowExt};
 /// [context]: https://reactjs.org/docs/context.html
 #[derive(Debug)]
 pub struct Context<T> {
-  fallback_value: Rc<T>,
   js_context: JsValue,
+  phantom: PhantomData<T>,
 }
 
 impl<T> AsRef<JsValue> for Context<T> {
@@ -47,7 +44,7 @@ impl<T> From<Context<T>> for JsValue {
 /// #
 /// thread_local! {
 ///   // Pass in a default value for the context.
-///   static THEME_CONTEXT: Context<Theme> = create_context(Theme::LightMode);
+///   static THEME_CONTEXT: Context<Theme> = create_context(Theme::LightMode.into());
 /// }
 ///
 /// struct App;
@@ -58,7 +55,7 @@ impl<T> From<Context<T>> for JsValue {
 ///     // In this example, we are passing down `Theme::DarkMode`.
 ///
 ///     ContextProvider::from(&THEME_CONTEXT)
-///       .value(Theme::DarkMode)
+///       .value(Some(Theme::DarkMode.into()))
 ///       .build(c![Toolbar.build()])
 ///   }
 /// }
@@ -91,10 +88,10 @@ impl<T> From<Context<T>> for JsValue {
 ///   }
 /// }
 /// ```
-pub fn create_context<T: 'static>(init: T) -> Context<T> {
+pub fn create_context<T: 'static>(init: Rc<T>) -> Context<T> {
   Context {
-    fallback_value: Rc::new(init),
-    js_context: react_bindings::create_context(&JsValue::undefined()),
+    js_context: react_bindings::create_rust_context(Rc::into_raw(init) as usize),
+    phantom: PhantomData,
   }
 }
 
@@ -109,7 +106,7 @@ pub struct ContextProvider<T: 'static> {
 }
 
 impl<T: 'static> ContextProvider<T> {
-  /// Creates a new `ContextProvider` from the given context.
+  /// Creates a new [`ContextProvider`] from the given context.
   pub fn from(context: &'static LocalKey<Context<T>>) -> Self {
     Self {
       context,
@@ -119,8 +116,8 @@ impl<T: 'static> ContextProvider<T> {
   }
 
   /// Sets the value of the context to be passed down.
-  pub fn value(mut self, value: T) -> Self {
-    self.value = Some(Rc::new(value));
+  pub fn value(mut self, value: Option<Rc<T>>) -> Self {
+    self.value = value;
     self
   }
 
@@ -147,28 +144,23 @@ impl<T: 'static> ContextProvider<T> {
 impl<T: 'static> Component for ContextProvider<T> {
   fn render(&self) -> VNode {
     self.context.with(|context| {
-      let value = self
-        .value
-        .clone()
-        .unwrap_or_else(|| context.fallback_value.clone());
-      let value_ref = use_ref(value.clone());
-
-      use_effect(
-        {
-          let mut value_ref = value_ref.clone();
-
-          move || {
-            value_ref.set_current(value);
-            || ()
-          }
-        },
-        Deps::all(),
-      );
-
       create_element(
         &Reflect::get(context.as_ref(), &"Provider".into())
           .expect_throw("cannot read from context object"),
-        &Props::new().insert("value", value_ref.as_ref()),
+        &{
+          let mut props = Props::new();
+
+          if let Some(value) = self.value.as_ref() {
+            props = props.insert(
+              "value",
+              Props::new()
+                .insert("ptr", &(Rc::as_ptr(value) as usize).into())
+                .as_ref(),
+            );
+          }
+
+          props
+        },
         self.children.clone(),
       )
     })
