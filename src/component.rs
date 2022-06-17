@@ -35,6 +35,9 @@ pub trait Component: 'static {
   /// [`Component::build()`] to include your component.
   fn render(&self) -> VNode;
 
+  /// Sets the [React key][key].
+  ///
+  /// [key]: https://reactjs.org/docs/lists-and-keys.html
   fn key(self, key: Option<&str>) -> Keyed<Self>
   where
     Self: Sized,
@@ -107,6 +110,11 @@ impl<T: Component> Component for Rc<T> {
   }
 }
 
+/// Wraps your component to assign a [React key][key] to it.
+///
+/// See [`Component::key()`].
+///
+/// [key]: https://reactjs.org/docs/lists-and-keys.html
 pub struct Keyed<'a, T>(pub(crate) T, pub(crate) Option<&'a str>);
 
 impl<T: Component> Keyed<'_, T> {
@@ -114,7 +122,7 @@ impl<T: Component> Keyed<'_, T> {
   pub fn build(self) -> VNode {
     VNode(react_bindings::create_rust_component(
       // This does not uniquely identify the component, but it is good enough
-      type_name::<Self>(),
+      type_name::<T>(),
       self.1,
       ComponentWrapper(Box::new(self.0)),
     ))
@@ -139,6 +147,9 @@ impl<T: Component + PartialEq> Keyed<'_, Memoized<T>> {
 pub struct Memoized<T>(pub(crate) T);
 
 impl<T: Component + PartialEq> Memoized<T> {
+  /// Sets the [React key][key].
+  ///
+  /// [key]: https://reactjs.org/docs/lists-and-keys.html
   pub fn key(self, key: Option<&str>) -> Keyed<Self> {
     Keyed(self, key)
   }

@@ -122,6 +122,7 @@ impl<T: 'static> ContextProvider<T> {
     self
   }
 
+  /// Sets the children of the component.
   pub fn children(mut self, children: VNodeList) -> Self {
     self.children = children;
     self
