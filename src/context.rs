@@ -44,7 +44,7 @@ impl<T> From<Context<T>> for JsValue {
 /// #
 /// thread_local! {
 ///   // Pass in a default value for the context.
-///   static THEME_CONTEXT: Context<Theme> = create_context(Theme::LightMode);
+///   static THEME_CONTEXT: Context<Theme> = create_context(Theme::LightMode.into());
 /// }
 ///
 /// struct App;
@@ -88,11 +88,9 @@ impl<T> From<Context<T>> for JsValue {
 ///   }
 /// }
 /// ```
-pub fn create_context<T: 'static>(init: T) -> Context<T> {
+pub fn create_context<T: 'static>(init: Rc<T>) -> Context<T> {
   Context {
-    js_context: react_bindings::create_rust_context(
-      Rc::into_raw(Rc::new(init)) as usize,
-    ),
+    js_context: react_bindings::create_rust_context(Rc::into_raw(init) as usize),
     phantom: PhantomData,
   }
 }
