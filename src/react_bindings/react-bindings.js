@@ -24,13 +24,15 @@ function renderRustComponent(props) {
 }
 
 function getRustComponent(name) {
-  if (components[name] == null) {
+  const key = `Rust (${name})`;
+
+  if (components[key] == null) {
     // All Rust components have the same implementation in JS, but we need to
     // define them separately, so that React can distinguish them as different
     // components, and also so the names show up correctly in the React
     // Developer Tools.
     Object.assign(components, {
-      [name]: (props = {}) => renderRustComponent(props),
+      [key]: (props = {}) => renderRustComponent(props),
     });
   }
 
@@ -45,11 +47,11 @@ export function createRustComponent(name, key, component) {
 }
 
 function getRustMemoComponent(name) {
-  const memoName = `wasm_react::Memo<${name}>`;
+  const key = `Rust (wasm_react::Memoized<${name}>)`;
 
-  if (components[memoName] == null) {
+  if (components[key] == null) {
     Object.assign(components, {
-      [memoName]: React.memo(getRustComponent(name), (prevProps, nextProps) => {
+      [key]: React.memo(getRustComponent(name), (prevProps, nextProps) => {
         // `component` is a `MemoComponentWrapper`
         const equal = prevProps.component.eq(nextProps.component);
 
@@ -64,7 +66,7 @@ function getRustMemoComponent(name) {
     });
   }
 
-  return components[memoName];
+  return components[key];
 }
 
 export function createRustMemoComponent(name, key, component) {
