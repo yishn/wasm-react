@@ -58,7 +58,7 @@ impl<T> From<Context<T>> for JsValue {
 ///     // In this example, we are passing down `Theme::DarkMode`.
 ///
 ///     ContextProvider::from(&THEME_CONTEXT)
-///       .value(Theme::DarkMode)
+///       .value(Some(Theme::DarkMode.into()))
 ///       .build(c![Toolbar.build()])
 ///   }
 /// }
@@ -121,8 +121,8 @@ impl<T: 'static> ContextProvider<T> {
   }
 
   /// Sets the value of the context to be passed down.
-  pub fn value(mut self, value: T) -> Self {
-    self.value = Some(Rc::new(value));
+  pub fn value(mut self, value: Option<Rc<T>>) -> Self {
+    self.value = value;
     self
   }
 
