@@ -79,7 +79,7 @@ impl<T> From<Context<T>> for JsValue {
 ///
 ///     h!(button)
 ///       .style(
-///         Style::new()
+///         &Style::new()
 ///           .background_color(match *theme {
 ///             Theme::LightMode => "white",
 ///             Theme::DarkMode => "black",
