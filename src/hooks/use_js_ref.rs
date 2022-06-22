@@ -59,6 +59,12 @@ impl<T> From<JsRefContainer<T>> for JsValue {
   }
 }
 
+impl<T> From<JsValue> for JsRefContainer<T> {
+  fn from(value: JsValue) -> Self {
+    Self(value, PhantomData)
+  }
+}
+
 /// This hook can persist JS data through the entire lifetime of the component.
 ///
 /// Use this if you need JS to set the ref value. If you only need to mutate the
