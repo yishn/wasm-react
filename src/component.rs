@@ -5,6 +5,14 @@ use std::{
 };
 use wasm_bindgen::prelude::*;
 
+#[doc(hidden)]
+pub struct BuildParams<T> {
+  name: &'static str,
+  key: Option<Rc<str>>,
+  create_component:
+    Box<dyn FnOnce(&'static str, Option<Rc<str>>, T) -> JsValue>,
+}
+
 /// Implement this trait on a struct to create a component with the struct as
 /// props.
 ///
@@ -28,7 +36,7 @@ use wasm_bindgen::prelude::*;
 ///   }
 /// }
 /// ```
-pub trait Component: 'static + Sized {
+pub trait Component: Sized + 'static {
   /// The render function.
   ///
   /// **Do not** call this method in another render function. Instead, use
@@ -39,17 +47,33 @@ pub trait Component: 'static + Sized {
   ///
   /// [key]: https://reactjs.org/docs/lists-and-keys.html
   fn key(self, key: Option<&str>) -> Keyed<Self> {
-    Keyed(self, key)
+    Keyed(self, key.map(Rc::from))
+  }
+
+  #[doc(hidden)]
+  fn build_params(&self) -> BuildParams<Self> {
+    BuildParams {
+      name: type_name::<Self>(),
+      key: None,
+      create_component: Box::new(|name, key, component| {
+        react_bindings::create_rust_component(
+          name,
+          key.as_ref().map(|x| &**x),
+          ComponentWrapper(Box::new(component)),
+        )
+      }),
+    }
   }
 
   /// Returns a [`VNode`] to be included in a render function.
   fn build(self) -> VNode {
-    VNode(react_bindings::create_rust_component(
-      // This does not uniquely identify the component, but it is good enough
-      type_name::<Self>(),
-      None,
-      ComponentWrapper(Box::new(self)),
-    ))
+    let BuildParams {
+      name,
+      key,
+      create_component,
+    } = self.build_params();
+
+    VNode(create_component(name, key, self))
   }
 
   /// Returns a memoized version of your component that skips rendering if props
@@ -109,29 +133,27 @@ impl<T: Component> Component for Rc<T> {
 /// See [`Component::key()`].
 ///
 /// [key]: https://reactjs.org/docs/lists-and-keys.html
-pub struct Keyed<'a, T>(pub(crate) T, pub(crate) Option<&'a str>);
+pub struct Keyed<T>(pub(crate) T, pub(crate) Option<Rc<str>>);
 
-impl<T: Component> Keyed<'_, T> {
-  /// Returns a [`VNode`] to be included in a render function.
-  pub fn build(self) -> VNode {
-    VNode(react_bindings::create_rust_component(
-      // This does not uniquely identify the component, but it is good enough
-      type_name::<T>(),
-      self.1,
-      ComponentWrapper(Box::new(self.0)),
-    ))
+impl<T: Component> Component for Keyed<T> {
+  fn render(&self) -> VNode {
+    self.0.render()
   }
-}
 
-impl<T: Component + PartialEq> Keyed<'_, Memoized<T>> {
-  /// Returns a [`VNode`] to be included in a render function.
-  pub fn build(self) -> VNode {
-    VNode(react_bindings::create_rust_memo_component(
-      // This does not uniquely identify the component, but it is good enough
-      type_name::<T>(),
-      self.1,
-      MemoComponentWrapper(Box::new(self.0 .0)),
-    ))
+  fn build_params(&self) -> BuildParams<Self> {
+    let BuildParams {
+      name,
+      create_component,
+      ..
+    } = self.0.build_params();
+
+    BuildParams {
+      name,
+      key: self.1.clone(),
+      create_component: Box::new(|name, key, component| {
+        create_component(name, key, component.0)
+      }),
+    }
   }
 }
 
@@ -140,26 +162,29 @@ impl<T: Component + PartialEq> Keyed<'_, Memoized<T>> {
 /// See [`Component::memoized()`].
 pub struct Memoized<T>(pub(crate) T);
 
-impl<T: Component + PartialEq> Memoized<T> {
-  /// Sets the [React key][key].
-  ///
-  /// [key]: https://reactjs.org/docs/lists-and-keys.html
-  pub fn key(self, key: Option<&str>) -> Keyed<Self> {
-    Keyed(self, key)
+impl<T: Component + PartialEq> Component for Memoized<T> {
+  fn render(&self) -> VNode {
+    self.0.render()
   }
 
-  /// Returns a [`VNode`] to be included in a render function.
-  pub fn build(self) -> VNode {
-    VNode(react_bindings::create_rust_memo_component(
-      // This does not uniquely identify the component, but it is good enough
-      type_name::<T>(),
-      None,
-      MemoComponentWrapper(Box::new(self.0)),
-    ))
+  fn build_params(&self) -> BuildParams<Self> {
+    let BuildParams { name, key, .. } = self.0.build_params();
+
+    BuildParams {
+      name,
+      key,
+      create_component: Box::new(|name, key, component| {
+        react_bindings::create_rust_memo_component(
+          name,
+          key.as_ref().map(|x| &**x),
+          MemoComponentWrapper(Box::new(component.0)),
+        )
+      }),
+    }
   }
 }
 
-pub(crate) trait ObjectSafeComponent: 'static {
+trait ObjectSafeComponent {
   fn render(&self) -> VNode;
 }
 
@@ -171,7 +196,7 @@ impl<T: Component> ObjectSafeComponent for T {
 
 #[doc(hidden)]
 #[wasm_bindgen(js_name = __WasmReact_ComponentWrapper)]
-pub struct ComponentWrapper(pub(crate) Box<dyn ObjectSafeComponent>);
+pub struct ComponentWrapper(Box<dyn ObjectSafeComponent>);
 
 #[wasm_bindgen(js_class = __WasmReact_ComponentWrapper)]
 impl ComponentWrapper {
@@ -181,7 +206,7 @@ impl ComponentWrapper {
   }
 }
 
-pub(crate) trait ObjectSafeMemoComponent: ObjectSafeComponent {
+trait ObjectSafeMemoComponent: ObjectSafeComponent {
   fn as_any(&self) -> &dyn Any;
   fn eq(&self, other: &dyn Any) -> bool;
 }
@@ -201,7 +226,7 @@ impl<T: Component + PartialEq> ObjectSafeMemoComponent for T {
 
 #[doc(hidden)]
 #[wasm_bindgen(js_name = __WasmReact_MemoComponentWrapper)]
-pub struct MemoComponentWrapper(pub(crate) Box<dyn ObjectSafeMemoComponent>);
+pub struct MemoComponentWrapper(Box<dyn ObjectSafeMemoComponent>);
 
 #[wasm_bindgen(js_class = __WasmReact_MemoComponentWrapper)]
 impl MemoComponentWrapper {
