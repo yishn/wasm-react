@@ -28,7 +28,7 @@ use wasm_bindgen::prelude::*;
 ///   }
 /// }
 /// ```
-pub trait Component: 'static {
+pub trait Component: 'static + Sized {
   /// The render function.
   ///
   /// **Do not** call this method in another render function. Instead, use
@@ -38,18 +38,12 @@ pub trait Component: 'static {
   /// Sets the [React key][key].
   ///
   /// [key]: https://reactjs.org/docs/lists-and-keys.html
-  fn key(self, key: Option<&str>) -> Keyed<Self>
-  where
-    Self: Sized,
-  {
+  fn key(self, key: Option<&str>) -> Keyed<Self> {
     Keyed(self, key)
   }
 
   /// Returns a [`VNode`] to be included in a render function.
-  fn build(self) -> VNode
-  where
-    Self: Sized,
-  {
+  fn build(self) -> VNode {
     VNode(react_bindings::create_rust_component(
       // This does not uniquely identify the component, but it is good enough
       type_name::<Self>(),
@@ -98,7 +92,7 @@ pub trait Component: 'static {
   /// ```
   fn memoized(self) -> Memoized<Self>
   where
-    Self: Sized + PartialEq,
+    Self: PartialEq,
   {
     Memoized(self)
   }
@@ -165,9 +159,19 @@ impl<T: Component + PartialEq> Memoized<T> {
   }
 }
 
+pub(crate) trait ObjectSafeComponent: 'static {
+  fn render(&self) -> VNode;
+}
+
+impl<T: Component> ObjectSafeComponent for T {
+  fn render(&self) -> VNode {
+    Component::render(self)
+  }
+}
+
 #[doc(hidden)]
 #[wasm_bindgen(js_name = __WasmReact_ComponentWrapper)]
-pub struct ComponentWrapper(pub(crate) Box<dyn Component>);
+pub struct ComponentWrapper(pub(crate) Box<dyn ObjectSafeComponent>);
 
 #[wasm_bindgen(js_class = __WasmReact_ComponentWrapper)]
 impl ComponentWrapper {
@@ -177,12 +181,12 @@ impl ComponentWrapper {
   }
 }
 
-pub(crate) trait MemoComponent: Component {
+pub(crate) trait ObjectSafeMemoComponent: ObjectSafeComponent {
   fn as_any(&self) -> &dyn Any;
   fn eq(&self, other: &dyn Any) -> bool;
 }
 
-impl<T: Component + PartialEq> MemoComponent for T {
+impl<T: Component + PartialEq> ObjectSafeMemoComponent for T {
   fn as_any(&self) -> &dyn Any {
     self
   }
@@ -197,7 +201,7 @@ impl<T: Component + PartialEq> MemoComponent for T {
 
 #[doc(hidden)]
 #[wasm_bindgen(js_name = __WasmReact_MemoComponentWrapper)]
-pub struct MemoComponentWrapper(pub(crate) Box<dyn MemoComponent>);
+pub struct MemoComponentWrapper(pub(crate) Box<dyn ObjectSafeMemoComponent>);
 
 #[wasm_bindgen(js_class = __WasmReact_MemoComponentWrapper)]
 impl MemoComponentWrapper {
