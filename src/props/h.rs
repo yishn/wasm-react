@@ -1,7 +1,7 @@
 use super::Props;
 use crate::{
   callback::PersistedCallback, create_element, hooks::JsRefContainer, VNode,
-  VNodeList,
+  VNodeList, KeyType,
 };
 use std::borrow::Cow;
 use wasm_bindgen::{
@@ -58,7 +58,7 @@ impl<T: HType> H<T> {
   /// Sets the [React key][key].
   ///
   /// [key]: https://reactjs.org/docs/lists-and-keys.html
-  pub fn key(mut self, value: Option<&str>) -> Self {
+  pub fn key(mut self, value: Option<impl KeyType>) -> Self {
     self.props = self.props.key(value);
     self
   }

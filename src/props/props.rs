@@ -1,4 +1,4 @@
-use crate::{callback::PersistedCallback, hooks::JsRefContainer};
+use crate::{callback::PersistedCallback, hooks::JsRefContainer, KeyType};
 use js_sys::{Object, Reflect};
 use wasm_bindgen::{
   convert::{FromWasmAbi, IntoWasmAbi},
@@ -35,8 +35,11 @@ impl Props {
   /// Sets the [React key][key].
   ///
   /// [key]: https://reactjs.org/docs/lists-and-keys.html
-  pub fn key(self, value: Option<&str>) -> Self {
-    self.insert("key", &value.into())
+  pub fn key(self, value: Option<impl KeyType>) -> Self {
+    self.insert(
+      "key",
+      &value.map(|x| x.into()).unwrap_or(JsValue::UNDEFINED),
+    )
   }
 
   /// Sets the [React ref][ref] to the given ref container created with the

@@ -1,3 +1,5 @@
+use wasm_bindgen::JsValue;
+
 /// A marker trait for data that can persist through the entire lifetime of a
 /// component, usually through a hook.
 ///
@@ -16,3 +18,22 @@ pub trait Persisted: Clone + 'static {
 #[doc(hidden)]
 #[non_exhaustive]
 pub struct PersistedOrigin;
+
+/// Implemented by types which can serve as a [React key][key].
+///
+/// [key]: https://reactjs.org/docs/lists-and-keys.html
+pub trait KeyType: Into<JsValue> {}
+
+macro_rules! impl_key_type {
+  { $( $T:ty ),* $( , )? } => {
+    $( impl KeyType for $T {} )*
+  };
+}
+
+impl_key_type! {
+  &str, String,
+  f32, f64,
+  i8, u8,
+  i16, i32, i64, i128, isize,
+  u16, u32, u64, u128, usize,
+}

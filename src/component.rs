@@ -1,28 +1,9 @@
-use crate::{react_bindings, VNode};
+use crate::{react_bindings, VNode, KeyType};
 use std::{
   any::{type_name, Any},
   rc::Rc,
 };
 use wasm_bindgen::prelude::*;
-
-/// Implemented by types which can serve as a [React key][key].
-///
-/// [key]: https://reactjs.org/docs/lists-and-keys.html
-pub trait KeyType: Into<JsValue> {}
-
-macro_rules! impl_key_type {
-  { $( $T:ty ),* $( , )? } => {
-    $( impl KeyType for $T {} )*
-  };
-}
-
-impl_key_type! {
-  &str, String,
-  f32, f64,
-  i8, u8,
-  i16, i32, i64, i128, isize,
-  u16, u32, u64, u128, usize,
-}
 
 #[doc(hidden)]
 pub struct BuildParams<T> {
