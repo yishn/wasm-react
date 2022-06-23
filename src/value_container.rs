@@ -17,7 +17,7 @@ pub enum ValueContainerRef<'a, T> {
   Ref(Ref<'a, T>),
 }
 
-impl<'a, T> ValueContainerRef<'a, T> {
+impl<T> ValueContainerRef<'_, T> {
   /// Clones the reference.
   pub fn clone(orig: &Self) -> Self {
     match orig {
@@ -27,7 +27,7 @@ impl<'a, T> ValueContainerRef<'a, T> {
   }
 }
 
-impl<'a, T> Deref for ValueContainerRef<'a, T> {
+impl<T> Deref for ValueContainerRef<'_, T> {
   type Target = T;
 
   fn deref(&self) -> &Self::Target {

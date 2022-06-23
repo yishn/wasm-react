@@ -22,7 +22,7 @@ macro_rules! impl_attr {
 }
 
 /// Provides auto-completion for DOM attributes on [`H`].
-impl<'a> H<HtmlTag<'a>> {
+impl H<HtmlTag<'_>> {
   /// Equivalent to `props.dangerouslySetInnerHTML = { __html: value.__html };`.
   ///
   /// See also [React documentation](https://reactjs.org/docs/dom-elements.html#dangerouslysetinnerhtml).

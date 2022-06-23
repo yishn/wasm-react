@@ -14,7 +14,7 @@ use web_sys::Element;
 #[derive(Debug, Clone, Copy)]
 pub struct HtmlTag<'a>(pub &'a str);
 
-impl<'a> AsRef<str> for HtmlTag<'a> {
+impl AsRef<str> for HtmlTag<'_> {
   fn as_ref(&self) -> &str {
     &self.0
   }
@@ -28,7 +28,7 @@ pub trait HType {
   fn as_js(&self) -> Cow<'_, JsValue>;
 }
 
-impl<'a> HType for HtmlTag<'a> {
+impl HType for HtmlTag<'_> {
   fn as_js(&self) -> Cow<'_, JsValue> {
     Cow::Owned(self.0.into())
   }

@@ -4,7 +4,7 @@ pub trait Classnames {
   fn append_to(&self, string: &mut String);
 }
 
-impl<'a> Classnames for &'a str {
+impl Classnames for &str {
   fn append_to(&self, string: &mut String) {
     string.push_str(self);
     string.push(' ');
@@ -17,7 +17,7 @@ impl Classnames for String {
   }
 }
 
-impl<'a> Classnames for &'a String {
+impl Classnames for &String {
   fn append_to(&self, string: &mut String) {
     (&self[..]).append_to(string);
   }

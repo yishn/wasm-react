@@ -17,7 +17,7 @@ macro_rules! impl_event {
 }
 
 /// Provides auto-completion for DOM events on [`H`].
-impl<'a> H<HtmlTag<'a>> {
+impl H<HtmlTag<'_>> {
   impl_event! {
     on_focus, "onFocus" => FocusEvent;
     on_focus_capture, "onFocusCapture" => FocusEvent;
