@@ -134,7 +134,7 @@ impl<T: Component> Component for Rc<T> {
 ///
 /// [key]: https://reactjs.org/docs/lists-and-keys.html
 #[derive(Debug, PartialEq)]
-pub struct Keyed<T>(pub(crate) T, pub(crate) Option<Rc<str>>);
+pub struct Keyed<T>(T, Option<Rc<str>>);
 
 impl<T: Component> Component for Keyed<T> {
   fn render(&self) -> VNode {
@@ -162,7 +162,7 @@ impl<T: Component> Component for Keyed<T> {
 ///
 /// See [`Component::memoized()`].
 #[derive(Debug, PartialEq)]
-pub struct Memoized<T>(pub(crate) T);
+pub struct Memoized<T>(T);
 
 impl<T: Component + PartialEq> Component for Memoized<T> {
   fn render(&self) -> VNode {
