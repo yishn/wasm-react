@@ -144,7 +144,7 @@ pub trait Component: Sized + 'static {
 
 impl<T: Component> Component for Rc<T> {
   fn render(&self) -> VNode {
-    <T as Component>::render(&self)
+    T::render(self)
   }
 }
 
