@@ -133,6 +133,7 @@ impl<T: Component> Component for Rc<T> {
 /// See [`Component::key()`].
 ///
 /// [key]: https://reactjs.org/docs/lists-and-keys.html
+#[derive(Debug, PartialEq)]
 pub struct Keyed<T>(pub(crate) T, pub(crate) Option<Rc<str>>);
 
 impl<T: Component> Component for Keyed<T> {
@@ -160,6 +161,7 @@ impl<T: Component> Component for Keyed<T> {
 /// Wraps your component to let React skip rendering if props haven't changed.
 ///
 /// See [`Component::memoized()`].
+#[derive(Debug, PartialEq)]
 pub struct Memoized<T>(pub(crate) T);
 
 impl<T: Component + PartialEq> Component for Memoized<T> {
