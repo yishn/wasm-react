@@ -5,12 +5,31 @@ use std::{
 };
 use wasm_bindgen::prelude::*;
 
+/// Implemented by types which can serve as a [React key][key].
+///
+/// [key]: https://reactjs.org/docs/lists-and-keys.html
+pub trait KeyType: Into<JsValue> {}
+
+macro_rules! impl_key_type {
+  { $( $T:ty ),* $( , )? } => {
+    $( impl KeyType for $T {} )*
+  };
+}
+
+impl_key_type! {
+  &str, String,
+  f32, f64,
+  i8, u8,
+  i16, i32, i64, i128, isize,
+  u16, u32, u64, u128, usize,
+}
+
 #[doc(hidden)]
 pub struct BuildParams<T> {
   name: &'static str,
-  key: Option<Rc<str>>,
+  key: Option<JsValue>,
   create_component:
-    Box<dyn FnOnce(&'static str, Option<Rc<str>>, T) -> JsValue>,
+    Box<dyn FnOnce(&'static str, Option<JsValue>, T) -> JsValue>,
 }
 
 /// Implement this trait on a struct to create a component with the struct as
@@ -46,11 +65,12 @@ pub trait Component: Sized + 'static {
   /// Sets the [React key][key].
   ///
   /// [key]: https://reactjs.org/docs/lists-and-keys.html
-  fn key(self, key: Option<&str>) -> Keyed<Self> {
-    Keyed(self, key.map(Rc::from))
+  fn key(self, key: Option<impl KeyType>) -> Keyed<Self> {
+    Keyed(self, key.map(|x| x.into()))
   }
 
   #[doc(hidden)]
+  /// Defines parameters for [`Component::build()`].
   fn build_params(&self) -> BuildParams<Self> {
     BuildParams {
       name: type_name::<Self>(),
@@ -58,7 +78,7 @@ pub trait Component: Sized + 'static {
       create_component: Box::new(|name, key, component| {
         react_bindings::create_rust_component(
           name,
-          key.as_ref().map(|x| &**x),
+          &key.unwrap_or(JsValue::UNDEFINED),
           ComponentWrapper(Box::new(component)),
         )
       }),
@@ -134,7 +154,7 @@ impl<T: Component> Component for Rc<T> {
 ///
 /// [key]: https://reactjs.org/docs/lists-and-keys.html
 #[derive(Debug, PartialEq)]
-pub struct Keyed<T>(T, Option<Rc<str>>);
+pub struct Keyed<T>(T, Option<JsValue>);
 
 impl<T: Component> Component for Keyed<T> {
   fn render(&self) -> VNode {
@@ -178,7 +198,7 @@ impl<T: Component + PartialEq> Component for Memoized<T> {
       create_component: Box::new(|name, key, component| {
         react_bindings::create_rust_memo_component(
           name,
-          key.as_ref().map(|x| &**x),
+          &key.unwrap_or(JsValue::UNDEFINED),
           MemoComponentWrapper(Box::new(component.0)),
         )
       }),

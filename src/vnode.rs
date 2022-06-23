@@ -37,18 +37,6 @@ impl<T: Into<VNode>> From<Option<T>> for VNode {
   }
 }
 
-impl<'a> From<&'a str> for VNode {
-  fn from(value: &'a str) -> Self {
-    VNode(value.into())
-  }
-}
-
-impl<'a> From<&'a String> for VNode {
-  fn from(value: &'a String) -> Self {
-    VNode(value.into())
-  }
-}
-
 macro_rules! impl_into_vnode {
   { $( $T:ty ),*$( , )? } => {
     $(
@@ -63,7 +51,7 @@ macro_rules! impl_into_vnode {
 
 // Implement `Into<VNode>` for as many `Display` types as possible
 impl_into_vnode! {
-  String,
+  &str, String,
   f32, f64,
   i8, i16, i32, i64, i128, isize,
   u8, u16, u32, u64, u128, usize,

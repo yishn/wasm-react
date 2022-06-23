@@ -17,14 +17,14 @@ extern "C" {
   #[wasm_bindgen(js_name = createRustComponent)]
   pub fn create_rust_component(
     name: &str,
-    key: Option<&str>,
+    key: &JsValue,
     component: ComponentWrapper,
   ) -> JsValue;
 
   #[wasm_bindgen(js_name = createRustMemoComponent)]
   pub fn create_rust_memo_component(
     name: &str,
-    key: Option<&str>,
+    key: &JsValue,
     component: MemoComponentWrapper,
   ) -> JsValue;
 
