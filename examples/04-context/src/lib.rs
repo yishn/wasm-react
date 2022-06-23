@@ -55,7 +55,7 @@ impl Component for App {
           let value = theme.value();
           value.clone()
         }))
-        .children(c![
+        .build(c![
           h!(p).build(c![
             //
             h!(label).build(c![
@@ -82,7 +82,6 @@ impl Component for App {
             ])
             .build()
         ])
-        .build()
     ])
   }
 }

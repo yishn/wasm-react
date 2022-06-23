@@ -56,8 +56,9 @@ impl<T> From<Context<T>> for JsValue {
 ///
 ///     ContextProvider::from(&THEME_CONTEXT)
 ///       .value(Some(Theme::DarkMode.into()))
-///       .children(c![Toolbar.build()])
-///       .build()
+///       .build(c![
+///         Toolbar.build(),
+///       ])
 ///   }
 /// }
 ///
@@ -126,6 +127,11 @@ impl<T: 'static> ContextProvider<T> {
   pub fn children(mut self, children: VNodeList) -> Self {
     self.children = children;
     self
+  }
+
+  /// Returns a [`VNode`] to be included in a render function.
+  pub fn build(self, children: VNodeList) -> VNode {
+    Component::build(self.children(children))
   }
 }
 
