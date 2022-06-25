@@ -1,8 +1,5 @@
-use crate::{react_bindings, VNode, KeyType};
-use std::{
-  any::{type_name, Any},
-  rc::Rc,
-};
+use crate::{react_bindings, KeyType, VNode};
+use std::any::{type_name, Any};
 use wasm_bindgen::prelude::*;
 
 #[doc(hidden)]
@@ -120,12 +117,6 @@ pub trait Component: Sized + 'static {
     Self: PartialEq,
   {
     Memoized(self)
-  }
-}
-
-impl<T: Component> Component for Rc<T> {
-  fn render(&self) -> VNode {
-    T::render(self)
   }
 }
 
