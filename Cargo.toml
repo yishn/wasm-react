@@ -30,3 +30,11 @@ features = [
   "PointerEvent", "WheelEvent", "AnimationEvent", "TransitionEvent",
   "Element"
 ]
+
+[workspace]
+members = [
+  "./examples/01-hello-world",
+  "./examples/02-todo",
+  "./examples/03-material-ui",
+  "./examples/04-context",
+]
