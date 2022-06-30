@@ -78,28 +78,18 @@ export function createRustMemoComponent(name, key, component) {
   });
 }
 
-export function useRustRef(create, handler) {
+export function useRustRef(create, callback) {
   let ref = React.useRef(null);
 
   if (ref.current == null) {
     // Create ref struct if called for the first time.
 
-    ref.current = { ptr: create() };
-  } else {
-    // The callback `handler` has to be called exactly one time so the Rust
-    // memory of its corresponding closure will be freed. If this function has
-    // been called for the first time, the `useEffect` below will ensure that
-    // `handler` will be called when the component unmounts.
-    //
-    // Otherwise, we have to call `handler` manually, so the closure can be
-    // dropped on Rust side.
-
-    handler(false, ref.current.ptr);
+    ref.current = create();
   }
 
-  React.useEffect(() => () => handler(true, ref.current.ptr), []);
+  React.useEffect(() => () => ref.current.free(), []);
 
-  return ref.current;
+  callback(ref.current);
 }
 
 export function useRustState() {
@@ -117,12 +107,8 @@ export function useRustLayoutEffect(effect, dep) {
   React.useLayoutEffect(effect, [dep]);
 }
 
-export function createRustContext(ptr) {
-  return React.createContext({ ptr });
-}
-
-export function useRustContext(context) {
-  return React.useContext(context).ptr;
+export function useRustContext(context, callback) {
+  callback(React.useContext(context));
 }
 
 export function childrenToArray(children) {

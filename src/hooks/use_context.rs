@@ -1,17 +1,24 @@
 use crate::{react_bindings, Context};
-use std::{rc::Rc, thread::LocalKey, mem::ManuallyDrop};
+use std::{rc::Rc, thread::LocalKey};
 
 /// Allows access to the current context value of the given context.
 ///
 /// See [`create_context()`](crate::create_context()) for usage.
 pub fn use_context<T>(context: &'static LocalKey<Context<T>>) -> Rc<T> {
-  context.with(|context| {
-    let ptr = react_bindings::use_rust_context(context.as_ref()) as *const T;
-    let value = unsafe {
-      let value = ManuallyDrop::new(Rc::from_raw(ptr));
-      (*value).clone()
-    };
+  let mut result = None;
 
-    value
-  })
+  context.with(|context| {
+    react_bindings::use_rust_context(
+      context.as_ref(),
+      &mut |ref_container_value| {
+        result = Some(
+          ref_container_value
+            .value::<T>()
+            .expect("mismatched context type"),
+        );
+      },
+    );
+  });
+
+  result.expect("callback was not called")
 }

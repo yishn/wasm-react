@@ -1,5 +1,6 @@
 use crate::{
-  c, create_element, props::Props, react_bindings, Component, VNode, VNodeList,
+  c, create_element, hooks::RefContainerValue, props::Props, react_bindings,
+  Component, VNode, VNodeList,
 };
 use js_sys::Reflect;
 use std::{marker::PhantomData, rc::Rc, thread::LocalKey};
@@ -92,7 +93,7 @@ impl<T> From<Context<T>> for JsValue {
 /// ```
 pub fn create_context<T: 'static>(init: Rc<T>) -> Context<T> {
   Context {
-    js_context: react_bindings::create_rust_context(Rc::into_raw(init) as usize),
+    js_context: react_bindings::create_context(RefContainerValue(init)),
     phantom: PhantomData,
   }
 }
@@ -145,15 +146,8 @@ impl<T: 'static> Component for ContextProvider<T> {
           let mut props = Props::new();
 
           if let Some(value) = self.value.as_ref() {
-            props = props.insert(
-              "value",
-              Props::new()
-                .insert(
-                  "ptr",
-                  &react_bindings::cast_usize_to_js(Rc::as_ptr(value) as usize),
-                )
-                .as_ref(),
-            );
+            props =
+              props.insert("value", &RefContainerValue(value.clone()).into());
           }
 
           props

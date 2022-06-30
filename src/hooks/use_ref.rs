@@ -1,12 +1,21 @@
 use crate::{callback::Void, react_bindings, Persisted, PersistedOrigin};
-use js_sys::Reflect;
 use std::{
+  any::Any,
   cell::{Ref, RefCell, RefMut},
   fmt::Debug,
-  mem::ManuallyDrop,
   rc::Rc,
 };
-use wasm_bindgen::{prelude::Closure, JsValue, UnwrapThrowExt};
+use wasm_bindgen::prelude::*;
+
+#[doc(hidden)]
+#[wasm_bindgen(js_name = __WasmReact_RefContainerValue)]
+pub struct RefContainerValue(pub(crate) Rc<dyn Any>);
+
+impl RefContainerValue {
+  pub fn value<T: 'static>(&self) -> Result<Rc<T>, Rc<dyn Any>> {
+    Rc::downcast::<T>(self.0.clone())
+  }
+}
 
 /// Allows access to the underlying data persisted with [`use_ref()`].
 ///
@@ -19,7 +28,6 @@ use wasm_bindgen::{prelude::Closure, JsValue, UnwrapThrowExt};
 #[derive(Debug)]
 pub struct RefContainer<T> {
   inner: Rc<RefCell<T>>,
-  js_ref: JsValue,
 }
 
 impl<T: 'static> RefContainer<T> {
@@ -49,35 +57,6 @@ impl<T: 'static> RefContainer<T> {
   pub fn set_current(&mut self, value: T) {
     *self.current_mut() = value;
   }
-
-  /// Converts a JS value into a [`RefContainer`].
-  ///
-  /// # Safety
-  ///
-  /// The following assumptions must hold:
-  ///
-  /// - The JS value has been obtained by creating a [`RefContainer`] using
-  ///   [`use_ref()`] and converting it into [`JsValue`].
-  /// - The React component owning the [`RefContainer`] hasn't been unmounted.
-  ///
-  /// Otherwise this might lead to memory issues.
-  pub unsafe fn try_from_js_ref(
-    js_value: &JsValue,
-  ) -> Result<RefContainer<T>, JsValue> {
-    let ptr =
-      react_bindings::cast_to_usize(&Reflect::get(js_value, &"ptr".into())?)
-        as *const RefCell<T>;
-
-    // We're wrapping the value in `ManuallyDrop` since we do not want to drop
-    // the inner value when this is goes out of scope.
-    let inner = ManuallyDrop::new(Rc::from_raw(ptr));
-    let result = RefContainer {
-      inner: (*inner).clone(),
-      js_ref: js_value.clone(),
-    };
-
-    Ok(result)
-  }
 }
 
 impl<T: 'static> Persisted for RefContainer<T> {
@@ -90,20 +69,7 @@ impl<T> Clone for RefContainer<T> {
   fn clone(&self) -> Self {
     Self {
       inner: self.inner.clone(),
-      js_ref: self.js_ref.clone(),
     }
-  }
-}
-
-impl<T> AsRef<JsValue> for RefContainer<T> {
-  fn as_ref(&self) -> &JsValue {
-    &self.js_ref
-  }
-}
-
-impl<T> From<RefContainer<T>> for JsValue {
-  fn from(value: RefContainer<T>) -> Self {
-    value.js_ref
   }
 }
 
@@ -148,22 +114,23 @@ impl<T> From<RefContainer<T>> for JsValue {
 /// }
 /// ```
 pub fn use_ref<T: 'static>(init: T) -> RefContainer<T> {
-  let js_ref = react_bindings::use_rust_ref(
-    Closure::once(move |_: Void| Rc::into_raw(Rc::new(RefCell::new(init))))
-      .as_ref(),
-    &Closure::once_into_js(|unmounted: bool, ptr: usize| {
-      if unmounted {
-        let ptr = ptr as *const RefCell<T>;
+  let mut value = None;
 
-        // A callback with `unmounted == true` can only be called once (look
-        // at `react-bindings.js#useRustRef`), so a double-free cannot happen!
-        drop(unsafe { Rc::from_raw(ptr) });
-      }
-    }),
+  react_bindings::use_rust_ref(
+    Closure::once(move |_: Void| {
+      RefContainerValue(Rc::new(RefCell::new(init)))
+    })
+    .as_ref(),
+    &mut |ref_container_value| {
+      value = Some(
+        ref_container_value
+          .value::<RefCell<T>>()
+          .expect("mismatched ref container type"),
+      );
+    },
   );
 
-  unsafe {
-    RefContainer::try_from_js_ref(&js_ref)
-      .expect_throw("trying to operate invalid ref container")
+  RefContainer {
+    inner: value.expect("callback was not called"),
   }
 }

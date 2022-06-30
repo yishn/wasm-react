@@ -1,4 +1,4 @@
-use crate::{ComponentWrapper, MemoComponentWrapper};
+use crate::{hooks::RefContainerValue, ComponentWrapper, MemoComponentWrapper};
 use js_sys::{Array, Function};
 use wasm_bindgen::prelude::*;
 
@@ -29,7 +29,10 @@ extern "C" {
   ) -> JsValue;
 
   #[wasm_bindgen(js_name = useRustRef)]
-  pub fn use_rust_ref(create: &JsValue, handler: &JsValue) -> JsValue;
+  pub fn use_rust_ref(
+    create: &JsValue,
+    callback: &mut dyn FnMut(&RefContainerValue),
+  );
 
   #[wasm_bindgen(js_name = useRustState)]
   pub fn use_rust_state() -> Function;
@@ -40,11 +43,11 @@ extern "C" {
   #[wasm_bindgen(js_name = useRustLayoutEffect)]
   pub fn use_rust_layout_effect(effect: &JsValue, dep: u8);
 
-  #[wasm_bindgen(js_name = createRustContext)]
-  pub fn create_rust_context(value: usize) -> JsValue;
-
   #[wasm_bindgen(js_name = useRustContext)]
-  pub fn use_rust_context(context: &JsValue) -> usize;
+  pub fn use_rust_context(
+    context: &JsValue,
+    callback: &mut dyn FnMut(&RefContainerValue),
+  );
 
   #[wasm_bindgen(js_name = childrenToArray, catch)]
   pub fn children_to_array(children: &JsValue) -> Result<Array, JsValue>;
@@ -74,4 +77,7 @@ extern "C" {
 
   #[wasm_bindgen(js_namespace = React, js_name = useTransition)]
   pub fn use_transition() -> Array;
+
+  #[wasm_bindgen(js_namespace = React, js_name = createContext)]
+  pub fn create_context(value: RefContainerValue) -> JsValue;
 }
