@@ -18,7 +18,12 @@ function renderRustComponent(props) {
 
   // We need to free up the memory on Rust side whenever the old props
   // are replaced with new ones.
-  React.useEffect(() => () => component.free(), [component]);
+  React.useEffect(
+    function freeProps() {
+      () => component.free();
+    },
+    [component]
+  );
 
   return component.render();
 }
@@ -87,7 +92,9 @@ export function useRustRef(create, callback) {
     ref.current = create();
   }
 
-  React.useEffect(() => () => ref.current.free(), []);
+  React.useEffect(function freeRef() {
+    return () => ref.current.free();
+  }, []);
 
   callback(ref.current);
 }
