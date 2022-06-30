@@ -1,7 +1,7 @@
 use crate::{callback::PersistedCallback, hooks::JsRefContainer, KeyType};
 use js_sys::{Object, Reflect};
 use wasm_bindgen::{
-  convert::{FromWasmAbi, IntoWasmAbi},
+  convert::{FromWasmAbi, IntoWasmAbi, OptionFromWasmAbi},
   JsCast, JsValue, UnwrapThrowExt,
 };
 
@@ -53,9 +53,12 @@ impl Props {
   /// Sets the [React ref][ref] to the given ref callback.
   ///
   /// [ref]: https://reactjs.org/docs/refs-and-the-dom.html
-  pub fn ref_callback<T>(self, ref_callback: &PersistedCallback<T>) -> Self
+  pub fn ref_callback<T>(
+    self,
+    ref_callback: &PersistedCallback<Option<T>>,
+  ) -> Self
   where
-    T: FromWasmAbi + 'static,
+    T: OptionFromWasmAbi + 'static,
   {
     self.insert_callback("ref", ref_callback)
   }
