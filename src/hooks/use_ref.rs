@@ -9,6 +9,7 @@ use wasm_bindgen::prelude::*;
 
 #[doc(hidden)]
 #[wasm_bindgen(js_name = __WasmReact_RefContainerValue)]
+#[derive(Debug, Clone)]
 pub struct RefContainerValue(pub(crate) Rc<dyn Any>);
 
 impl RefContainerValue {
@@ -26,9 +27,7 @@ impl RefContainerValue {
 /// [`RefContainer::current_mut()`], and [`RefContainer::set_current()`] may
 /// panic accordingly.
 #[derive(Debug)]
-pub struct RefContainer<T> {
-  inner: Rc<RefCell<T>>,
-}
+pub struct RefContainer<T>(Rc<RefCell<T>>);
 
 impl<T: 'static> RefContainer<T> {
   /// Returns a reference to the underlying data.
@@ -37,7 +36,7 @@ impl<T: 'static> RefContainer<T> {
   ///
   /// Panics if the underlying data is currently mutably borrowed.
   pub fn current(&self) -> Ref<'_, T> {
-    self.inner.borrow()
+    self.0.borrow()
   }
 
   /// Returns a mutable reference to the underlying data.
@@ -46,7 +45,7 @@ impl<T: 'static> RefContainer<T> {
   ///
   /// Panics if the underlying data is currently borrowed.
   pub fn current_mut(&mut self) -> RefMut<'_, T> {
-    self.inner.borrow_mut()
+    self.0.borrow_mut()
   }
 
   /// Sets the underlying data to the given value.
@@ -67,9 +66,7 @@ impl<T: 'static> Persisted for RefContainer<T> {
 
 impl<T> Clone for RefContainer<T> {
   fn clone(&self) -> Self {
-    Self {
-      inner: self.inner.clone(),
-    }
+    Self(self.0.clone())
   }
 }
 
@@ -130,7 +127,5 @@ pub fn use_ref<T: 'static>(init: T) -> RefContainer<T> {
     },
   );
 
-  RefContainer {
-    inner: value.expect("callback was not called"),
-  }
+  RefContainer(value.expect("callback was not called"))
 }
