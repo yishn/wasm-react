@@ -56,6 +56,7 @@ impl Component for App {
               .dyn_into::<HtmlInputElement>()
               .unwrap_throw()
               .value()
+              .into_boxed_str()
               .into()
           })
         }
