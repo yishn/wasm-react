@@ -121,7 +121,3 @@ export function useRustContext(context, callback) {
 export function childrenToArray(children) {
   return React.Children.toArray(children);
 }
-
-export function cast(value) {
-  return value;
-}

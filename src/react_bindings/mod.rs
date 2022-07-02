@@ -52,12 +52,6 @@ extern "C" {
   #[wasm_bindgen(js_name = childrenToArray, catch)]
   pub fn children_to_array(children: &JsValue) -> Result<Array, JsValue>;
 
-  #[wasm_bindgen(js_name = cast)]
-  pub fn cast_to_usize(value: &JsValue) -> usize;
-
-  #[wasm_bindgen(js_name = cast)]
-  pub fn cast_usize_to_js(value: usize) -> JsValue;
-
   // From the React namespace:
 
   #[wasm_bindgen(js_namespace = React, js_name = Fragment)]
