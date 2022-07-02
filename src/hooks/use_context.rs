@@ -1,3 +1,5 @@
+use wasm_bindgen::UnwrapThrowExt;
+
 use crate::{react_bindings, Context};
 use std::{rc::Rc, thread::LocalKey};
 
@@ -14,11 +16,11 @@ pub fn use_context<T>(context: &'static LocalKey<Context<T>>) -> Rc<T> {
         result = Some(
           ref_container_value
             .value::<T>()
-            .expect("mismatched context type"),
+            .expect_throw("mismatched context type"),
         );
       },
     );
   });
 
-  result.expect("callback was not called")
+  result.expect_throw("callback was not called")
 }

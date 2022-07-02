@@ -122,10 +122,10 @@ pub fn use_ref<T: 'static>(init: T) -> RefContainer<T> {
       value = Some(
         ref_container_value
           .value::<RefCell<T>>()
-          .expect("mismatched ref container type"),
+          .expect_throw("mismatched ref container type"),
       );
     },
   );
 
-  RefContainer(value.expect("callback was not called"))
+  RefContainer(value.expect_throw("callback was not called"))
 }
