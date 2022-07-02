@@ -1,11 +1,11 @@
 use super::Props;
 use crate::{
-  callback::PersistedCallback, create_element, hooks::JsRefContainer, VNode,
-  VNodeList, KeyType,
+  callback::PersistedCallback, create_element, hooks::JsRefContainer, KeyType,
+  VNode, VNodeList,
 };
-use std::borrow::Cow;
+use std::{borrow::Cow, ops::Deref};
 use wasm_bindgen::{
-  convert::{FromWasmAbi, IntoWasmAbi},
+  convert::{FromWasmAbi, IntoWasmAbi, OptionFromWasmAbi},
   JsValue,
 };
 use web_sys::Element;
@@ -67,10 +67,10 @@ impl<T: HType> H<T> {
   /// [`use_js_ref()`](crate::hooks::use_js_ref()) hook.
   ///
   /// [ref]: https://reactjs.org/docs/refs-and-the-dom.html
-  pub fn ref_container(
-    mut self,
-    ref_container: &JsRefContainer<Element>,
-  ) -> Self {
+  pub fn ref_container<E>(mut self, ref_container: &JsRefContainer<E>) -> Self
+  where
+    E: Deref<Target = Element>,
+  {
     self.props = self.props.ref_container(ref_container);
     self
   }
@@ -78,10 +78,13 @@ impl<T: HType> H<T> {
   /// Sets the [React ref][ref] to the given ref callback.
   ///
   /// [ref]: https://reactjs.org/docs/refs-and-the-dom.html
-  pub fn ref_callback(
+  pub fn ref_callback<E>(
     mut self,
-    ref_callback: &PersistedCallback<Option<Element>>,
-  ) -> Self {
+    ref_callback: &PersistedCallback<Option<E>>,
+  ) -> Self
+  where
+    E: Deref<Target = Element> + OptionFromWasmAbi + 'static,
+  {
     self.props = self.props.ref_callback(ref_callback);
     self
   }
