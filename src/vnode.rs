@@ -1,5 +1,5 @@
 use crate::react_bindings;
-use js_sys::Array;
+use js_sys::{Array, JsString};
 use wasm_bindgen::{JsCast, JsValue};
 
 /// Represents a node in the virtual DOM of React.
@@ -51,7 +51,7 @@ macro_rules! impl_into_vnode {
 
 // Implement `Into<VNode>` for as many `Display` types as possible
 impl_into_vnode! {
-  &str, String,
+  &str, String, JsString,
   f32, f64,
   i8, i16, i32, i64, i128, isize,
   u8, u16, u32, u64, u128, usize,

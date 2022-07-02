@@ -1,3 +1,4 @@
+use js_sys::JsString;
 use wasm_bindgen::JsValue;
 
 /// A marker trait for data that can persist through the entire lifetime of a
@@ -31,9 +32,8 @@ macro_rules! impl_key_type {
 }
 
 impl_key_type! {
-  &str, String,
+  &str, String, JsString,
   f32, f64,
-  i8, u8,
-  i16, i32, i64, i128, isize,
-  u16, u32, u64, u128, usize,
+  i8, i16, i32, i64, i128, isize,
+  u8, u16, u32, u64, u128, usize,
 }
