@@ -170,11 +170,11 @@ macro_rules! classnames {
   };
 
   [] => {
-    String::new()
+    ::std::string::String::new()
   };
   [$( $tt:tt )*] => {
     {
-      let mut result = String::new();
+      let mut result = ::std::string::String::new();
       $crate::classnames![@single result << $( $tt )*];
       result
     }
@@ -285,13 +285,13 @@ macro_rules! export_components {
       #[allow(non_snake_case)]
       #[allow(dead_code)]
       #[doc(hidden)]
-      #[wasm_bindgen::prelude::wasm_bindgen(js_name = $Name)]
+      #[::wasm_bindgen::prelude::wasm_bindgen(js_name = $Name)]
       pub fn [<__WasmReact_Export_ $Name>](
-        props: wasm_bindgen::JsValue,
-      ) -> Result<wasm_bindgen::JsValue, wasm_bindgen::JsValue>
+        props: ::wasm_bindgen::JsValue,
+      ) -> Result<::wasm_bindgen::JsValue, ::wasm_bindgen::JsValue>
       where
         $Component: $crate::Component
-          + TryFrom<wasm_bindgen::JsValue, Error = wasm_bindgen::JsValue>,
+          + TryFrom<::wasm_bindgen::JsValue, Error = ::wasm_bindgen::JsValue>,
       {
         let component = $Component::try_from(props)?;
         Ok($crate::Component::render(&component).into())
