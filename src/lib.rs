@@ -64,7 +64,7 @@ impl WasmReact {
 
 /// The Rust equivalent to `React.createElement`. Use [`h!`] for a more
 /// convenient way to create HTML element nodes. To create Rust components, use
-/// [`VNode::from()`].
+/// [`Component::build()`].
 pub fn create_element(
   typ: &JsValue,
   props: &Props,
