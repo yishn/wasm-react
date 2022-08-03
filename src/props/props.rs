@@ -2,7 +2,7 @@ use crate::{callback::PersistedCallback, hooks::JsRefContainer, KeyType};
 use js_sys::{Object, Reflect};
 use wasm_bindgen::{
   convert::{FromWasmAbi, IntoWasmAbi, OptionFromWasmAbi},
-  JsCast, JsValue, UnwrapThrowExt,
+  JsCast, JsValue, UnwrapThrowExt, intern,
 };
 
 /// A convenience builder for JS objects. Mainly used for constructing props
@@ -37,7 +37,7 @@ impl Props {
   /// [key]: https://reactjs.org/docs/lists-and-keys.html
   pub fn key(self, value: Option<impl KeyType>) -> Self {
     self.insert(
-      "key",
+      intern("key"),
       &value.map(|x| x.into()).unwrap_or(JsValue::UNDEFINED),
     )
   }
@@ -47,7 +47,7 @@ impl Props {
   ///
   /// [ref]: https://reactjs.org/docs/refs-and-the-dom.html
   pub fn ref_container<T>(self, ref_container: &JsRefContainer<T>) -> Self {
-    self.insert("ref", ref_container.as_ref())
+    self.insert(intern("ref"), ref_container.as_ref())
   }
 
   /// Sets the [React ref][ref] to the given ref callback.
@@ -60,7 +60,7 @@ impl Props {
   where
     T: OptionFromWasmAbi + 'static,
   {
-    self.insert_callback("ref", ref_callback)
+    self.insert_callback(intern("ref"), ref_callback)
   }
 
   /// Equivalent to `props[key] = value;`.
