@@ -42,7 +42,7 @@ impl From<Style> for JsValue {
 }
 
 macro_rules! impl_style {
-  { $( $attr:ident, $attr_str:expr; )* } => {
+  { $( $attr:ident, $attr_str:literal; )* } => {
     $(
       #[allow(missing_docs)]
       pub fn $attr(self, value: impl Into<JsValue>) -> Self {

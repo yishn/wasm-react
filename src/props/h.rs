@@ -1,12 +1,12 @@
 use super::Props;
 use crate::{
-  callback::PersistedCallback, create_element, hooks::JsRefContainer, VNode,
-  VNodeList, KeyType,
+  callback::PersistedCallback, create_element, hooks::JsRefContainer, KeyType,
+  VNode, VNodeList,
 };
 use std::borrow::Cow;
 use wasm_bindgen::{
   convert::{FromWasmAbi, IntoWasmAbi},
-  JsValue,
+  intern, JsValue,
 };
 use web_sys::Element;
 
@@ -30,7 +30,7 @@ pub trait HType {
 
 impl HType for HtmlTag<'_> {
   fn as_js(&self) -> Cow<'_, JsValue> {
-    Cow::Owned(self.0.into())
+    Cow::Owned(intern(self.0).into())
   }
 }
 

@@ -4,7 +4,7 @@ use crate::{
 };
 use js_sys::Reflect;
 use std::{marker::PhantomData, rc::Rc, thread::LocalKey};
-use wasm_bindgen::{JsValue, UnwrapThrowExt};
+use wasm_bindgen::{intern, JsValue, UnwrapThrowExt};
 
 /// Represents a [React context][context] that can hold a global state.
 ///
@@ -140,7 +140,7 @@ impl<T: 'static> Component for ContextProvider<T> {
   fn render(&self) -> VNode {
     self.context.with(|context| {
       create_element(
-        &Reflect::get(context.as_ref(), &"Provider".into())
+        &Reflect::get(context.as_ref(), &intern("Provider").into())
           .expect_throw("cannot read from context object"),
         &{
           let mut props = Props::new();

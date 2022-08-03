@@ -2,7 +2,7 @@ use crate::{callback::PersistedCallback, hooks::JsRefContainer, KeyType};
 use js_sys::{Object, Reflect};
 use wasm_bindgen::{
   convert::{FromWasmAbi, IntoWasmAbi, OptionFromWasmAbi},
-  JsCast, JsValue, UnwrapThrowExt,
+  intern, JsCast, JsValue, UnwrapThrowExt,
 };
 
 /// A convenience builder for JS objects. Mainly used for constructing props
@@ -65,7 +65,7 @@ impl Props {
 
   /// Equivalent to `props[key] = value;`.
   pub fn insert(self, key: &str, value: &JsValue) -> Self {
-    Reflect::set(&self.0, &key.into(), value)
+    Reflect::set(&self.0, &intern(key).into(), value)
       .expect_throw("cannot write into props object");
     self
   }
