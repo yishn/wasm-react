@@ -1,7 +1,7 @@
 use super::{HtmlTag, H};
 use super::{Props, Style};
 use std::borrow::Cow;
-use wasm_bindgen::JsValue;
+use wasm_bindgen::{intern, JsValue};
 
 /// To be used with [`H::dangerously_set_inner_html()`].
 #[derive(Debug, Default, PartialEq, Eq, Clone)]
@@ -15,7 +15,7 @@ macro_rules! impl_attr {
     $(
       #[allow(missing_docs)]
       pub fn $attr(self, value: $T) -> Self {
-        self.attr($attr_str, &Into::into(value))
+        self.attr(intern($attr_str), &Into::into(value))
       }
     )*
   };
@@ -45,9 +45,9 @@ impl H<HtmlTag<'_>> {
   /// ```
   pub fn dangerously_set_inner_html(self, value: &DangerousHtml) -> Self {
     self.attr(
-      "dangerouslySetInnerHTML",
+      intern("dangerouslySetInnerHTML"),
       Props::new()
-        .insert("__html", &value.__html[..].into())
+        .insert(intern("__html"), &value.__html[..].into())
         .as_ref(),
     )
   }
@@ -55,12 +55,12 @@ impl H<HtmlTag<'_>> {
   /// Overwrites the class name attribute. Use [`h!`](crate::h) for easier way
   /// to set the class names.
   pub fn class_name(self, value: &str) -> Self {
-    self.attr("className", &value.into())
+    self.attr(intern("className"), &value.into())
   }
 
   /// Sets the style attribute.
   pub fn style(self, style: &Style) -> Self {
-    self.attr("style", style.as_ref())
+    self.attr(intern("style"), style.as_ref())
   }
 
   impl_attr! {

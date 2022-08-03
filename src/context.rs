@@ -146,8 +146,10 @@ impl<T: 'static> Component for ContextProvider<T> {
           let mut props = Props::new();
 
           if let Some(value) = self.value.as_ref() {
-            props =
-              props.insert("value", &RefContainerValue(value.clone()).into());
+            props = props.insert(
+              intern("value"),
+              &RefContainerValue(value.clone()).into(),
+            );
           }
 
           props

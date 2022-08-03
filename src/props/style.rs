@@ -1,5 +1,5 @@
 use super::Props;
-use wasm_bindgen::JsValue;
+use wasm_bindgen::{intern, JsValue};
 
 /// A convenience wrapper around [`Props`] that provides auto-completion for
 /// style-related properties.
@@ -46,7 +46,7 @@ macro_rules! impl_style {
     $(
       #[allow(missing_docs)]
       pub fn $attr(self, value: impl Into<JsValue>) -> Self {
-        self.insert($attr_str, &value.into())
+        self.insert(intern($attr_str), &value.into())
       }
     )*
   };
