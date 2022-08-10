@@ -122,11 +122,11 @@ impl Component for TaskList<'_> {
           .map(|(i, (done, description))| {
             TaskItem {
               id: i,
-              description,
+              description: description.clone(),
               done: *done,
               on_change: self.on_change.clone(),
             }
-            // .memoized()
+            .memoized()
             .key(Some(i))
             .build()
           })
@@ -136,14 +136,14 @@ impl Component for TaskList<'_> {
 }
 
 #[derive(Debug, PartialEq)]
-struct TaskItem<'a> {
+struct TaskItem {
   id: usize,
-  description: &'a str,
+  description: Rc<str>,
   done: bool,
   on_change: Option<Callback<(usize, bool)>>,
 }
 
-impl Component for TaskItem<'_> {
+impl Component for TaskItem {
   fn render(&self) -> VNode {
     let handle_change = use_callback(
       {
@@ -179,9 +179,9 @@ impl Component for TaskItem<'_> {
           .build(c![]),
         " ",
         if self.done {
-          h!(del).build(c![self.description])
+          h!(del).build(c![*self.description])
         } else {
-          self.description.into()
+          (*self.description).into()
         },
       ])
     ])

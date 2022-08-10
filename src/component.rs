@@ -1,5 +1,5 @@
 use crate::{react_bindings, KeyType, VNode};
-use std::any::type_name;
+use std::any::{type_name, Any};
 use wasm_bindgen::prelude::*;
 
 #[doc(hidden)]
@@ -75,50 +75,50 @@ pub trait Component: Sized {
     self._build_with_name_and_key(name, key)
   }
 
-  // /// Returns a memoized version of your component that skips rendering if props
-  // /// haven't changed.
-  // ///
-  // /// If your component renders the same result given the same props, you can
-  // /// memoize your component for a performance boost.
-  // ///
-  // /// You have to implement [`PartialEq`] on your [`Component`] for this to work.
-  // ///
-  // /// # Example
-  // ///
-  // /// ```
-  // /// # use std::rc::Rc;
-  // /// # use wasm_react::*;
-  // /// #[derive(PartialEq)]
-  // /// struct MessageBox {
-  // ///   message: Rc<str>,
-  // /// }
-  // ///
-  // /// impl Component for MessageBox {
-  // ///   fn render(&self) -> VNode {
-  // ///     h!(h1[."message-box"]).build(c![&*self.message])
-  // ///   }
-  // /// }
-  // ///
-  // /// struct App;
-  // ///
-  // /// impl Component for App {
-  // ///   fn render(&self) -> VNode {
-  // ///     h!(div[#"app"]).build(c![
-  // ///       MessageBox {
-  // ///         message: Rc::from("Hello World!"),
-  // ///       }
-  // ///       .memoized()
-  // ///       .build()
-  // ///     ])
-  // ///   }
-  // /// }
-  // /// ```
-  // fn memoized(s<elf) -> Memoized<Self>
-  // where
-  //   Self: PartialEq,
-  // {
-  //   Memoized(self)
-  // }>
+  /// Returns a memoized version of your component that skips rendering if props
+  /// haven't changed.
+  ///
+  /// If your component renders the same result given the same props, you can
+  /// memoize your component for a performance boost.
+  ///
+  /// You have to implement [`PartialEq`] on your [`Component`] for this to work.
+  ///
+  /// # Example
+  ///
+  /// ```
+  /// # use std::rc::Rc;
+  /// # use wasm_react::*;
+  /// #[derive(PartialEq)]
+  /// struct MessageBox {
+  ///   message: Rc<str>,
+  /// }
+  ///
+  /// impl Component for MessageBox {
+  ///   fn render(&self) -> VNode {
+  ///     h!(h1[."message-box"]).build(c![&*self.message])
+  ///   }
+  /// }
+  ///
+  /// struct App;
+  ///
+  /// impl Component for App {
+  ///   fn render(&self) -> VNode {
+  ///     h!(div[#"app"]).build(c![
+  ///       MessageBox {
+  ///         message: Rc::from("Hello World!"),
+  ///       }
+  ///       .memoized()
+  ///       .build()
+  ///     ])
+  ///   }
+  /// }
+  /// ```
+  fn memoized(self) -> Memoized<Self>
+  where
+    Self: PartialEq + 'static,
+  {
+    Memoized(self)
+  }
 }
 
 /// Wraps your component to assign a [React key][key] to it.
@@ -148,33 +148,31 @@ impl<T: Component> Component for Keyed<T> {
   }
 }
 
-// /// Wraps your component to let React skip rendering if props haven't changed.
-// ///
-// /// See [`Component::memoized()`].
-// #[derive(Debug, PartialEq)]
-// pub struct Memoized<T>(T);
+/// Wraps your component to let React skip rendering if props haven't changed.
+///
+/// See [`Component::memoized()`].
+#[derive(Debug, PartialEq)]
+pub struct Memoized<T>(T);
 
-// impl<T: Component + PartialEq> Component for Memoized<T> {
-//   fn render(&self) -> VNode {
-//     self.0.render()
-//   }
+impl<T: Component + PartialEq + 'static> Component for Memoized<T> {
+  fn render(&self) -> VNode {
+    self.0.render()
+  }
 
-//   fn build_params(&self) -> BuildParams<Self> {
-//     let BuildParams { name, key, .. } = self.0.build_params();
+  fn _build_params(&self) -> BuildParams {
+    let BuildParams { name, key, .. } = self.0._build_params();
 
-//     BuildParams {
-//       name,
-//       key,
-//       create_component: Box::new(|name, key, component| {
-//         react_bindings::create_rust_memo_component(
-//           name,
-//           &key.unwrap_or(JsValue::UNDEFINED),
-//           MemoComponentWrapper(Box::new(component.0)),
-//         )
-//       }),
-//     }
-//   }
-// }
+    BuildParams { name, key }
+  }
+
+  fn _build_with_name_and_key(self, name: &str, key: Option<JsValue>) -> VNode {
+    VNode(react_bindings::create_rust_memo_component(
+      name,
+      &key.unwrap_or(JsValue::UNDEFINED),
+      MemoComponentWrapper(Box::new(self.0)),
+    ))
+  }
+}
 
 trait ObjectSafeComponent {
   fn render(&self) -> VNode;
@@ -209,37 +207,38 @@ impl ComponentWrapper {
   }
 }
 
-// trait ObjectSafeMemoComponent: ObjectSafeComponent {
-//   fn as_any(&self) -> &dyn Any;
-//   fn eq(&self, other: &dyn Any) -> bool;
-// }
+trait ObjectSafeMemoComponent: ObjectSafeComponent {
+  fn as_any(&self) -> &dyn Any;
+  fn eq(&self, other: &dyn ObjectSafeMemoComponent) -> bool;
+}
 
-// impl<'a, T: Component<'a> + PartialEq> ObjectSafeMemoComponent for T {
-//   fn as_any(&self) -> &dyn Any {
-//     self
-//   }
+impl<'a, T: Component + PartialEq + 'static> ObjectSafeMemoComponent for T {
+  fn as_any(&self) -> &dyn Any {
+    self
+  }
 
-//   fn eq(&self, other: &dyn Any) -> bool {
-//     other
-//       .downcast_ref::<T>()
-//       .map(|other| PartialEq::eq(self, other))
-//       .unwrap_or(false)
-//   }
-// }
+  fn eq(&self, other: &dyn ObjectSafeMemoComponent) -> bool {
+    other
+      .as_any()
+      .downcast_ref::<T>()
+      .map(|other| PartialEq::eq(self, other))
+      .unwrap_or(false)
+  }
+}
 
-// #[doc(hidden)]
-// #[wasm_bindgen(js_name = __WasmReact_MemoComponentWrapper)]
-// pub struct MemoComponentWrapper(Box<dyn ObjectSafeMemoComponent>);
+#[doc(hidden)]
+#[wasm_bindgen(js_name = __WasmReact_MemoComponentWrapper)]
+pub struct MemoComponentWrapper(Box<dyn ObjectSafeMemoComponent>);
 
-// #[wasm_bindgen(js_class = __WasmReact_MemoComponentWrapper)]
-// impl MemoComponentWrapper {
-//   #[wasm_bindgen]
-//   pub fn render(&self) -> JsValue {
-//     self.0.render().into()
-//   }
+#[wasm_bindgen(js_class = __WasmReact_MemoComponentWrapper)]
+impl MemoComponentWrapper {
+  #[wasm_bindgen]
+  pub fn render(&self) -> JsValue {
+    self.0.render().into()
+  }
 
-//   #[wasm_bindgen]
-//   pub fn eq(&self, other: &MemoComponentWrapper) -> bool {
-//     self.0.eq(other.0.as_any())
-//   }
-// }
+  #[wasm_bindgen]
+  pub fn eq(&self, other: &MemoComponentWrapper) -> bool {
+    self.0.eq(&*other.0)
+  }
+}
