@@ -288,13 +288,20 @@ macro_rules! export_components {
       #[::wasm_bindgen::prelude::wasm_bindgen(js_name = $Name)]
       pub fn [<__WasmReact_Export_ $Name>](
         props: ::wasm_bindgen::JsValue,
-      ) -> Result<::wasm_bindgen::JsValue, ::wasm_bindgen::JsValue>
+      ) -> ::wasm_bindgen::JsValue
       where
         $Component: $crate::Component
-          + TryFrom<::wasm_bindgen::JsValue, Error = ::wasm_bindgen::JsValue>,
+          + TryFrom<::wasm_bindgen::JsValue, Error = ::wasm_bindgen::JsValue>
       {
-        let component = $Component::try_from(props)?;
-        Ok($crate::Component::render(&component).into())
+        let component_ref = $crate::hooks::use_memo({
+          let props = props.clone();
+
+          move || $Component::try_from(props).unwrap()
+        }, $crate::hooks::Deps::some(props));
+
+        let component = component_ref.value();
+
+        $crate::Component::render(&*component).into()
       }
     }
 
