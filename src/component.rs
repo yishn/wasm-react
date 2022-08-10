@@ -3,11 +3,9 @@ use std::any::type_name;
 use wasm_bindgen::prelude::*;
 
 #[doc(hidden)]
-pub struct BuildParams<T> {
+pub struct BuildParams {
   name: &'static str,
   key: Option<JsValue>,
-  create_component:
-    Box<dyn FnOnce(&'static str, Option<JsValue>, T) -> JsValue>,
 }
 
 /// Implement this trait on a struct to create a component with the struct as
@@ -49,31 +47,27 @@ pub trait Component: Sized {
 
   #[doc(hidden)]
   /// Defines parameters for [`Component::build()`].
-  fn build_params(&self) -> BuildParams<Self> {
+  fn build_params(&self) -> BuildParams {
     BuildParams {
       name: type_name::<Self>(),
       key: None,
-      create_component: Box::new(|name, key, component| {
-        react_bindings::create_rust_component(
-          name,
-          &key.unwrap_or(JsValue::UNDEFINED),
-          unsafe {
-            ComponentWrapperWithLifetime(Box::new(component)).extend_lifetime()
-          },
-        )
-      }),
     }
+  }
+
+  #[doc(hidden)]
+  fn build_with_name_and_key(self, name: &str, key: Option<JsValue>) -> VNode {
+    VNode(react_bindings::create_rust_component(
+      name,
+      &key.unwrap_or(JsValue::UNDEFINED),
+      unsafe { ComponentWrapperWithLifetime(Box::new(self)).extend_lifetime() },
+    ))
   }
 
   /// Returns a [`VNode`] to be included in a render function.
   fn build(self) -> VNode {
-    let BuildParams {
-      name,
-      key,
-      create_component,
-    } = self.build_params();
+    let BuildParams { name, key } = self.build_params();
 
-    VNode(create_component(name, key, self))
+    self.build_with_name_and_key(name, key)
   }
 
   // /// Returns a memoized version of your component that skips rendering if props
@@ -135,20 +129,17 @@ impl<T: Component> Component for Keyed<T> {
     self.0.render()
   }
 
-  fn build_params(&self) -> BuildParams<Self> {
-    let BuildParams {
-      name,
-      create_component,
-      ..
-    } = self.0.build_params();
+  fn build_params(&self) -> BuildParams {
+    let BuildParams { name, .. } = self.0.build_params();
 
     BuildParams {
       name,
       key: self.1.clone(),
-      create_component: todo!(), // Box::new(|name, key, component| {
-                                 //   create_component(name, key, component.0)
-                                 // }),
     }
+  }
+
+  fn build_with_name_and_key(self, name: &str, key: Option<JsValue>) -> VNode {
+    self.0.build_with_name_and_key(name, key)
   }
 }
 

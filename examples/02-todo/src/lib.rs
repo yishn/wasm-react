@@ -127,7 +127,7 @@ impl Component for TaskList<'_> {
               on_change: self.on_change.clone(),
             }
             // .memoized()
-            // .key(Some(i))
+            .key(Some(i))
             .build()
           })
       ])
