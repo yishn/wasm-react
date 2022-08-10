@@ -39,7 +39,7 @@ components to JS, you also need `wasm-bindgen` and install [`wasm-pack`].
 
 ```toml
 [dependencies]
-wasm-react = "0.3"
+wasm-react = "0.4"
 wasm-bindgen = "0.2"
 ```
 
