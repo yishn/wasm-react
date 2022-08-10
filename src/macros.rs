@@ -184,8 +184,9 @@ macro_rules! classnames {
 /// This macro can be used to expose your [`Component`](crate::Component) for JS
 /// consumption via `wasm-bindgen`.
 ///
-/// Requirement is that you implement the [`TryFrom<JsValue, Error = JsValue>`](core::convert::TryFrom)
-/// trait on your component and that you do not export anything else that has
+/// Requirement is that your component is `'static` and implements the
+/// [`TryFrom<JsValue, Error = JsValue>`](core::convert::TryFrom)
+/// trait. Keep in mind that you do can't export anything else that has
 /// the same name as your component.
 ///
 /// Therefore, it is only recommended to use this macro if you're writing a

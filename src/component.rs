@@ -62,8 +62,9 @@ pub trait Component: Sized {
       // This is safe since the only lifetimes that a component prop can
       // reference is 'static or the lifetime of a parent prop, taking into
       // account that a child component's render function can only be called
-      // while its parent props haven't been dropped (component props are always
-      // persisted through the entire lifetime of a component).
+      // while its parent props haven't been dropped yet. Keep in mind that
+      // component props are always persisted through the entire lifetime of a
+      // component.
       unsafe { ComponentWrapperWithLifetime(Box::new(self)).extend_lifetime() },
     ))
   }
