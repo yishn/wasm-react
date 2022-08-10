@@ -9,7 +9,6 @@ extern "C" {}
 mod builtin_components;
 mod component;
 mod context;
-mod value_container;
 mod macros;
 mod marker;
 mod react_bindings;
@@ -25,7 +24,6 @@ use wasm_bindgen::prelude::*;
 pub use builtin_components::*;
 pub use component::*;
 pub use context::*;
-pub use value_container::*;
 pub use marker::*;
 #[doc(hidden)]
 pub use paste::paste;

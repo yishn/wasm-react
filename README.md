@@ -134,8 +134,8 @@ impl Component for Counter {
 ### Export Components for JS Consumption
 
 First, you'll need [`wasm-pack`]. You can use `export_components!` to export
-your Rust component for JS consumption. Requirement is that your component
-implements `TryFrom<JsValue, Error = JsValue>`.
+your Rust component for JS consumption. Requirement is that your component is
+`'static` and implements `TryFrom<JsValue, Error = JsValue>`.
 
 ```rust
 use wasm_react::{h, c, export_components, Component, VNode};
@@ -147,8 +147,7 @@ struct Counter {
 
 impl Component for Counter {
   fn render(&self) -> VNode {
-    /* … */
-    VNode::empty()
+    todo!()
   }
 }
 
@@ -265,32 +264,22 @@ impl Component for App {
 
 ### Passing Down State as Prop
 
-Say you define a component with the following struct:
-
-```rust
-use std::rc::Rc;
-
-struct TaskList {
-  tasks: Vec<Rc<str>>
-}
-```
-
-You want to include `TaskList` in a container component `App` where `tasks` is
-managed by a state:
+Say you have a container component `App` where `tasks` is managed by a state and
+you want to pass `tasks` down to a child component as a prop. In this case, you
+can create a component with lifetime and simply pass down a reference:
 
 ```rust
 use std::rc::Rc;
 use wasm_react::{h, c, Component, VNode};
 use wasm_react::hooks::{use_state, State};
 
-struct TaskList {
-  tasks: Vec<Rc<str>>
+struct TaskList<'a> {
+  tasks: &'a Vec<Rc<str>>
 }
 
-impl Component for TaskList {
+impl Component for TaskList<'_> {
   fn render(&self) -> VNode {
-    /* … */
-    VNode::default()
+    todo!()
   }
 }
 
@@ -302,7 +291,7 @@ impl Component for App {
 
     h!(div).build(c![
       TaskList {
-        tasks: todo!(), // Oops, `tasks.value()` does not fit the type
+        tasks: &tasks.value(),
       }
       .build(),
     ])
@@ -310,60 +299,8 @@ impl Component for App {
 }
 ```
 
-Changing the type of `tasks` to fit `tasks.value()` doesn't work, since
-`tasks.value()` returns a non-`'static` reference while component structs can
-only contain `'static` values. You can clone the underlying `Vec`, but this
-introduces unnecessary overhead. In this situation you might think you can
-simply change the type of `TaskList` to a `State`:
-
-```rust
-use std::rc::Rc;
-use wasm_react::{h, c, Component, VNode};
-use wasm_react::hooks::{use_state, State};
-
-struct TaskList {
-  tasks: State<Vec<Rc<str>>>
-}
-```
-
-This works as long as the prop `tasks` is guaranteed to come from a state. But
-this assumption may not hold. You might want to pass on `Rc<Vec<Rc<str>>>` or
-`Memo<Vec<Rc<str>>>` instead in the future or somewhere else. To be as generic
-as possible, you can use `ValueContainer`:
-
-```rust
-use std::rc::Rc;
-use wasm_react::{h, c, Component, ValueContainer, VNode};
-use wasm_react::hooks::{use_state, State};
-
-struct TaskList {
-  tasks: ValueContainer<Vec<Rc<str>>>
-}
-
-impl Component for TaskList {
-  fn render(&self) -> VNode {
-    /* Do something with `self.tasks.value()`… */
-    VNode::default()
-  }
-}
-
-struct App;
-
-impl Component for App {
-  fn render(&self) -> VNode {
-    let tasks: State<Vec<Rc<str>>> = use_state(|| vec![]);
-
-    h!(div).build(c![
-      TaskList {
-        // Cloning `State` has low cost as opposed to cloning the underlying
-        // `Vec`.
-        tasks: tasks.clone().into(),
-      }
-      .build(),
-    ])
-  }
-}
-```
+Keep in mind that components with lifetimes cannot be exported for JS
+consumption.
 
 ## License
 

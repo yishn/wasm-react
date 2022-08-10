@@ -3,11 +3,9 @@ use std::any::{type_name, Any};
 use wasm_bindgen::prelude::*;
 
 #[doc(hidden)]
-pub struct BuildParams<T> {
+pub struct BuildParams {
   name: &'static str,
   key: Option<JsValue>,
-  create_component:
-    Box<dyn FnOnce(&'static str, Option<JsValue>, T) -> JsValue>,
 }
 
 /// Implement this trait on a struct to create a component with the struct as
@@ -33,7 +31,7 @@ pub struct BuildParams<T> {
 ///   }
 /// }
 /// ```
-pub trait Component: Sized + 'static {
+pub trait Component: Sized {
   /// The render function.
   ///
   /// **Do not** call this method in another render function. Instead, use
@@ -49,29 +47,33 @@ pub trait Component: Sized + 'static {
 
   #[doc(hidden)]
   /// Defines parameters for [`Component::build()`].
-  fn build_params(&self) -> BuildParams<Self> {
+  fn _build_params(&self) -> BuildParams {
     BuildParams {
       name: type_name::<Self>(),
       key: None,
-      create_component: Box::new(|name, key, component| {
-        react_bindings::create_rust_component(
-          name,
-          &key.unwrap_or(JsValue::UNDEFINED),
-          ComponentWrapper(Box::new(component)),
-        )
-      }),
     }
+  }
+
+  #[doc(hidden)]
+  fn _build_with_name_and_key(self, name: &str, key: Option<JsValue>) -> VNode {
+    VNode(react_bindings::create_rust_component(
+      name,
+      &key.unwrap_or(JsValue::UNDEFINED),
+      // This is safe since the only lifetimes that a component prop can
+      // reference is 'static or the lifetime of a parent prop, taking into
+      // account that a child component's render function can only be called
+      // while its parent props haven't been dropped yet. Keep in mind that
+      // component props are always persisted through the entire lifetime of a
+      // component.
+      unsafe { ComponentWrapperWithLifetime(Box::new(self)).extend_lifetime() },
+    ))
   }
 
   /// Returns a [`VNode`] to be included in a render function.
   fn build(self) -> VNode {
-    let BuildParams {
-      name,
-      key,
-      create_component,
-    } = self.build_params();
+    let BuildParams { name, key } = self._build_params();
 
-    VNode(create_component(name, key, self))
+    self._build_with_name_and_key(name, key)
   }
 
   /// Returns a memoized version of your component that skips rendering if props
@@ -114,7 +116,7 @@ pub trait Component: Sized + 'static {
   /// ```
   fn memoized(self) -> Memoized<Self>
   where
-    Self: PartialEq,
+    Self: PartialEq + 'static,
   {
     Memoized(self)
   }
@@ -133,20 +135,17 @@ impl<T: Component> Component for Keyed<T> {
     self.0.render()
   }
 
-  fn build_params(&self) -> BuildParams<Self> {
-    let BuildParams {
-      name,
-      create_component,
-      ..
-    } = self.0.build_params();
+  fn _build_params(&self) -> BuildParams {
+    let BuildParams { name, .. } = self.0._build_params();
 
     BuildParams {
       name,
       key: self.1.clone(),
-      create_component: Box::new(|name, key, component| {
-        create_component(name, key, component.0)
-      }),
     }
+  }
+
+  fn _build_with_name_and_key(self, name: &str, key: Option<JsValue>) -> VNode {
+    self.0._build_with_name_and_key(name, key)
   }
 }
 
@@ -156,25 +155,23 @@ impl<T: Component> Component for Keyed<T> {
 #[derive(Debug, PartialEq)]
 pub struct Memoized<T>(T);
 
-impl<T: Component + PartialEq> Component for Memoized<T> {
+impl<T: Component + PartialEq + 'static> Component for Memoized<T> {
   fn render(&self) -> VNode {
     self.0.render()
   }
 
-  fn build_params(&self) -> BuildParams<Self> {
-    let BuildParams { name, key, .. } = self.0.build_params();
+  fn _build_params(&self) -> BuildParams {
+    let BuildParams { name, key, .. } = self.0._build_params();
 
-    BuildParams {
+    BuildParams { name, key }
+  }
+
+  fn _build_with_name_and_key(self, name: &str, key: Option<JsValue>) -> VNode {
+    VNode(react_bindings::create_rust_memo_component(
       name,
-      key,
-      create_component: Box::new(|name, key, component| {
-        react_bindings::create_rust_memo_component(
-          name,
-          &key.unwrap_or(JsValue::UNDEFINED),
-          MemoComponentWrapper(Box::new(component.0)),
-        )
-      }),
-    }
+      &key.unwrap_or(JsValue::UNDEFINED),
+      MemoComponentWrapper(Box::new(self.0)),
+    ))
   }
 }
 
@@ -188,30 +185,42 @@ impl<T: Component> ObjectSafeComponent for T {
   }
 }
 
+struct ComponentWrapperWithLifetime<'a>(Box<dyn ObjectSafeComponent + 'a>);
+
+impl ComponentWrapperWithLifetime<'_> {
+  unsafe fn extend_lifetime(self) -> ComponentWrapper {
+    ComponentWrapper(std::mem::transmute::<
+      Self,
+      ComponentWrapperWithLifetime<'static>,
+    >(self))
+  }
+}
+
 #[doc(hidden)]
 #[wasm_bindgen(js_name = __WasmReact_ComponentWrapper)]
-pub struct ComponentWrapper(Box<dyn ObjectSafeComponent>);
+pub struct ComponentWrapper(ComponentWrapperWithLifetime<'static>);
 
 #[wasm_bindgen(js_class = __WasmReact_ComponentWrapper)]
 impl ComponentWrapper {
   #[wasm_bindgen]
   pub fn render(&self) -> JsValue {
-    self.0.render().into()
+    self.0 .0.render().into()
   }
 }
 
 trait ObjectSafeMemoComponent: ObjectSafeComponent {
   fn as_any(&self) -> &dyn Any;
-  fn eq(&self, other: &dyn Any) -> bool;
+  fn eq(&self, other: &dyn ObjectSafeMemoComponent) -> bool;
 }
 
-impl<T: Component + PartialEq> ObjectSafeMemoComponent for T {
+impl<'a, T: Component + PartialEq + 'static> ObjectSafeMemoComponent for T {
   fn as_any(&self) -> &dyn Any {
     self
   }
 
-  fn eq(&self, other: &dyn Any) -> bool {
+  fn eq(&self, other: &dyn ObjectSafeMemoComponent) -> bool {
     other
+      .as_any()
       .downcast_ref::<T>()
       .map(|other| PartialEq::eq(self, other))
       .unwrap_or(false)
@@ -231,6 +240,6 @@ impl MemoComponentWrapper {
 
   #[wasm_bindgen]
   pub fn eq(&self, other: &MemoComponentWrapper) -> bool {
-    self.0.eq(other.0.as_any())
+    self.0.eq(&*other.0)
   }
 }
