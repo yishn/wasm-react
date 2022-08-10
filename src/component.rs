@@ -47,7 +47,7 @@ pub trait Component: Sized {
 
   #[doc(hidden)]
   /// Defines parameters for [`Component::build()`].
-  fn build_params(&self) -> BuildParams {
+  fn _build_params(&self) -> BuildParams {
     BuildParams {
       name: type_name::<Self>(),
       key: None,
@@ -55,19 +55,24 @@ pub trait Component: Sized {
   }
 
   #[doc(hidden)]
-  fn build_with_name_and_key(self, name: &str, key: Option<JsValue>) -> VNode {
+  fn _build_with_name_and_key(self, name: &str, key: Option<JsValue>) -> VNode {
     VNode(react_bindings::create_rust_component(
       name,
       &key.unwrap_or(JsValue::UNDEFINED),
+      // This is safe since the only lifetimes that a component prop can
+      // reference is 'static or the lifetime of a parent prop, taking into
+      // account that a child component's render function can only be called
+      // while its parent props haven't been dropped (component props are always
+      // persisted through the entire lifetime of a component).
       unsafe { ComponentWrapperWithLifetime(Box::new(self)).extend_lifetime() },
     ))
   }
 
   /// Returns a [`VNode`] to be included in a render function.
   fn build(self) -> VNode {
-    let BuildParams { name, key } = self.build_params();
+    let BuildParams { name, key } = self._build_params();
 
-    self.build_with_name_and_key(name, key)
+    self._build_with_name_and_key(name, key)
   }
 
   // /// Returns a memoized version of your component that skips rendering if props
@@ -129,8 +134,8 @@ impl<T: Component> Component for Keyed<T> {
     self.0.render()
   }
 
-  fn build_params(&self) -> BuildParams {
-    let BuildParams { name, .. } = self.0.build_params();
+  fn _build_params(&self) -> BuildParams {
+    let BuildParams { name, .. } = self.0._build_params();
 
     BuildParams {
       name,
@@ -138,8 +143,8 @@ impl<T: Component> Component for Keyed<T> {
     }
   }
 
-  fn build_with_name_and_key(self, name: &str, key: Option<JsValue>) -> VNode {
-    self.0.build_with_name_and_key(name, key)
+  fn _build_with_name_and_key(self, name: &str, key: Option<JsValue>) -> VNode {
+    self.0._build_with_name_and_key(name, key)
   }
 }
 
