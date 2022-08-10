@@ -291,13 +291,14 @@ macro_rules! export_components {
       ) -> ::wasm_bindgen::JsValue
       where
         $Component: $crate::Component
-          + TryFrom<::wasm_bindgen::JsValue, Error = ::wasm_bindgen::JsValue>
+          + std::convert::TryFrom<::wasm_bindgen::JsValue, Error = ::wasm_bindgen::JsValue>
       {
-        let component_ref = $crate::hooks::use_memo({
-          let props = props.clone();
+        let component_ref: $crate::hooks::Memo<$Component> =
+          $crate::hooks::use_memo({
+            let props = props.clone();
 
-          move || $Component::try_from(props).unwrap()
-        }, $crate::hooks::Deps::some(props));
+            move || std::convert::TryFrom::try_from(props).unwrap()
+          }, $crate::hooks::Deps::some(props));
 
         let component = component_ref.value();
 
