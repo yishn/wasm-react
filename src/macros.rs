@@ -184,9 +184,8 @@ macro_rules! classnames {
 /// This macro can be used to expose your [`Component`](crate::Component) for JS
 /// consumption via `wasm-bindgen`.
 ///
-/// Requirement is that your component is `'static` and implements the
-/// [`TryFrom<JsValue, Error = JsValue>`](core::convert::TryFrom)
-/// trait. Keep in mind that you do can't export anything else that has
+/// Requirement is that you implement the [`TryFrom<JsValue, Error = JsValue>`](core::convert::TryFrom)
+/// trait on your component and that you do not export anything else that has
 /// the same name as your component.
 ///
 /// Therefore, it is only recommended to use this macro if you're writing a
@@ -292,14 +291,13 @@ macro_rules! export_components {
       ) -> ::wasm_bindgen::JsValue
       where
         $Component: $crate::Component
-          + std::convert::TryFrom<::wasm_bindgen::JsValue, Error = ::wasm_bindgen::JsValue>
+          + TryFrom<::wasm_bindgen::JsValue, Error = ::wasm_bindgen::JsValue>
       {
-        let component_ref: $crate::hooks::Memo<$Component> =
-          $crate::hooks::use_memo({
-            let props = props.clone();
+        let component_ref = $crate::hooks::use_memo({
+          let props = props.clone();
 
-            move || std::convert::TryFrom::try_from(props).unwrap()
-          }, $crate::hooks::Deps::some(props));
+          move || $Component::try_from(props).unwrap()
+        }, $crate::hooks::Deps::some(props));
 
         let component = component_ref.value();
 
