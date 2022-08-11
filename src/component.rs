@@ -3,11 +3,9 @@ use std::any::{type_name, Any};
 use wasm_bindgen::prelude::*;
 
 #[doc(hidden)]
-pub struct BuildParams<T> {
+pub struct BuildParams {
   name: &'static str,
   key: Option<JsValue>,
-  create_component:
-    Box<dyn FnOnce(&'static str, Option<JsValue>, T) -> JsValue>,
 }
 
 /// Implement this trait on a struct to create a component with the struct as
@@ -49,29 +47,31 @@ pub trait Component: Sized + 'static {
 
   #[doc(hidden)]
   /// Defines parameters for [`Component::build()`].
-  fn build_params(&self) -> BuildParams<Self> {
+  fn _build_params(&self) -> BuildParams {
     BuildParams {
       name: type_name::<Self>(),
       key: None,
-      create_component: Box::new(|name, key, component| {
-        react_bindings::create_rust_component(
-          name,
-          &key.unwrap_or(JsValue::UNDEFINED),
-          ComponentWrapper(Box::new(component)),
-        )
-      }),
     }
+  }
+
+  #[doc(hidden)]
+  fn _build_with_name_and_key(
+    self,
+    name: &'static str,
+    key: Option<JsValue>,
+  ) -> VNode {
+    VNode(react_bindings::create_rust_component(
+      name,
+      &key.unwrap_or(JsValue::UNDEFINED),
+      ComponentWrapper(Box::new(self)),
+    ))
   }
 
   /// Returns a [`VNode`] to be included in a render function.
   fn build(self) -> VNode {
-    let BuildParams {
-      name,
-      key,
-      create_component,
-    } = self.build_params();
+    let BuildParams { name, key } = self._build_params();
 
-    VNode(create_component(name, key, self))
+    self._build_with_name_and_key(name, key)
   }
 
   /// Returns a memoized version of your component that skips rendering if props
@@ -133,20 +133,21 @@ impl<T: Component> Component for Keyed<T> {
     self.0.render()
   }
 
-  fn build_params(&self) -> BuildParams<Self> {
-    let BuildParams {
-      name,
-      create_component,
-      ..
-    } = self.0.build_params();
+  fn _build_params(&self) -> BuildParams {
+    let BuildParams { name, .. } = self.0._build_params();
 
     BuildParams {
       name,
       key: self.1.clone(),
-      create_component: Box::new(|name, key, component| {
-        create_component(name, key, component.0)
-      }),
     }
+  }
+
+  fn _build_with_name_and_key(
+    self,
+    name: &'static str,
+    key: Option<JsValue>,
+  ) -> VNode {
+    self.0._build_with_name_and_key(name, key)
   }
 }
 
@@ -161,20 +162,20 @@ impl<T: Component + PartialEq> Component for Memoized<T> {
     self.0.render()
   }
 
-  fn build_params(&self) -> BuildParams<Self> {
-    let BuildParams { name, key, .. } = self.0.build_params();
+  fn _build_params(&self) -> BuildParams {
+    self.0._build_params()
+  }
 
-    BuildParams {
+  fn _build_with_name_and_key(
+    self,
+    name: &'static str,
+    key: Option<JsValue>,
+  ) -> VNode {
+    VNode(react_bindings::create_rust_memo_component(
       name,
-      key,
-      create_component: Box::new(|name, key, component| {
-        react_bindings::create_rust_memo_component(
-          name,
-          &key.unwrap_or(JsValue::UNDEFINED),
-          MemoComponentWrapper(Box::new(component.0)),
-        )
-      }),
-    }
+      &key.unwrap_or(JsValue::UNDEFINED),
+      MemoComponentWrapper(Box::new(self.0)),
+    ))
   }
 }
 
