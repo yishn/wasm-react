@@ -78,8 +78,8 @@ impl Component for App {
       Deps::none(),
     );
 
-    h!(div[#"app"]).build(c![
-      h!(h1).build(c!["Todo"]),
+    let result = h!(div[#"app"]).build((
+      h!(h1).build("Todo"),
       //
       TaskList {
         tasks: tasks.clone().into(),
@@ -87,16 +87,18 @@ impl Component for App {
       }
       .build(),
       //
-      h!(form).on_submit(&handle_submit).build(c![
+      h!(form).on_submit(&handle_submit).build((
         h!(input)
           .placeholder("Add new item…")
           .value(&**text.value())
           .on_change(&handle_input)
-          .build(c![]),
+          .build(()),
         " ",
-        h!(button).html_type("submit").build(c!["Add"])
-      ])
-    ])
+        h!(button).html_type("submit").build(("Add",)),
+      )),
+    ));
+
+    result
   }
 }
 
@@ -112,7 +114,7 @@ struct TaskList {
 
 impl Component for TaskList {
   fn render(&self) -> VNode {
-    h!(div[."task-list"]).build(c![
+    h!(div[."task-list"]).build((
       //
       h!(ul).build(c![
         ..self.tasks.value().iter().enumerate().map(
@@ -126,10 +128,10 @@ impl Component for TaskList {
             .memoized()
             .key(Some(i))
             .build()
-          }
+          },
         )
-      ])
-    ])
+      ]),
+    ))
   }
 }
 
@@ -167,21 +169,21 @@ impl Component for TaskItem {
       Deps::some((self.id, self.on_change.clone())),
     );
 
-    h!(li[."task-item"]).build(c![
+    h!(li[."task-item"]).build((
       //
-      h!(label).build(c![
+      h!(label).build((
         h!(input)
           .html_type("checkbox")
           .checked(self.done)
           .on_change(&handle_change)
-          .build(c![]),
+          .build(()),
         " ",
         if self.done {
-          h!(del).build(c![*self.description])
+          h!(del).build((&*self.description,))
         } else {
           (*self.description).into()
         },
-      ])
-    ])
+      )),
+    ))
   }
 }

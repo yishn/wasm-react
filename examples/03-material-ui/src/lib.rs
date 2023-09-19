@@ -1,6 +1,6 @@
 use wasm_bindgen::prelude::*;
 use wasm_react::{
-  c, export_components, import_components,
+  export_components, import_components,
   props::{Style, H},
   Component,
 };
@@ -36,39 +36,39 @@ pub struct App;
 
 impl Component for App {
   fn render(&self) -> wasm_react::VNode {
-    BoxComponent::new().build(c![
-      AppBar::new().build(c![
+    BoxComponent::new().build((
+      AppBar::new().build((
         //
-        Toolbar::new().build(c![
+        Toolbar::new().build((
           IconButton::new()
             .attr("color", &"inherit".into())
             .attr("edge", &"start".into())
             .sx(&Style::new().margin_right(2))
-            .build(c![MenuIcon::new().build(c![])]),
+            .build(MenuIcon::new().build(())),
           Typography::new()
             .attr("variant", &"h6".into())
             .attr("color", &"inherit".into())
             .attr("component", &"h1".into())
             .sx(&Style::new().flex_grow(1))
-            .build(c!["MUI Example Application"]),
-        ]),
-      ]),
+            .build("MUI Example Application"),
+        )),
+      )),
       //
       Container::new()
         .sx(&Style::new().margin_top(8).padding_top(2).padding_bottom(2))
-        .build(c![
+        .build(
           //
           Card::new()
             .attr("variant", &"outlined".into())
             .sx(&Style::new().max_width(345))
-            .build(c![
-              CardContent::new().build(c![
+            .build((
+              CardContent::new().build((
                 Typography::new()
                   .attr("variant", &"h5".into())
                   .attr("component", &"h2".into())
                   .sx(&Style::new().margin_bottom(1.5))
-                  .build(c!["Hello World!"]),
-                Typography::new().attr("variant", &"body2".into()).build(c![
+                  .build("Hello World!"),
+                Typography::new().attr("variant", &"body2".into()).build(
                   r"Lorem ipsum dolor sit amet, consectetur adipiscing elit,
                   sed do eiusmod tempor incididunt ut labore et dolore magna
                   aliqua. Ut enim ad minim veniam, quis nostrud exercitation
@@ -76,18 +76,18 @@ impl Component for App {
                   Duis aute irure dolor in reprehenderit in voluptate velit
                   esse cillum dolore eu fugiat nulla pariatur. Excepteur sint
                   occaecat cupidatat non proident, sunt in culpa qui officia
-                  deserunt mollit anim id est laborum."
-                ])
-              ]),
-              CardActions::new().build(c![
+                  deserunt mollit anim id est laborum.",
+                ),
+              )),
+              CardActions::new().build(
                 //
                 Button::new()
                   .attr("size", &"small".into())
-                  .build(c!["Learn More"])
-              ])
-            ])
-        ]),
-    ])
+                  .build("Learn More"),
+              ),
+            )),
+        ),
+    ))
   }
 }
 

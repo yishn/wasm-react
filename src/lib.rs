@@ -9,10 +9,10 @@ extern "C" {}
 mod builtin_components;
 mod component;
 mod context;
-mod value_container;
 mod macros;
 mod marker;
 mod react_bindings;
+mod value_container;
 mod vnode;
 
 pub mod callback;
@@ -25,10 +25,10 @@ use wasm_bindgen::prelude::*;
 pub use builtin_components::*;
 pub use component::*;
 pub use context::*;
-pub use value_container::*;
 pub use marker::*;
 #[doc(hidden)]
 pub use paste::paste;
+pub use value_container::*;
 pub use vnode::*;
 
 /// Contains all functions exported to JS by `wasm-react`. These functions should

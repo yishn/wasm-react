@@ -108,7 +108,7 @@ impl<T: HType> H<T> {
 
   /// Builds the [`VNode`] and returns it with the given children. Use
   /// [`c!`](crate::c!) for easier construction of the children.
-  pub fn build(self, children: VNodeList) -> VNode {
-    create_element(&self.typ.as_js(), &self.props, children)
+  pub fn build(self, children: impl Into<VNodeList>) -> VNode {
+    create_element(&self.typ.as_js(), &self.props, children.into())
   }
 }

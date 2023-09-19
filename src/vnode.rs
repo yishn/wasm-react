@@ -1,4 +1,6 @@
-use crate::react_bindings;
+#![allow(non_snake_case)]
+
+use crate::{c, react_bindings};
 use js_sys::{Array, JsString};
 use wasm_bindgen::{JsCast, JsValue};
 
@@ -43,6 +45,12 @@ macro_rules! impl_into_vnode {
       impl From<$T> for VNode {
         fn from(value: $T) -> Self {
           VNode(value.into())
+        }
+      }
+
+      impl From<$T> for VNodeList {
+        fn from(value: $T) -> Self {
+          VNodeList::from(VNode::from(value))
         }
       }
     )*
@@ -113,7 +121,17 @@ impl From<VNodeList> for JsValue {
 
 impl From<VNodeList> for VNode {
   fn from(value: VNodeList) -> Self {
-    VNode(value.into())
+    if value.arr.length() == 1 {
+      VNode(value.arr.get(0))
+    } else {
+      VNode(value.into())
+    }
+  }
+}
+
+impl From<VNode> for VNodeList {
+  fn from(value: VNode) -> Self {
+    c![value]
   }
 }
 
@@ -152,4 +170,43 @@ impl FromIterator<VNode> for VNodeList {
 
     result
   }
+}
+
+impl From<()> for VNodeList {
+  fn from(_: ()) -> Self {
+    VNodeList::new()
+  }
+}
+
+macro_rules! impl_into_vnodelist_for_tuples {
+  { $( ($( $x:ident ),*) ),* $(,)? } => {
+    $(
+      impl<$( $x, )*> From<($( $x, )*)> for VNodeList
+      where $( $x: Into<VNodeList>, )*
+      {
+        fn from(($( $x, )*): ($( $x, )*)) -> VNodeList {
+          c![$( $x.into(), )*]
+        }
+      }
+    )*
+  };
+}
+
+impl_into_vnodelist_for_tuples! {
+  (A),
+  (A, B),
+  (A, B, C),
+  (A, B, C, D),
+  (A, B, C, D, E),
+  (A, B, C, D, E, F),
+  (A, B, C, D, E, F, G),
+  (A, B, C, D, E, F, G, H),
+  (A, B, C, D, E, F, G, H, I),
+  (A, B, C, D, E, F, G, H, I, J),
+  (A, B, C, D, E, F, G, H, I, J, K),
+  (A, B, C, D, E, F, G, H, I, J, K, L),
+  (A, B, C, D, E, F, G, H, I, J, K, L, M),
+  (A, B, C, D, E, F, G, H, I, J, K, L, M, N),
+  (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O),
+  (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P),
 }

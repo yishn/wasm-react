@@ -1,6 +1,6 @@
 use crate::{Theme, THEME_CONTEXT};
 use std::rc::Rc;
-use wasm_react::{c, h, hooks::use_context, props::Style, Component, VNode};
+use wasm_react::{h, hooks::use_context, props::Style, Component, VNode};
 
 #[derive(Debug)]
 pub struct Button {
@@ -37,6 +37,6 @@ impl Component for Button {
       style
     };
 
-    h!(button).style(&style).build(c![&*self.text])
+    h!(button).style(&style).build(&*self.text)
   }
 }
