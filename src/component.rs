@@ -60,7 +60,7 @@ pub trait Component: Sized + 'static {
     name: &'static str,
     key: Option<JsValue>,
   ) -> VNode {
-    VNode(react_bindings::create_rust_component(
+    VNode::Single(react_bindings::create_rust_component(
       name,
       &key.unwrap_or(JsValue::UNDEFINED),
       ComponentWrapper(Box::new(self)),
@@ -171,7 +171,7 @@ impl<T: Component + PartialEq> Component for Memoized<T> {
     name: &'static str,
     key: Option<JsValue>,
   ) -> VNode {
-    VNode(react_bindings::create_rust_memo_component(
+    VNode::Single(react_bindings::create_rust_memo_component(
       name,
       &key.unwrap_or(JsValue::UNDEFINED),
       MemoComponentWrapper(Box::new(self.0)),

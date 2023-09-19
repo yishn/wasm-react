@@ -54,9 +54,9 @@ macro_rules! h {
   };
 }
 
-/// This macro can take various objects to build a [`VNodeList`].
+/// This macro can take various objects to build a [`VNode`].
 ///
-/// [`VNodeList`]: crate::VNodeList
+/// [`VNode`]: crate::VNode
 ///
 /// # Example
 ///
@@ -94,7 +94,7 @@ macro_rules! c {
 
   // Handle iterators
   [@single $list:ident << ..$vnode_list:expr $(, $( $tail:tt )* )?] => {
-    $list.push(&$vnode_list.collect::<$crate::VNodeList>().into());
+    $list.push(&$vnode_list.collect::<$crate::VNode>().into());
     $crate::c![@single $list << $( $( $tail )* )?];
   };
 
@@ -105,11 +105,11 @@ macro_rules! c {
   };
 
   [] => {
-    $crate::VNodeList::new()
+    $crate::VNode::empty()
   };
   [$( $tt:tt )*] => {
     {
-      let mut list = $crate::VNodeList::new();
+      let mut list = $crate::VNode::empty();
       $crate::c![@single list << $( $tt )*];
       list
     }

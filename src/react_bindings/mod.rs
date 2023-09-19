@@ -49,9 +49,6 @@ extern "C" {
     callback: &mut dyn FnMut(&RefContainerValue),
   );
 
-  #[wasm_bindgen(js_name = childrenToArray, catch)]
-  pub fn children_to_array(children: &JsValue) -> Result<Array, JsValue>;
-
   // From the React namespace:
 
   #[wasm_bindgen(js_namespace = React, js_name = Fragment)]

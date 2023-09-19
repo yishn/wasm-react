@@ -1,6 +1,6 @@
 use crate::{
   c, create_element, hooks::RefContainerValue, props::Props, react_bindings,
-  Component, VNode, VNodeList,
+  Component, VNode,
 };
 use js_sys::Reflect;
 use std::{marker::PhantomData, rc::Rc, thread::LocalKey};
@@ -105,7 +105,7 @@ pub fn create_context<T: 'static>(init: Rc<T>) -> Context<T> {
 pub struct ContextProvider<T: 'static> {
   context: &'static LocalKey<Context<T>>,
   value: Option<Rc<T>>,
-  children: VNodeList,
+  children: VNode,
 }
 
 impl<T: 'static> ContextProvider<T> {
@@ -125,13 +125,13 @@ impl<T: 'static> ContextProvider<T> {
   }
 
   /// Sets the children of the component.
-  pub fn children(mut self, children: VNodeList) -> Self {
+  pub fn children(mut self, children: VNode) -> Self {
     self.children = children;
     self
   }
 
   /// Returns a [`VNode`] to be included in a render function.
-  pub fn build(self, children: VNodeList) -> VNode {
+  pub fn build(self, children: VNode) -> VNode {
     Component::build(self.children(children))
   }
 }

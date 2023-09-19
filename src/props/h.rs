@@ -1,7 +1,7 @@
 use super::Props;
 use crate::{
   callback::PersistedCallback, create_element, hooks::JsRefContainer, KeyType,
-  VNode, VNodeList,
+  VNode,
 };
 use std::borrow::Cow;
 use wasm_bindgen::{
@@ -108,7 +108,7 @@ impl<T: HType> H<T> {
 
   /// Builds the [`VNode`] and returns it with the given children. Use
   /// [`c!`](crate::c!) for easier construction of the children.
-  pub fn build(self, children: impl Into<VNodeList>) -> VNode {
+  pub fn build(self, children: impl Into<VNode>) -> VNode {
     create_element(&self.typ.as_js(), &self.props, children.into())
   }
 }

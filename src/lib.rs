@@ -68,15 +68,11 @@ impl WasmReact {
 pub fn create_element(
   typ: &JsValue,
   props: &Props,
-  children: VNodeList,
+  children: VNode,
 ) -> VNode {
-  VNode(react_bindings::create_element(
+  VNode::Single(react_bindings::create_element(
     typ,
     props.as_ref(),
-    &if !children.empty() {
-      children.into()
-    } else {
-      JsValue::undefined()
-    },
+    &children.into(),
   ))
 }

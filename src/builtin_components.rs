@@ -1,6 +1,6 @@
 use crate::{
   props::{HType, H},
-  react_bindings, VNodeList,
+  react_bindings, VNode,
 };
 use std::borrow::Cow;
 use wasm_bindgen::JsValue;
@@ -82,7 +82,7 @@ impl Suspense {
 
 impl H<Suspense> {
   /// Sets a fallback when loading lazy descendant components.
-  pub fn fallback(self, children: VNodeList) -> Self {
+  pub fn fallback(self, children: VNode) -> Self {
     self.attr("fallback", children.as_ref())
   }
 }

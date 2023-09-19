@@ -8,7 +8,8 @@ export function useReact(value) {
   }
 }
 
-export function createElement(name, props, children = []) {
+export function createElement(name, props, children) {
+  if (children == null) children = [];
   return React.createElement(name, props, ...children);
 }
 
@@ -116,8 +117,4 @@ export function useRustLayoutEffect(effect, dep) {
 
 export function useRustContext(context, callback) {
   callback(React.useContext(context));
-}
-
-export function childrenToArray(children) {
-  return React.Children.toArray(children);
 }

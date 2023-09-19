@@ -1,11 +1,9 @@
 use crate::{Theme, THEME_CONTEXT};
-use wasm_react::{
-  h, hooks::use_context, props::Style, Component, VNode, VNodeList,
-};
+use wasm_react::{h, hooks::use_context, props::Style, Component, VNode};
 
 #[derive(Debug, Default)]
 pub struct Card {
-  children: VNodeList,
+  children: VNode,
 }
 
 impl Card {
@@ -13,7 +11,7 @@ impl Card {
     Self::default()
   }
 
-  pub fn children(mut self, children: VNodeList) -> Self {
+  pub fn children(mut self, children: VNode) -> Self {
     self.children = children;
     self
   }
