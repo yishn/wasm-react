@@ -1,6 +1,10 @@
 {
   "type": "module",
   "scripts": {
+    "start": "serve",
     "build-examples": "node ./ci/build-examples.js"
+  },
+  "devDependencies": {
+    "serve": "^14.2.1"
   }
 }
