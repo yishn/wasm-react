@@ -87,7 +87,8 @@ impl<T> Clone for State<T> {
 ///     }
 ///   }, Deps::some(( /* … */ )));
 ///
-///   h!(div).build(c![state.value().greet])
+///   let vnode = h!(div).build(state.value().greet);
+///   vnode
 /// }
 /// # }
 /// ```

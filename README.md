@@ -50,7 +50,7 @@ the render function, you need to implement the trait `Component` for your
 struct:
 
 ```rust
-use wasm_react::{h, c, Component, VNode};
+use wasm_react::{h, Component, VNode};
 
 struct Counter {
   counter: i32,
@@ -59,10 +59,10 @@ struct Counter {
 impl Component for Counter {
   fn render(&self) -> VNode {
     h!(div)
-      .build(c![
-        h!(p).build(c!["Counter: ", self.counter]),
-        h!(button).build(c!["Increment"]),
-      ])
+      .build((
+        h!(p).build(("Counter: ", self.counter)),
+        h!(button).build("Increment"),
+      ))
   }
 }
 ```
@@ -72,7 +72,7 @@ impl Component for Counter {
 You can use the `use_state()` hook to make your component stateful:
 
 ```rust
-use wasm_react::{h, c, Component, VNode};
+use wasm_react::{h, Component, VNode};
 use wasm_react::hooks::use_state;
 
 struct Counter {
@@ -83,11 +83,12 @@ impl Component for Counter {
   fn render(&self) -> VNode {
     let counter = use_state(|| self.initial_counter);
 
-    h!(div)
-      .build(c![
-        h!(p).build(c!["Counter: ", *counter.value()]),
-        h!(button).build(c!["Increment"]),
-      ])
+    let vnode = h!(div)
+      .build((
+        h!(p).build(("Counter: ", *counter.value())),
+        h!(button).build("Increment"),
+      ));
+    vnode
   }
 }
 ```
@@ -104,7 +105,7 @@ the render function as well, so JS can call it in the future. You can persist a
 closure by using the `use_callback()` hook:
 
 ```rust
-use wasm_react::{h, c, Component, VNode};
+use wasm_react::{h, Component, VNode};
 use wasm_react::hooks::{use_state, use_callback, Deps};
 
 struct Counter {
@@ -120,13 +121,14 @@ impl Component for Counter {
       move |_| counter.set(|c| c + 1)
     }, Deps::none());
 
-    h!(div)
-      .build(c![
-        h!(p).build(c!["Counter: ", *counter.value()]),
+    let value =h!(div)
+      .build((
+        h!(p).build(("Counter: ", *counter.value())),
         h!(button)
           .on_click(&handle_click)
-          .build(c!["Increment"]),
-      ])
+          .build("Increment"),
+      ));
+    value
   }
 }
 ```
@@ -138,7 +140,7 @@ your Rust component for JS consumption. Requirement is that your component
 implements `TryFrom<JsValue, Error = JsValue>`.
 
 ```rust
-use wasm_react::{h, c, export_components, Component, VNode};
+use wasm_react::{h, export_components, Component, VNode};
 use wasm_bindgen::JsValue;
 
 struct Counter {
@@ -156,12 +158,12 @@ struct App;
 
 impl Component for App {
   fn render(&self) -> VNode {
-    h!(div).build(c![
+    h!(div).build((
       Counter {
         initial_counter: 0,
       }
       .build(),
-    ])
+    ))
   }
 }
 
@@ -240,7 +242,7 @@ Make sure the component uses the same React runtime as specified for
 `wasm-react`. Afterwards, use `import_components!`:
 
 ```rust
-use wasm_react::{h, c, import_components, Component, VNode};
+use wasm_react::{h, import_components, Component, VNode};
 use wasm_react::props::Props;
 use wasm_bindgen::prelude::*;
 
@@ -254,11 +256,11 @@ struct App;
 
 impl Component for App {
   fn render(&self) -> VNode {
-    h!(div).build(c![
+    h!(div).build((
       MyComponent::new()
         .attr("prop", &"Hello World!".into())
-        .build(c![]),
-    ])
+        .build(()),
+    ))
   }
 }
 ```
@@ -280,7 +282,7 @@ managed by a state:
 
 ```rust
 use std::rc::Rc;
-use wasm_react::{h, c, Component, VNode};
+use wasm_react::{h, Component, VNode};
 use wasm_react::hooks::{use_state, State};
 
 struct TaskList {
@@ -300,12 +302,12 @@ impl Component for App {
   fn render(&self) -> VNode {
     let tasks: State<Vec<Rc<str>>> = use_state(|| vec![]);
 
-    h!(div).build(c![
+    h!(div).build((
       TaskList {
         tasks: todo!(), // Oops, `tasks.value()` does not fit the type
       }
       .build(),
-    ])
+    ))
   }
 }
 ```
@@ -318,7 +320,7 @@ simply change the type of `TaskList` to a `State`:
 
 ```rust
 use std::rc::Rc;
-use wasm_react::{h, c, Component, VNode};
+use wasm_react::{h, Component, VNode};
 use wasm_react::hooks::{use_state, State};
 
 struct TaskList {
@@ -333,7 +335,7 @@ as possible, you can use `ValueContainer`:
 
 ```rust
 use std::rc::Rc;
-use wasm_react::{h, c, Component, ValueContainer, VNode};
+use wasm_react::{h, Component, ValueContainer, VNode};
 use wasm_react::hooks::{use_state, State};
 
 struct TaskList {
@@ -353,14 +355,14 @@ impl Component for App {
   fn render(&self) -> VNode {
     let tasks: State<Vec<Rc<str>>> = use_state(|| vec![]);
 
-    h!(div).build(c![
+    h!(div).build((
       TaskList {
         // Cloning `State` has low cost as opposed to cloning the underlying
         // `Vec`.
         tasks: tasks.clone().into(),
       }
       .build(),
-    ])
+    ))
   }
 }
 ```

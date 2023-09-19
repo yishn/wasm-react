@@ -37,7 +37,7 @@ pub struct App;
 impl Component for App {
   fn render(&self) -> wasm_react::VNode {
     BoxComponent::new().build((
-      AppBar::new().build((
+      AppBar::new().build(
         //
         Toolbar::new().build((
           IconButton::new()
@@ -52,7 +52,7 @@ impl Component for App {
             .sx(&Style::new().flex_grow(1))
             .build("MUI Example Application"),
         )),
-      )),
+      ),
       //
       Container::new()
         .sx(&Style::new().margin_top(8).padding_top(2).padding_bottom(2))

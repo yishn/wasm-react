@@ -104,9 +104,10 @@ impl<T> Clone for RefContainer<T> {
 ///       }
 ///     }, Deps::some(self.value));
 ///
-///     h!(div).build(c![
+///     let vnode = h!(div).build(
 ///       ref_container.current().value
-///     ])
+///     );
+///     vnode
 ///   }
 /// }
 /// ```

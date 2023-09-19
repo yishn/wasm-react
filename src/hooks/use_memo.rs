@@ -47,7 +47,8 @@ impl<T> Clone for Memo<T> {
 ///   let b = self.b;
 ///   let memo = use_memo(|| compute_expensive_value(a, b), Deps::some((a, b)));
 ///
-///   h!(div).build(c![*memo.value()])
+///   let vnode = h!(div).build(*memo.value());
+///   vnode
 /// }
 /// # }
 /// ```

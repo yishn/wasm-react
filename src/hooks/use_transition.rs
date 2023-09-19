@@ -49,12 +49,12 @@ impl Transition {
 ///   }
 /// }, Deps::none());
 ///
-/// h!(div).build(c![
+/// h!(div).build((
 ///   transition.is_pending().then(||
-///     h!(div).build(c!["Loading…"])
+///     h!(div).build("Loading…")
 ///   ),
-///   h!(button).on_click(&handle_click).build(c![]),
-/// ])
+///   h!(button).on_click(&handle_click).build(()),
+/// ))
 /// # }
 /// ```
 pub fn use_transition() -> Transition {

@@ -13,8 +13,8 @@ pub enum VNode {
 }
 
 impl VNode {
-  /// An empty node that doesn't render anything.
-  pub fn empty() -> VNode {
+  /// Creates an empty node that doesn't render anything.
+  pub fn new() -> VNode {
     VNode::Single(JsValue::null())
   }
 
@@ -22,12 +22,16 @@ impl VNode {
   pub fn push(&mut self, node: &VNode) {
     match self {
       VNode::Single(x) => {
-        let arr = Array::new();
-        if !x.is_null() {
-          arr.push(x);
-        }
-        arr.push(node.as_ref());
-        *self = VNode::List(arr);
+        *self = VNode::List({
+          let arr = Array::new();
+
+          if !x.is_null() {
+            arr.push(x);
+          }
+
+          arr.push(node.as_ref());
+          arr
+        });
       }
       VNode::List(arr) => {
         arr.push(node.as_ref());
@@ -38,7 +42,7 @@ impl VNode {
 
 impl Default for VNode {
   fn default() -> Self {
-    Self::empty()
+    Self::new()
   }
 }
 
@@ -66,18 +70,6 @@ impl<T: Into<VNode>> From<Option<T>> for VNode {
   }
 }
 
-macro_rules! impl_into_vnode {
-  { $( $T:ty ),*$( , )? } => {
-    $(
-      impl From<$T> for VNode {
-        fn from(value: $T) -> Self {
-          VNode::Single(value.into())
-        }
-      }
-    )*
-  };
-}
-
 impl Extend<VNode> for VNode {
   fn extend<T: IntoIterator<Item = VNode>>(&mut self, iter: T) {
     for node in iter.into_iter() {
@@ -88,7 +80,7 @@ impl Extend<VNode> for VNode {
 
 impl FromIterator<VNode> for VNode {
   fn from_iter<T: IntoIterator<Item = VNode>>(iter: T) -> Self {
-    let mut result = Self::empty();
+    let mut result = Self::new();
 
     for node in iter.into_iter() {
       result.push(&node);
@@ -96,6 +88,18 @@ impl FromIterator<VNode> for VNode {
 
     result
   }
+}
+
+macro_rules! impl_into_vnode {
+  { $( $T:ty ),* $(,)? } => {
+    $(
+      impl From<$T> for VNode {
+        fn from(value: $T) -> Self {
+          VNode::Single(value.into())
+        }
+      }
+    )*
+  };
 }
 
 // Implement `Into<VNode>` for as many `Display` types as possible
@@ -108,7 +112,7 @@ impl_into_vnode! {
 
 impl From<()> for VNode {
   fn from(_: ()) -> Self {
-    VNode::empty()
+    VNode::new()
   }
 }
 
@@ -119,7 +123,7 @@ macro_rules! impl_into_vnode_for_tuples {
       where $( $x: Into<VNode>, )*
       {
         fn from(($( $x, )*): ($( $x, )*)) -> VNode {
-          let mut result = VNode::empty();
+          let mut result = VNode::new();
           $( result.push(&$x.into()); )*
           result
         }

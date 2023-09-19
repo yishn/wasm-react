@@ -40,7 +40,7 @@ impl H<HtmlTag<'_>> {
   /// # fn f() -> VNode {
   /// h!(div)
   ///   .dangerously_set_inner_html(&create_markup())
-  ///   .build(c![])
+  ///   .build(())
   /// # }
   /// ```
   pub fn dangerously_set_inner_html(self, value: &DangerousHtml) -> Self {

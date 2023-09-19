@@ -80,12 +80,12 @@ impl<T> From<JsValue> for JsRefContainer<T> {
 ///     let input_element = use_js_ref(None);
 ///
 ///     h!(div)
-///       .build(c![
+///       .build(
 ///         h!(input)
 ///           .ref_container(&input_element)
 ///           .html_type("text")
-///           .build(c![])
-///       ])
+///           .build(())
+///       )
 ///   }
 /// }
 /// ```

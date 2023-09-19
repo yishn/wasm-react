@@ -11,16 +11,16 @@
 /// # fn f() -> VNode {
 /// h!(div)
 ///   .attr("id", &"app".into())
-///   .build(c![
-///     h!(h1).build(c!["Hello World!"])
-///   ])
+///   .build(
+///     h!(h1).build("Hello World!")
+///   )
 /// # }
 ///
 /// // <div id="app"><h1>Hello World!</h1></div>
 ///
 /// # fn g() -> VNode {
 /// h!("web-component")
-///   .build(c!["Hello World!"])
+///   .build("Hello World!")
 /// # }
 ///
 /// // <web-component>Hello World!</web-component>
@@ -33,7 +33,7 @@
 /// # use wasm_react::*;
 /// # fn f() -> VNode {
 /// h!(div[#"app"."some-class"."warning"])
-///   .build(c!["This is a warning!"])
+///   .build("This is a warning!")
 /// # }
 ///
 /// // <div id="app" class="some-class warning">This is a warning!</div>
@@ -51,68 +51,6 @@ macro_rules! h {
       $( .id($id) )?
       $( .class_name(&$crate::classnames![.$( $classnames )+]) )?
     )?
-  };
-}
-
-/// This macro can take various objects to build a [`VNode`].
-///
-/// [`VNode`]: crate::VNode
-///
-/// # Example
-///
-/// ```
-/// # use wasm_react::*;
-/// #
-/// # struct SomeComponent { some_prop: () }
-/// # impl Component for SomeComponent {
-/// #   fn render(&self) -> VNode { VNode::empty() }
-/// # }
-/// #
-/// # fn f(some_prop: (), vec: Vec<&str>, some_bool: bool) -> VNode {
-/// h!(div).build(c![
-///   "Counter: ", 5,
-///
-///   SomeComponent {
-///     some_prop,
-///   }
-///   .build(),
-///
-///   some_bool.then(||
-///     h!(p).build(c!["Conditional rendering"]),
-///   ),
-///
-///   h!(h1).build(c!["Hello World"]),
-///
-///   ..vec.iter()
-///     .map(|x| h!(p).build(c![*x])),
-/// ])
-/// # }
-/// ```
-#[macro_export]
-macro_rules! c {
-  [@single $list:ident <<] => {};
-
-  // Handle iterators
-  [@single $list:ident << ..$vnode_list:expr $(, $( $tail:tt )* )?] => {
-    $list.push(&$vnode_list.collect::<$crate::VNode>().into());
-    $crate::c![@single $list << $( $( $tail )* )?];
-  };
-
-  // Handle `Into<VNode>`
-  [@single $list:ident << $into_vnode:expr $(, $( $tail:tt )* )?] => {
-    $list.push(&$into_vnode.into());
-    $crate::c![@single $list << $( $( $tail )* )?];
-  };
-
-  [] => {
-    $crate::VNode::empty()
-  };
-  [$( $tt:tt )*] => {
-    {
-      let mut list = $crate::VNode::empty();
-      $crate::c![@single list << $( $tt )*];
-      list
-    }
   };
 }
 
@@ -353,11 +291,11 @@ macro_rules! export_components {
 /// # struct App;
 /// # impl Component for App {
 /// fn render(&self) -> VNode {
-///   h!(div).build(c![
+///   h!(div).build(
 ///     MyComponent::new()
 ///       .attr("prop", &"Hello World!".into())
-///       .build(c![])
-///   ])
+///       .build(())
+///   )
 /// }
 /// # }
 /// ```
@@ -386,11 +324,11 @@ macro_rules! export_components {
 /// # struct App;
 /// # impl Component for App {
 /// fn render(&self) -> VNode {
-///   h!(div).build(c![
+///   h!(div).build(
 ///     MyComponent::new()
 ///       .prop("Hello World!")
-///       .build(c![])
-///   ])
+///       .build(())
+///   )
 /// }
 /// # }
 /// ```

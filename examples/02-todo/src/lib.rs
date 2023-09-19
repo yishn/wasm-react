@@ -1,7 +1,6 @@
 use std::rc::Rc;
 use wasm_bindgen::{JsCast, JsValue, UnwrapThrowExt};
 use wasm_react::{
-  c,
   callback::Callback,
   export_components, h,
   hooks::{use_callback, use_state, Deps},
@@ -116,9 +115,13 @@ impl Component for TaskList {
   fn render(&self) -> VNode {
     h!(div[."task-list"]).build((
       //
-      h!(ul).build(c![
-        ..self.tasks.value().iter().enumerate().map(
-          |(i, (done, description))| {
+      h!(ul).build(
+        self
+          .tasks
+          .value()
+          .iter()
+          .enumerate()
+          .map(|(i, (done, description))| {
             TaskItem {
               id: i,
               description: description.clone(),
@@ -128,9 +131,9 @@ impl Component for TaskList {
             .memoized()
             .key(Some(i))
             .build()
-          },
-        )
-      ]),
+          })
+          .collect::<VNode>(),
+      ),
     ))
   }
 }
