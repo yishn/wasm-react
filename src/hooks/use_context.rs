@@ -1,7 +1,7 @@
+use std::{rc::Rc, thread::LocalKey};
 use wasm_bindgen::UnwrapThrowExt;
 
 use crate::{react_bindings, Context};
-use std::{rc::Rc, thread::LocalKey};
 
 /// Allows access to the current context value of the given context.
 ///

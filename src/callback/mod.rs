@@ -255,7 +255,11 @@ impl<T, U> AsRef<Callback<T, U>> for PersistedCallback<T, U> {
   }
 }
 
-impl<T: 'static, U: 'static> Persisted for PersistedCallback<T, U> {
+impl<T, U> Persisted for PersistedCallback<T, U>
+where
+  T: 'static,
+  U: 'static,
+{
   fn ptr(&self) -> PersistedOrigin {
     PersistedOrigin
   }

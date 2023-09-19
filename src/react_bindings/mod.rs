@@ -34,6 +34,9 @@ extern "C" {
     callback: &mut dyn FnMut(&RefContainerValue),
   );
 
+  #[wasm_bindgen(js_name = useRustTmpRef)]
+  pub fn use_rust_tmp_ref(value: JsValue);
+
   #[wasm_bindgen(js_name = useRustState)]
   pub fn use_rust_state() -> Function;
 

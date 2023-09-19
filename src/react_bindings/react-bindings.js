@@ -13,6 +13,8 @@ export function createElement(name, props, children) {
   return React.createElement(name, props, ...children);
 }
 
+let currentTmpRefs = null;
+
 function renderRustComponent(props) {
   // `component` is a `ComponentWrapper` or `MemoComponentWrapper`
   let component = props.component;
@@ -21,9 +23,26 @@ function renderRustComponent(props) {
   // are replaced with new ones.
   React.useEffect(
     function freeProps() {
-      () => component.free();
+      return () => component.free();
     },
     [component]
+  );
+
+  // Create storage for temporary refs, refs that are only valid until
+  // next render
+  currentTmpRefs = React.useRef([]);
+
+  React.useEffect(
+    function freeTmpRefs() {
+      return () => {
+        for (const value of currentTmpRefs) {
+          value.free();
+        }
+
+        currentTmpRefs.current = [];
+      };
+    },
+    [Math.random()]
   );
 
   return component.render();
@@ -98,6 +117,12 @@ export function useRustRef(create, callback) {
   }, []);
 
   callback(ref.current);
+}
+
+export function useRustTmpRef(value) {
+  if (currentTmpRefs == null) return;
+
+  currentTmpRefs.current.push(value);
 }
 
 export function useRustState() {
