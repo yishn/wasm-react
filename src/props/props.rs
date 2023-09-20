@@ -1,13 +1,12 @@
 use crate::{
+  callback::Callback,
   hooks::{use_tmp_ref, JsRefContainer},
   KeyType,
 };
 use js_sys::{Object, Reflect};
 use wasm_bindgen::{
   convert::{FromWasmAbi, IntoWasmAbi, OptionFromWasmAbi},
-  intern,
-  prelude::Closure,
-  JsCast, JsValue, UnwrapThrowExt,
+  intern, JsCast, JsValue, UnwrapThrowExt,
 };
 
 /// A convenience builder for JS objects. Mainly used for constructing props
@@ -22,7 +21,7 @@ use wasm_bindgen::{
 /// # use wasm_react::{callback::*, props::*};
 /// # use wasm_bindgen::prelude::*;
 /// #
-/// # fn f(handle_click: impl FnMut(Void) + 'static) -> Props {
+/// # fn f(handle_click: &Callback<Void>) -> Props {
 /// Props::new()
 ///   .insert("id", &"app".into())
 ///   .insert_callback("onClick", handle_click)
@@ -58,10 +57,7 @@ impl Props {
   /// Sets the [React ref][ref] to the given ref callback.
   ///
   /// [ref]: https://reactjs.org/docs/refs-and-the-dom.html
-  pub fn ref_callback<T>(
-    self,
-    ref_callback: impl FnMut(Option<T>) + 'static,
-  ) -> Self
+  pub fn ref_callback<T>(self, ref_callback: &Callback<Option<T>>) -> Self
   where
     T: OptionFromWasmAbi + 'static,
   {
@@ -80,19 +76,13 @@ impl Props {
   }
 
   /// Equivalent to `props[key] = f;`.
-  pub fn insert_callback<T, U>(
-    self,
-    key: &str,
-    f: impl FnMut(T) -> U + 'static,
-  ) -> Self
+  pub fn insert_callback<T, U>(self, key: &str, f: &Callback<T, U>) -> Self
   where
     T: FromWasmAbi + 'static,
     U: IntoWasmAbi + 'static,
   {
-    let closure = Closure::new(f);
-
-    use_tmp_ref(closure, |closure| {
-      self.ref_insert(key, closure.as_ref());
+    use_tmp_ref(f.clone(), |f| {
+      self.ref_insert(key, &f.as_js());
     });
 
     self

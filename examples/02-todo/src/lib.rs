@@ -40,7 +40,7 @@ impl Component for App {
       .build(),
       //
       h!(form)
-        .on_submit({
+        .on_submit(&Callback::new({
           let mut tasks = tasks.clone();
           let mut text = text.clone();
 
@@ -55,12 +55,12 @@ impl Component for App {
               text.set(|_| "".into());
             }
           }
-        })
+        }))
         .build((
           h!(input)
             .placeholder("Add new item…")
             .value(&**text.value())
-            .on_change({
+            .on_change(&Callback::new({
               let mut text = text.clone();
 
               move |evt: Event| {
@@ -74,7 +74,7 @@ impl Component for App {
                     .into()
                 })
               }
-            })
+            }))
             .build(()),
           " ",
           h!(button).html_type("submit").build("Add"),
@@ -138,7 +138,7 @@ impl Component for TaskItem {
         h!(input)
           .html_type("checkbox")
           .checked(self.done)
-          .on_change({
+          .on_change(&Callback::new({
             let id = self.id;
 
             self
@@ -157,7 +157,7 @@ impl Component for TaskItem {
                 )
               })
               .to_closure()
-          })
+          }))
           .build(()),
         " ",
         if self.done {

@@ -1,5 +1,7 @@
 use super::Props;
-use crate::{create_element, hooks::JsRefContainer, KeyType, VNode};
+use crate::{
+  callback::Callback, create_element, hooks::JsRefContainer, KeyType, VNode,
+};
 use std::borrow::Cow;
 use wasm_bindgen::{
   convert::{FromWasmAbi, IntoWasmAbi},
@@ -77,7 +79,7 @@ impl<T: HType> H<T> {
   /// [ref]: https://reactjs.org/docs/refs-and-the-dom.html
   pub fn ref_callback(
     mut self,
-    ref_callback: impl FnMut(Option<Element>) + 'static,
+    ref_callback: &Callback<Option<Element>>,
   ) -> Self {
     self.props = self.props.ref_callback(ref_callback);
     self
@@ -90,11 +92,7 @@ impl<T: HType> H<T> {
   }
 
   /// Sets a callback value to an attribute on the [`VNode`].
-  pub fn attr_callback<U, V>(
-    mut self,
-    key: &str,
-    f: impl FnMut(U) -> V + 'static,
-  ) -> Self
+  pub fn attr_callback<U, V>(mut self, key: &str, f: &Callback<U, V>) -> Self
   where
     U: FromWasmAbi + 'static,
     V: IntoWasmAbi + 'static,

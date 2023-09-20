@@ -5,11 +5,13 @@ use web_sys::{
   PointerEvent, TransitionEvent, UiEvent, WheelEvent,
 };
 
+use crate::callback::Callback;
+
 macro_rules! impl_event {
   { $( $on_event:ident, $on_event_str:literal => $E:ty; )* } => {
     $(
       #[allow(missing_docs)]
-      pub fn $on_event(self, f: impl FnMut($E) + 'static) -> Self {
+      pub fn $on_event(self, f: &Callback<$E>) -> Self {
         self.attr_callback(intern($on_event_str), f)
       }
     )*

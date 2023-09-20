@@ -7,7 +7,7 @@ use std::rc::Rc;
 use wasm_bindgen::JsValue;
 use wasm_react::{
   create_context, export_components, h, hooks::use_state, Component, Context,
-  ContextProvider, VNode,
+  ContextProvider, VNode, callback::Callback,
 };
 
 pub enum Theme {
@@ -47,7 +47,7 @@ impl Component for App {
                   Theme::LightMode => false,
                   Theme::DarkMode => true,
                 })
-                .on_change({
+                .on_change(&Callback::new({
                   let mut theme = theme.clone();
 
                   move |_| {
@@ -59,7 +59,7 @@ impl Component for App {
                       .into()
                     })
                   }
-                })
+                }))
                 .build(()),
               "Dark Mode",
             )),
