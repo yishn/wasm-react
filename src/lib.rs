@@ -7,6 +7,7 @@
 extern "C" {}
 
 mod builtin_components;
+mod callback;
 mod component;
 mod context;
 mod macros;
@@ -14,7 +15,6 @@ mod marker;
 mod value_container;
 mod vnode;
 
-pub mod callback;
 pub mod hooks;
 pub mod props;
 #[doc(hidden)]
@@ -24,6 +24,7 @@ use props::Props;
 use wasm_bindgen::prelude::*;
 
 pub use builtin_components::*;
+pub use callback::*;
 pub use component::*;
 pub use context::*;
 pub use marker::*;

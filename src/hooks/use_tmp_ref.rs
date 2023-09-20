@@ -9,7 +9,8 @@ pub struct TmpRef(Box<dyn Any>);
 
 /// Temporarily persists a value.
 /// 
-/// The value will live until the next rerender.
+/// The value will live until the next rerender. Callback functions will be 
+/// persisted this way.
 pub(crate) fn use_tmp_ref<T>(value: T, mut callback: impl FnMut(&T))
 where
   T: 'static,

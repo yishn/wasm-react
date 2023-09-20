@@ -1,7 +1,6 @@
 use crate::{
-  callback::Callback,
   hooks::{use_tmp_ref, JsRefContainer},
-  KeyType,
+  Callback, KeyType,
 };
 use js_sys::{Object, Reflect};
 use wasm_bindgen::{
@@ -18,7 +17,7 @@ use wasm_bindgen::{
 /// # Example
 ///
 /// ```
-/// # use wasm_react::{callback::*, props::*};
+/// # use wasm_react::{*, props::*};
 /// # use wasm_bindgen::prelude::*;
 /// #
 /// # fn f(handle_click: &Callback<Void>) -> Props {

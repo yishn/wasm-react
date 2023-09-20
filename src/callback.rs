@@ -1,5 +1,3 @@
-//! This module provides structs to pass Rust closures to JS.
-
 use std::{
   cell::{Ref, RefCell},
   fmt::Debug,
@@ -12,11 +10,11 @@ use wasm_bindgen::{
   JsValue, UnwrapThrowExt,
 };
 
-/// A helper struct to simulate a JS-interoperable [`Callback`] with no input
+/// A zero-sized helper struct to simulate a JS-interoperable [`Callback`] with no input
 /// arguments.
 ///
 /// ```
-/// # use wasm_react::callback::*;
+/// # use wasm_react::*;
 /// # fn f() {
 /// let callback: Callback<Void> = Callback::new(|_: Void| ());
 /// # }
@@ -45,8 +43,11 @@ impl From<Void> for JsValue {
   }
 }
 
-/// This is a simplified, reference-counted wrapper around an [`FnMut`] Rust
-/// closure that may be called from JS when `T` and `U` allow.
+/// This is a simplified, reference-counted wrapper around an [`FnMut(T) -> U`](FnMut)
+/// Rust closure that may be called from JS when `T` and `U` allow.
+///
+/// You can also use the [`callback!`](crate::callback!) macro to create a [`Callback`]
+/// which supports clone-capturing the environment.
 ///
 /// It only supports closures with exactly one input argument and some return
 /// value. Memory management is handled by Rust. Whenever Rust drops all clones
@@ -81,6 +82,12 @@ where
       f(arg)
     }
   }
+
+  /// Calls the callback with the given argument.
+  pub fn call(&self, arg: T) -> U {
+    let mut f = self.closure.borrow_mut();
+    f(arg)
+}
 
   /// Returns a new [`Callback`] by prepending the given closure to the callback.
   pub fn premap<V>(

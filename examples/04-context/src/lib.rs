@@ -6,8 +6,8 @@ use card::Card;
 use std::rc::Rc;
 use wasm_bindgen::JsValue;
 use wasm_react::{
-  create_context, export_components, h, hooks::use_state, Component, Context,
-  ContextProvider, VNode, callback::Callback,
+  callback, create_context, export_components, h, hooks::use_state, Component,
+  Context, ContextProvider, VNode,
 };
 
 pub enum Theme {
@@ -47,18 +47,14 @@ impl Component for App {
                   Theme::LightMode => false,
                   Theme::DarkMode => true,
                 })
-                .on_change(&Callback::new({
-                  let mut theme = theme.clone();
-
-                  move |_| {
-                    theme.set(|theme| {
-                      match *theme {
-                        Theme::LightMode => Theme::DarkMode,
-                        Theme::DarkMode => Theme::LightMode,
-                      }
-                      .into()
-                    })
-                  }
+                .on_change(&callback!(clone(mut theme), move |_| {
+                  theme.set(|theme| {
+                    match *theme {
+                      Theme::LightMode => Theme::DarkMode,
+                      Theme::DarkMode => Theme::LightMode,
+                    }
+                    .into()
+                  })
                 }))
                 .build(()),
               "Dark Mode",

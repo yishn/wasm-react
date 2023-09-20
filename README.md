@@ -100,11 +100,12 @@ through the entire lifetime of the component.
 
 ### Add Event Handlers
 
-To create an event handler, you can directly pass your Rust closure to your
-components:
+To create an event handler, you pass a `Callback` created from a Rust closure,
+either using the `callback!` macro, which can clone-capture the environment, or
+using `Callback::new()`.
 
 ```rust
-use wasm_react::{h, Component, VNode};
+use wasm_react::{h, Component, callback, Callback, VNode};
 use wasm_react::hooks::{use_state, Deps};
 
 struct Counter {
@@ -115,16 +116,25 @@ impl Component for Counter {
   fn render(&self) -> VNode {
     let counter = use_state(|| self.initial_counter);
 
-    let value =h!(div)
+    let value = h!(div)
       .build((
         h!(p).build(("Counter: ", *counter.value())),
+
+        // Use the `callback!` macro, clone-capturing `counter`:
         h!(button)
-          .on_click({
+          .on_click(&callback!(clone(mut counter), move |_| {
+            counter.set(|c| c + 1);
+          }))
+          .build("Increment"),
+
+        // Alternatively, use `Callback::new()`:
+        h!(button)
+          .on_click(&Callback::new({
             let mut counter = counter.clone();
 
-            move |_| counter.set(|c| c + 1)
-          })
-          .build("Increment"),
+            move |_| counter.set(|c| c - 1)
+          }))
+          .build("Decrement"),
       ));
     value
   }
@@ -241,7 +251,6 @@ Make sure the component uses the same React runtime as specified for
 
 ```rust
 use wasm_react::{h, import_components, Component, VNode};
-use wasm_react::props::Props;
 use wasm_bindgen::prelude::*;
 
 import_components! {

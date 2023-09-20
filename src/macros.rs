@@ -54,6 +54,69 @@ macro_rules! h {
   };
 }
 
+/// Creates a new [`Callback`](crate::Callback) which can clone-capture the
+/// environment.
+///
+/// # Example
+///
+/// ```
+/// # use wasm_react::*;
+/// let cb: Callback<u64, bool> = callback!(move |arg| arg < 100);
+/// ```
+/// 
+/// To clone-capture the environment, specify the variables inside a `clone` 
+/// directive:
+/// 
+/// ```
+/// # use wasm_react::{*, hooks::*};
+/// # fn f() {
+/// let state = use_state(|| 0);
+/// 
+/// let cb = callback!(clone(mut state), move |delta: i32| {
+///   state.set(|c| c + delta);
+/// });
+/// # }
+/// ```
+/// 
+/// This is equivalent to the following:
+/// 
+/// ```
+/// # use wasm_react::{*, hooks::*};
+/// # fn f() {
+/// let state = use_state(|| 0);
+/// 
+/// let cb = {
+///   let mut state = state.clone();  
+/// 
+///   Callback::new(move |delta: i32| {
+///     state.set(|c| c + delta);
+///   })
+/// };
+/// # }
+/// ```
+#[macro_export]
+macro_rules! callback {
+  (@clones $(,)? mut $id:ident $( $tail:tt )*) => {
+    let mut $id = $id.clone();
+    $crate::callback!(@clones $( $tail )*);
+  };
+  (@clones $(,)? $id:ident $( $tail:tt )*) => {
+    let $id = $id.clone();
+    $crate::callback!(@clones $( $tail )*);
+  };
+  (@clones) => {};
+
+  (clone($( $tt:tt )+), $expr:expr) => {
+    {
+      $crate::callback!(@clones $( $tt )+);
+      $crate::Callback::new($expr)
+    }
+  };
+  ($expr:expr) => {
+    $crate::Callback::new($expr)
+  };
+}
+
 /// Constructs a [`String`] based on various types that implement
 /// [`Classnames`](crate::props::Classnames).
 ///

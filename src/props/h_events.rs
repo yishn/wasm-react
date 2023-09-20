@@ -5,7 +5,7 @@ use web_sys::{
   PointerEvent, TransitionEvent, UiEvent, WheelEvent,
 };
 
-use crate::callback::Callback;
+use crate::Callback;
 
 macro_rules! impl_event {
   { $( $on_event:ident, $on_event_str:literal => $E:ty; )* } => {

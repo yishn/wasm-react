@@ -1,6 +1,6 @@
 use super::Props;
 use crate::{
-  callback::Callback, create_element, hooks::JsRefContainer, KeyType, VNode,
+  Callback, create_element, hooks::JsRefContainer, KeyType, VNode,
 };
 use std::borrow::Cow;
 use wasm_bindgen::{

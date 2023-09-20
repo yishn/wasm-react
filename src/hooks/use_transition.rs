@@ -31,7 +31,7 @@ impl Transition {
 /// # Example
 ///
 /// ```
-/// # use wasm_react::{*, hooks::*, callback::*};
+/// # use wasm_react::{*, hooks::*};
 /// #
 /// # fn render() -> VNode {
 /// let count = use_state(|| 0);
@@ -41,17 +41,13 @@ impl Transition {
 ///   transition.is_pending().then(||
 ///     h!(div).build("Loading…")
 ///   ),
-///   h!(button).on_click({
-///     let mut transition = transition.clone();
-///  
-///     move |_| {
-///       let mut count = count.clone();
-///  
-///       transition.start(move || {
-///         count.set(|c| c + 1);
-///       });
-///     }
-///   }).build(()),
+///   h!(button).on_click(&callback!(clone(mut transition), move |_| {
+///     let mut count = count.clone();
+///
+///     transition.start(move || {
+///       count.set(|c| c + 1);
+///     });
+///   })).build(()),
 /// ))
 /// # }
 /// ```
