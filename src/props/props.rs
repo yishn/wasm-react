@@ -1,8 +1,13 @@
-use crate::{callback::PersistedCallback, hooks::JsRefContainer, KeyType};
+use crate::{
+  hooks::{use_tmp_ref, JsRefContainer},
+  KeyType,
+};
 use js_sys::{Object, Reflect};
 use wasm_bindgen::{
   convert::{FromWasmAbi, IntoWasmAbi, OptionFromWasmAbi},
-  intern, JsCast, JsValue, UnwrapThrowExt,
+  intern,
+  prelude::Closure,
+  JsCast, JsValue, UnwrapThrowExt,
 };
 
 /// A convenience builder for JS objects. Mainly used for constructing props
@@ -17,10 +22,10 @@ use wasm_bindgen::{
 /// # use wasm_react::{callback::*, props::*};
 /// # use wasm_bindgen::prelude::*;
 /// #
-/// # fn f(handle_click: PersistedCallback<Void>) -> Props {
+/// # fn f(handle_click: impl FnMut(Void) + 'static) -> Props {
 /// Props::new()
 ///   .insert("id", &"app".into())
-///   .insert_callback("onClick", &handle_click)
+///   .insert_callback("onClick", handle_click)
 /// # }
 /// ```
 #[derive(Debug, Default, Clone)]
@@ -55,7 +60,7 @@ impl Props {
   /// [ref]: https://reactjs.org/docs/refs-and-the-dom.html
   pub fn ref_callback<T>(
     self,
-    ref_callback: &PersistedCallback<Option<T>>,
+    ref_callback: impl FnMut(Option<T>) + 'static,
   ) -> Self
   where
     T: OptionFromWasmAbi + 'static,
@@ -65,22 +70,32 @@ impl Props {
 
   /// Equivalent to `props[key] = value;`.
   pub fn insert(self, key: &str, value: &JsValue) -> Self {
+    self.ref_insert(key, value);
+    self
+  }
+
+  fn ref_insert(&self, key: &str, value: &JsValue) {
     Reflect::set(&self.0, &intern(key).into(), value)
       .expect_throw("cannot write into props object");
-    self
   }
 
   /// Equivalent to `props[key] = f;`.
   pub fn insert_callback<T, U>(
     self,
     key: &str,
-    f: &PersistedCallback<T, U>,
+    f: impl FnMut(T) -> U + 'static,
   ) -> Self
   where
     T: FromWasmAbi + 'static,
     U: IntoWasmAbi + 'static,
   {
-    self.insert(key, &f.as_js())
+    let closure = Closure::new(f);
+
+    use_tmp_ref(closure, |closure| {
+      self.ref_insert(key, closure.as_ref());
+    });
+
+    self
   }
 }
 

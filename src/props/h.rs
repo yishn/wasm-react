@@ -1,8 +1,5 @@
 use super::Props;
-use crate::{
-  callback::PersistedCallback, create_element, hooks::JsRefContainer, KeyType,
-  VNode,
-};
+use crate::{create_element, hooks::JsRefContainer, KeyType, VNode};
 use std::borrow::Cow;
 use wasm_bindgen::{
   convert::{FromWasmAbi, IntoWasmAbi},
@@ -80,7 +77,7 @@ impl<T: HType> H<T> {
   /// [ref]: https://reactjs.org/docs/refs-and-the-dom.html
   pub fn ref_callback(
     mut self,
-    ref_callback: &PersistedCallback<Option<Element>>,
+    ref_callback: impl FnMut(Option<Element>) + 'static,
   ) -> Self {
     self.props = self.props.ref_callback(ref_callback);
     self
@@ -96,7 +93,7 @@ impl<T: HType> H<T> {
   pub fn attr_callback<U, V>(
     mut self,
     key: &str,
-    f: &PersistedCallback<U, V>,
+    f: impl FnMut(U) -> V + 'static,
   ) -> Self
   where
     U: FromWasmAbi + 'static,
@@ -106,8 +103,7 @@ impl<T: HType> H<T> {
     self
   }
 
-  /// Builds the [`VNode`] and returns it with the given children. Use
-  /// [`c!`](crate::c!) for easier construction of the children.
+  /// Builds the [`VNode`] and returns it with the given children.
   pub fn build(self, children: impl Into<VNode>) -> VNode {
     create_element(&self.typ.as_js(), &self.props, children.into())
   }

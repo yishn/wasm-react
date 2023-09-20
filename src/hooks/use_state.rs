@@ -1,11 +1,8 @@
 use super::{use_ref, RefContainer};
-use crate::{
-  callback::{Callable, Void},
-  react_bindings, Persisted, PersistedOrigin,
-};
+use crate::{react_bindings, Persisted, PersistedOrigin};
 use js_sys::Function;
 use std::cell::Ref;
-use wasm_bindgen::UnwrapThrowExt;
+use wasm_bindgen::{JsValue, UnwrapThrowExt};
 
 /// Allows access to the underlying state data persisted with [`use_state()`].
 #[derive(Debug)]
@@ -35,7 +32,7 @@ impl<T: 'static> State<T> {
     self.ref_container.set_current(new_value);
     self
       .update
-      .call(&Void.into())
+      .call0(&JsValue::NULL)
       .expect_throw("unable to call state update");
   }
 }

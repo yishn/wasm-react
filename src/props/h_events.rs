@@ -1,5 +1,4 @@
 use super::{HtmlTag, H};
-use crate::callback::PersistedCallback;
 use wasm_bindgen::intern;
 use web_sys::{
   AnimationEvent, DragEvent, Event, FocusEvent, KeyboardEvent, MouseEvent,
@@ -10,7 +9,7 @@ macro_rules! impl_event {
   { $( $on_event:ident, $on_event_str:literal => $E:ty; )* } => {
     $(
       #[allow(missing_docs)]
-      pub fn $on_event(self, f: &PersistedCallback<$E>) -> Self {
+      pub fn $on_event(self, f: impl FnMut($E) + 'static) -> Self {
         self.attr_callback(intern($on_event_str), f)
       }
     )*

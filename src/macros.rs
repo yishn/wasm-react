@@ -146,7 +146,7 @@ macro_rules! classnames {
 /// }
 ///
 /// impl Component for Counter {
-///   # fn render(&self) -> VNode { VNode::empty() }
+///   # fn render(&self) -> VNode { VNode::new() }
 ///   /* … */
 /// }
 ///
@@ -186,12 +186,12 @@ macro_rules! classnames {
 /// # use wasm_react::*;
 /// # use wasm_bindgen::prelude::*;
 /// # pub struct App; pub struct Counter;
-/// # impl Component for App { fn render(&self) -> VNode { VNode::empty() } }
+/// # impl Component for App { fn render(&self) -> VNode { VNode::new() } }
 /// # impl TryFrom<JsValue> for App {
 /// #   type Error = JsValue;
 /// #   fn try_from(_: JsValue) -> Result<Self, Self::Error> { todo!() }
 /// # }
-/// # impl Component for Counter { fn render(&self) -> VNode { VNode::empty() } }
+/// # impl Component for Counter { fn render(&self) -> VNode { VNode::new() } }
 /// # impl TryFrom<JsValue> for Counter {
 /// #   type Error = JsValue;
 /// #   fn try_from(_: JsValue) -> Result<Self, Self::Error> { todo!() }
@@ -237,8 +237,9 @@ macro_rules! export_components {
           move || $Component::try_from(props).unwrap()
         }, $crate::hooks::Deps::some(props));
 
-        let component = component_ref.value();
+        $crate::react_bindings::use_rust_tmp_refs();
 
+        let component = component_ref.value();
         $crate::Component::render(&*component).into()
       }
     }
@@ -265,7 +266,7 @@ macro_rules! export_components {
 /// export function RenamedComponent(props) { /* … */ }
 /// ```
 ///
-/// Then you can import them using [`import_components!`]:
+/// Then you can import them using `import_components!`:
 ///
 /// ```
 /// # use wasm_react::*;

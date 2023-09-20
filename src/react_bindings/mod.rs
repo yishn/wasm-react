@@ -1,4 +1,7 @@
-use crate::{hooks::RefContainerValue, ComponentWrapper, MemoComponentWrapper};
+use crate::{
+  hooks::{RefContainerValue, TmpRef},
+  ComponentWrapper, MemoComponentWrapper,
+};
 use js_sys::{Array, Function};
 use wasm_bindgen::prelude::*;
 
@@ -34,8 +37,11 @@ extern "C" {
     callback: &mut dyn FnMut(&RefContainerValue),
   );
 
+  #[wasm_bindgen(js_name = useRustTmpRefs)]
+  pub fn use_rust_tmp_refs();
+
   #[wasm_bindgen(js_name = useRustTmpRef)]
-  pub fn use_rust_tmp_ref(value: JsValue);
+  pub fn use_rust_tmp_ref(value: JsValue, callback: &mut dyn FnMut(&TmpRef));
 
   #[wasm_bindgen(js_name = useRustState)]
   pub fn use_rust_state() -> Function;

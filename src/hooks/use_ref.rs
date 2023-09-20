@@ -1,4 +1,4 @@
-use crate::{callback::Void, react_bindings, Persisted, PersistedOrigin};
+use crate::{react_bindings, Persisted, PersistedOrigin};
 use std::{
   any::Any,
   cell::{Ref, RefCell, RefMut},
@@ -115,10 +115,8 @@ pub fn use_ref<T: 'static>(init: T) -> RefContainer<T> {
   let mut value = None;
 
   react_bindings::use_rust_ref(
-    Closure::once(move |_: Void| {
-      RefContainerValue(Rc::new(RefCell::new(init)))
-    })
-    .as_ref(),
+    Closure::once(move || RefContainerValue(Rc::new(RefCell::new(init))))
+      .as_ref(),
     &mut |ref_container_value| {
       value = Some(
         ref_container_value

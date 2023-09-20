@@ -100,13 +100,12 @@ through the entire lifetime of the component.
 
 ### Add Event Handlers
 
-To create an event handler, you have to keep the lifetime of the closure beyond
-the render function as well, so JS can call it in the future. You can persist a
-closure by using the `use_callback()` hook:
+To create an event handler, you can directly pass your Rust closure to your
+components:
 
 ```rust
 use wasm_react::{h, Component, VNode};
-use wasm_react::hooks::{use_state, use_callback, Deps};
+use wasm_react::hooks::{use_state, Deps};
 
 struct Counter {
   initial_counter: i32,
@@ -115,17 +114,16 @@ struct Counter {
 impl Component for Counter {
   fn render(&self) -> VNode {
     let counter = use_state(|| self.initial_counter);
-    let handle_click = use_callback({
-      let mut counter = counter.clone();
-
-      move |_| counter.set(|c| c + 1)
-    }, Deps::none());
 
     let value =h!(div)
       .build((
         h!(p).build(("Counter: ", *counter.value())),
         h!(button)
-          .on_click(&handle_click)
+          .on_click({
+            let mut counter = counter.clone();
+
+            move |_| counter.set(|c| c + 1)
+          })
           .build("Increment"),
       ));
     value
@@ -150,7 +148,7 @@ struct Counter {
 impl Component for Counter {
   fn render(&self) -> VNode {
     /* … */
-    VNode::empty()
+    VNode::new()
   }
 }
 

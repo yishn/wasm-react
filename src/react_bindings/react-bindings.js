@@ -9,7 +9,7 @@ export function useReact(value) {
 }
 
 export function createElement(name, props, children) {
-  if (children == null) children = [];
+  if (!Array.isArray(children)) children = [children];
   return React.createElement(name, props, ...children);
 }
 
@@ -28,23 +28,7 @@ function renderRustComponent(props) {
     [component]
   );
 
-  // Create storage for temporary refs, refs that are only valid until
-  // next render
-  currentTmpRefs = React.useRef([]);
-
-  React.useEffect(
-    function freeTmpRefs() {
-      return () => {
-        for (const value of currentTmpRefs) {
-          value.free();
-        }
-
-        currentTmpRefs.current = [];
-      };
-    },
-    [Math.random()]
-  );
-
+  useRustTmpRefs();
   return component.render();
 }
 
@@ -119,10 +103,32 @@ export function useRustRef(create, callback) {
   callback(ref.current);
 }
 
-export function useRustTmpRef(value) {
-  if (currentTmpRefs == null) return;
+export function useRustTmpRefs() {
+  // Create storage for temporary refs, refs that are only valid until
+  // next render
+  currentTmpRefs = React.useRef([]);
+  let tmpRefs = currentTmpRefs;
+  const tmpRefsToBeFreed = tmpRefs.current;
+  tmpRefs.current = [];
 
-  currentTmpRefs.current.push(value);
+  React.useEffect(function freeTmpRefs() {
+    return () => {
+      setTimeout(() => {
+        for (const value of tmpRefsToBeFreed) {
+          value.free();
+        }
+      });
+    };
+  });
+}
+
+export function useRustTmpRef(value, callback) {
+  if (currentTmpRefs != null) {
+    currentTmpRefs.current.push(value);
+    callback(value);
+  } else {
+    value.free();
+  }
 }
 
 export function useRustState() {
