@@ -16,7 +16,7 @@ where
   T: 'static,
 {
   react_bindings::use_rust_tmp_ref(
-    TmpRef(Box::new(value)).into(),
+    TmpRef(Box::new(value)),
     &mut |tmp_ref| callback(tmp_ref.0.downcast_ref().unwrap_throw()),
   )
 }

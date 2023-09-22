@@ -125,14 +125,11 @@ impl Component for TaskItem {
         h!(input)
           .html_type("checkbox")
           .checked(self.done)
-          .on_change(&Callback::new({
+          .on_change(&{
             let id = self.id;
 
-            self
-              .on_change
-              .clone()
-              .unwrap_or_default()
-              .premap(move |evt: Event| {
+            self.on_change.clone().unwrap_or_default().premap(
+              move |evt: Event| {
                 (
                   id,
                   evt
@@ -142,9 +139,9 @@ impl Component for TaskItem {
                     .unwrap_throw()
                     .checked(),
                 )
-              })
-              .to_closure()
-          }))
+              },
+            )
+          })
           .build(()),
         " ",
         if self.done {

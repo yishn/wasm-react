@@ -41,7 +41,7 @@ extern "C" {
   pub fn use_rust_tmp_refs();
 
   #[wasm_bindgen(js_name = useRustTmpRef)]
-  pub fn use_rust_tmp_ref(value: JsValue, callback: &mut dyn FnMut(&TmpRef));
+  pub fn use_rust_tmp_ref(value: TmpRef, callback: &mut dyn FnMut(&TmpRef));
 
   #[wasm_bindgen(js_name = useRustState)]
   pub fn use_rust_state() -> Function;
