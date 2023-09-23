@@ -1,7 +1,6 @@
 use super::Props;
 use crate::{
-  callback::PersistedCallback, create_element, hooks::JsRefContainer, KeyType,
-  VNode,
+  Callback, create_element, hooks::JsRefContainer, KeyType, VNode,
 };
 use std::borrow::Cow;
 use wasm_bindgen::{
@@ -80,7 +79,7 @@ impl<T: HType> H<T> {
   /// [ref]: https://reactjs.org/docs/refs-and-the-dom.html
   pub fn ref_callback(
     mut self,
-    ref_callback: &PersistedCallback<Option<Element>>,
+    ref_callback: &Callback<Option<Element>>,
   ) -> Self {
     self.props = self.props.ref_callback(ref_callback);
     self
@@ -93,11 +92,7 @@ impl<T: HType> H<T> {
   }
 
   /// Sets a callback value to an attribute on the [`VNode`].
-  pub fn attr_callback<U, V>(
-    mut self,
-    key: &str,
-    f: &PersistedCallback<U, V>,
-  ) -> Self
+  pub fn attr_callback<U, V>(mut self, key: &str, f: &Callback<U, V>) -> Self
   where
     U: FromWasmAbi + 'static,
     V: IntoWasmAbi + 'static,
@@ -106,8 +101,7 @@ impl<T: HType> H<T> {
     self
   }
 
-  /// Builds the [`VNode`] and returns it with the given children. Use
-  /// [`c!`](crate::c!) for easier construction of the children.
+  /// Builds the [`VNode`] and returns it with the given children.
   pub fn build(self, children: impl Into<VNode>) -> VNode {
     create_element(&self.typ.as_js(), &self.props, children.into())
   }

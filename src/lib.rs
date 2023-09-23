@@ -7,22 +7,24 @@
 extern "C" {}
 
 mod builtin_components;
+mod callback;
 mod component;
 mod context;
 mod macros;
 mod marker;
-mod react_bindings;
 mod value_container;
 mod vnode;
 
-pub mod callback;
 pub mod hooks;
 pub mod props;
+#[doc(hidden)]
+pub mod react_bindings;
 
 use props::Props;
 use wasm_bindgen::prelude::*;
 
 pub use builtin_components::*;
+pub use callback::*;
 pub use component::*;
 pub use context::*;
 pub use marker::*;
@@ -65,11 +67,7 @@ impl WasmReact {
 /// The Rust equivalent to `React.createElement`. Use [`h!`] for a more
 /// convenient way to create HTML element nodes. To create Rust components, use
 /// [`Component::build()`].
-pub fn create_element(
-  typ: &JsValue,
-  props: &Props,
-  children: VNode,
-) -> VNode {
+pub fn create_element(typ: &JsValue, props: &Props, children: VNode) -> VNode {
   VNode::Single(react_bindings::create_element(
     typ,
     props.as_ref(),

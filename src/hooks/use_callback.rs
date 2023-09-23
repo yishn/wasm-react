@@ -1,18 +1,15 @@
 use super::{use_memo, Deps};
-use crate::callback::{Callback, PersistedCallback};
+use crate::Callback;
 
-/// Returns a persisted, memoized callback.
-pub fn use_callback<T, U, D>(
-  f: impl FnMut(T) -> U + 'static,
-  deps: Deps<D>,
-) -> PersistedCallback<T, U>
+/// Returns a memoized callback.
+pub fn use_callback<T, U, D>(f: Callback<T, U>, deps: Deps<D>) -> Callback<T, U>
 where
   T: 'static,
   U: 'static,
   D: PartialEq + 'static,
 {
-  let memo = use_memo(move || Callback::new(f), deps);
-  let value = memo.value();
+  let memo = use_memo(move || f, deps);
+  let result = memo.value().clone();
 
-  PersistedCallback(value.clone())
+  result
 }

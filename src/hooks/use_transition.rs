@@ -1,7 +1,7 @@
 use js_sys::Function;
-use wasm_bindgen::{prelude::Closure, JsCast, UnwrapThrowExt};
+use wasm_bindgen::{prelude::Closure, JsCast, JsValue, UnwrapThrowExt};
 
-use crate::{callback::Callable, react_bindings};
+use crate::react_bindings;
 
 /// Allows access to the transition state.
 #[derive(Debug, Clone)]
@@ -20,7 +20,7 @@ impl Transition {
   pub fn start(&mut self, f: impl FnOnce() + 'static) {
     self
       .start_transition
-      .call(&Closure::once_into_js(f))
+      .call1(&JsValue::NULL, &Closure::once_into_js(f))
       .expect_throw("unable to call start function");
   }
 }
@@ -31,30 +31,24 @@ impl Transition {
 /// # Example
 ///
 /// ```
-/// # use wasm_react::{*, hooks::*, callback::*};
+/// # use wasm_react::{*, hooks::*};
 /// #
 /// # fn render() -> VNode {
 /// let count = use_state(|| 0);
 /// let transition = use_transition();
 ///
-/// let handle_click = use_callback({
-///   let mut transition = transition.clone();
-///
-///   move |_| {
+/// h!(div).build((
+///   transition.is_pending().then(||
+///     h!(div).build("Loading…")
+///   ),
+///   h!(button).on_click(&callback!(clone(mut transition), move |_| {
 ///     let mut count = count.clone();
 ///
 ///     transition.start(move || {
 ///       count.set(|c| c + 1);
 ///     });
-///   }
-/// }, Deps::none());
-///
-/// h!(div).build(c![
-///   transition.is_pending().then(||
-///     h!(div).build(c!["Loading…"])
-///   ),
-///   h!(button).on_click(&handle_click).build(c![]),
-/// ])
+///   })).build(()),
+/// ))
 /// # }
 /// ```
 pub fn use_transition() -> Transition {

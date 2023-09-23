@@ -1,5 +1,5 @@
 use crate::{
-  c, create_element, hooks::RefContainerValue, props::Props, react_bindings,
+  create_element, hooks::RefContainerValue, props::Props, react_bindings,
   Component, VNode,
 };
 use js_sys::Reflect;
@@ -57,9 +57,9 @@ impl<T> From<Context<T>> for JsValue {
 ///
 ///     ContextProvider::from(&THEME_CONTEXT)
 ///       .value(Some(Theme::DarkMode.into()))
-///       .build(c![
+///       .build(
 ///         Toolbar.build(),
-///       ])
+///       )
 ///   }
 /// }
 ///
@@ -68,7 +68,7 @@ impl<T> From<Context<T>> for JsValue {
 /// impl Component for Toolbar {
 ///   fn render(&self) -> VNode {
 ///     // Theme context does not have to be passed down explicitly.
-///     h!(div).build(c![Button.build()])
+///     h!(div).build(Button.build())
 ///   }
 /// }
 ///
@@ -87,7 +87,7 @@ impl<T> From<Context<T>> for JsValue {
 ///             Theme::DarkMode => "black",
 ///           })
 ///       )
-///       .build(c![])
+///       .build(())
 ///   }
 /// }
 /// ```
@@ -114,7 +114,7 @@ impl<T: 'static> ContextProvider<T> {
     Self {
       context,
       value: None,
-      children: c![],
+      children: ().into(),
     }
   }
 
@@ -125,13 +125,13 @@ impl<T: 'static> ContextProvider<T> {
   }
 
   /// Sets the children of the component.
-  pub fn children(mut self, children: VNode) -> Self {
-    self.children = children;
+  pub fn children(mut self, children: impl Into<VNode>) -> Self {
+    self.children = children.into();
     self
   }
 
   /// Returns a [`VNode`] to be included in a render function.
-  pub fn build(self, children: VNode) -> VNode {
+  pub fn build(self, children: impl Into<VNode>) -> VNode {
     Component::build(self.children(children))
   }
 }

@@ -10,6 +10,7 @@ mod use_js_ref;
 mod use_memo;
 mod use_ref;
 mod use_state;
+mod use_tmp_ref;
 mod use_transition;
 
 pub use deps::*;
@@ -22,4 +23,5 @@ pub use use_js_ref::*;
 pub use use_memo::*;
 pub use use_ref::*;
 pub use use_state::*;
+pub(crate) use use_tmp_ref::*;
 pub use use_transition::*;

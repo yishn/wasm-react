@@ -6,9 +6,8 @@ use card::Card;
 use std::rc::Rc;
 use wasm_bindgen::JsValue;
 use wasm_react::{
-  c, create_context, export_components, h,
-  hooks::{use_callback, use_state, Deps},
-  Component, Context, ContextProvider, VNode,
+  callback, create_context, export_components, h, hooks::use_state, Component,
+  Context, ContextProvider, VNode,
 };
 
 pub enum Theme {
@@ -31,58 +30,50 @@ impl Component for App {
       Theme::DarkMode => "dark",
     };
 
-    let handle_toggle_theme = use_callback(
-      {
-        let mut theme = theme.clone();
-
-        move |_| {
-          theme.set(|theme| {
-            match *theme {
-              Theme::LightMode => Theme::DarkMode,
-              Theme::DarkMode => Theme::LightMode,
-            }
-            .into()
-          })
-        }
-      },
-      Deps::none(),
-    );
-
-    h!(div[.{theme_class}]).build(c![
+    let result = h!(div[.{theme_class}]).build(
       //
       ContextProvider::from(&THEME_CONTEXT)
         .value(Some({
           let value = theme.value();
           value.clone()
         }))
-        .build(c![
-          h!(p).build(c![
+        .build((
+          h!(p).build((
             //
-            h!(label).build(c![
+            h!(label).build((
               h!(input)
                 .html_type("checkbox")
                 .checked(match **theme.value() {
                   Theme::LightMode => false,
                   Theme::DarkMode => true,
                 })
-                .on_change(&handle_toggle_theme)
-                .build(c![]),
-              "Dark Mode"
-            ]),
-          ]),
+                .on_change(&callback!(clone(mut theme), move |_| {
+                  theme.set(|theme| {
+                    match *theme {
+                      Theme::LightMode => Theme::DarkMode,
+                      Theme::DarkMode => Theme::LightMode,
+                    }
+                    .into()
+                  })
+                }))
+                .build(()),
+              "Dark Mode",
+            )),
+          )),
           //
           Card::new()
-            .children(c![
-              h!(p).build(c!["Hello World!"]),
-              h!(p).build(c![
+            .children((
+              h!(p).build("Hello World!"),
+              h!(p).build((
                 Button::new().text("OK").build(),
                 " ",
-                Button::new().text("Cancel").build()
-              ])
-            ])
-            .build()
-        ])
-    ])
+                Button::new().text("Cancel").build(),
+              )),
+            ))
+            .build(),
+        )),
+    );
+    result
   }
 }
 

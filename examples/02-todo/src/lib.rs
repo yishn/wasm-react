@@ -1,11 +1,8 @@
 use std::rc::Rc;
 use wasm_bindgen::{JsCast, JsValue, UnwrapThrowExt};
 use wasm_react::{
-  c,
-  callback::Callback,
-  export_components, h,
-  hooks::{use_callback, use_state, Deps},
-  Component, VNode, ValueContainer,
+  callback, export_components, h, hooks::use_state, Callback, Component, VNode,
+  ValueContainer,
 };
 use web_sys::{Event, HtmlInputElement};
 
@@ -24,12 +21,22 @@ impl Component for App {
     let tasks = use_state(|| vec![]);
     let text = use_state(|| Rc::<str>::from(""));
 
-    let handle_submit = use_callback(
-      {
-        let mut tasks = tasks.clone();
-        let mut text = text.clone();
-
-        move |evt: Event| {
+    let result = h!(div[#"app"]).build((
+      h!(h1).build("Todo"),
+      //
+      TaskList {
+        tasks: tasks.clone().into(),
+        on_change: Some(callback!(clone(mut tasks), move |(id, done)| {
+          tasks.set(|mut tasks| {
+            tasks.get_mut(id).map(|task: &mut (bool, _)| task.0 = done);
+            tasks
+          })
+        })),
+      }
+      .build(),
+      //
+      h!(form)
+        .on_submit(&callback!(clone(mut tasks, mut text), move |evt: Event| {
           evt.prevent_default();
 
           if !text.value().is_empty() {
@@ -39,63 +46,26 @@ impl Component for App {
             });
             text.set(|_| "".into());
           }
-        }
-      },
-      Deps::none(),
-    );
-
-    let handle_input = use_callback(
-      {
-        let mut text = text.clone();
-
-        move |evt: Event| {
-          text.set(|_| {
-            evt
-              .current_target()
-              .unwrap_throw()
-              .dyn_into::<HtmlInputElement>()
-              .unwrap_throw()
-              .value()
-              .into_boxed_str()
-              .into()
-          })
-        }
-      },
-      Deps::none(),
-    );
-
-    let handle_task_change = use_callback(
-      {
-        let mut tasks = tasks.clone();
-
-        move |(id, done): (usize, bool)| {
-          tasks.set(|mut tasks| {
-            tasks.get_mut(id).map(|task: &mut (bool, _)| task.0 = done);
-            tasks
-          })
-        }
-      },
-      Deps::none(),
-    );
-
-    let result = h!(div[#"app"]).build((
-      h!(h1).build("Todo"),
-      //
-      TaskList {
-        tasks: tasks.clone().into(),
-        on_change: Some(handle_task_change.into()),
-      }
-      .build(),
-      //
-      h!(form).on_submit(&handle_submit).build((
-        h!(input)
-          .placeholder("Add new item…")
-          .value(&**text.value())
-          .on_change(&handle_input)
-          .build(()),
-        " ",
-        h!(button).html_type("submit").build(("Add",)),
-      )),
+        }))
+        .build((
+          h!(input)
+            .placeholder("Add new item…")
+            .value(&**text.value())
+            .on_change(&callback!(clone(mut text), move |evt: Event| {
+              text.set(|_| {
+                evt
+                  .current_target()
+                  .unwrap_throw()
+                  .dyn_into::<HtmlInputElement>()
+                  .unwrap_throw()
+                  .value()
+                  .into()
+              })
+            }))
+            .build(()),
+          " ",
+          h!(button).html_type("submit").build("Add"),
+        )),
     ));
 
     result
@@ -114,11 +84,15 @@ struct TaskList {
 
 impl Component for TaskList {
   fn render(&self) -> VNode {
-    h!(div[."task-list"]).build((
+    h!(div[."task-list"]).build(
       //
-      h!(ul).build(c![
-        ..self.tasks.value().iter().enumerate().map(
-          |(i, (done, description))| {
+      h!(ul).build(
+        self
+          .tasks
+          .value()
+          .iter()
+          .enumerate()
+          .map(|(i, (done, description))| {
             TaskItem {
               id: i,
               description: description.clone(),
@@ -128,10 +102,10 @@ impl Component for TaskList {
             .memoized()
             .key(Some(i))
             .build()
-          },
-        )
-      ]),
-    ))
+          })
+          .collect::<VNode>(),
+      ),
+    )
   }
 }
 
@@ -145,45 +119,37 @@ struct TaskItem {
 
 impl Component for TaskItem {
   fn render(&self) -> VNode {
-    let handle_change = use_callback(
-      {
-        let id = self.id;
-
-        self
-          .on_change
-          .clone()
-          .unwrap_or_default()
-          .premap(move |evt: Event| {
-            (
-              id,
-              evt
-                .current_target()
-                .unwrap_throw()
-                .dyn_into::<HtmlInputElement>()
-                .unwrap_throw()
-                .checked(),
-            )
-          })
-          .to_closure()
-      },
-      Deps::some((self.id, self.on_change.clone())),
-    );
-
-    h!(li[."task-item"]).build((
+    h!(li[."task-item"]).build(
       //
       h!(label).build((
         h!(input)
           .html_type("checkbox")
           .checked(self.done)
-          .on_change(&handle_change)
+          .on_change(&{
+            let id = self.id;
+
+            self.on_change.clone().unwrap_or_default().premap(
+              move |evt: Event| {
+                (
+                  id,
+                  evt
+                    .current_target()
+                    .unwrap_throw()
+                    .dyn_into::<HtmlInputElement>()
+                    .unwrap_throw()
+                    .checked(),
+                )
+              },
+            )
+          })
           .build(()),
         " ",
         if self.done {
-          h!(del).build((&*self.description,))
+          h!(del).build(&*self.description)
         } else {
           (*self.description).into()
         },
       )),
-    ))
+    )
   }
 }

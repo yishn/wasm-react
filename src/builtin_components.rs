@@ -5,38 +5,6 @@ use crate::{
 use std::borrow::Cow;
 use wasm_bindgen::JsValue;
 
-/// Can be used to create a [React fragment][fragment].
-///
-/// [fragment]: https://reactjs.org/docs/fragments.html
-///
-/// # Example
-///
-/// ```
-/// # use wasm_react::*;
-/// #
-/// # fn f() -> VNode {
-/// Fragment::new().build(c![
-///   h!(h1).build(c!["Hello World!"]),
-///   h!(div).build(c!["No wrapper element"]),
-/// ])
-/// # }
-/// ```
-#[derive(Debug, Default, Clone, Copy)]
-pub struct Fragment;
-
-impl HType for Fragment {
-  fn as_js(&self) -> Cow<'_, JsValue> {
-    Cow::Borrowed(&react_bindings::FRAGMENT)
-  }
-}
-
-impl Fragment {
-  /// Creates a new `React.Fragment` component builder.
-  pub fn new() -> H<Fragment> {
-    H::new(Fragment)
-  }
-}
-
 /// A component that specifies the loading indicator when loading lazy descendant
 /// components.
 ///
@@ -56,12 +24,12 @@ impl Fragment {
 /// #
 /// # fn f() -> VNode {
 /// Suspense::new()
-///   .fallback(c![
-///     h!(div[."loading"]).build(c!["Loading…"]),
-///   ])
-///   .build(c![
+///   .fallback(
+///     h!(div[."loading"]).build("Loading…"),
+///   )
+///   .build(
 ///     SomeLazyComponent { /* … */ }.build()
-///   ])
+///   )
 /// # }
 /// ```
 #[derive(Debug, Default, Clone, Copy)]
@@ -82,7 +50,7 @@ impl Suspense {
 
 impl H<Suspense> {
   /// Sets a fallback when loading lazy descendant components.
-  pub fn fallback(self, children: VNode) -> Self {
-    self.attr("fallback", children.as_ref())
+  pub fn fallback(self, children: impl Into<VNode>) -> Self {
+    self.attr("fallback", children.into().as_ref())
   }
 }

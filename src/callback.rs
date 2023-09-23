@@ -1,11 +1,6 @@
-//! This module provides structs to pass Rust closures to JS.
-
-use crate::{Persisted, PersistedOrigin};
-use js_sys::Function;
 use std::{
   cell::{Ref, RefCell},
   fmt::Debug,
-  ops::Deref,
   rc::Rc,
 };
 use wasm_bindgen::{
@@ -15,11 +10,11 @@ use wasm_bindgen::{
   JsValue, UnwrapThrowExt,
 };
 
-/// A helper struct to simulate a JS-interoperable [`Callback`] with no input
+/// A zero-sized helper struct to simulate a JS-interoperable [`Callback`] with no input
 /// arguments.
 ///
 /// ```
-/// # use wasm_react::callback::*;
+/// # use wasm_react::*;
 /// # fn f() {
 /// let callback: Callback<Void> = Callback::new(|_: Void| ());
 /// # }
@@ -48,8 +43,11 @@ impl From<Void> for JsValue {
   }
 }
 
-/// This is a simplified, reference-counted wrapper around an [`FnMut`] Rust
-/// closure that may be called from JS when `T` and `U` allow.
+/// This is a simplified, reference-counted wrapper around an [`FnMut(T) -> U`](FnMut)
+/// Rust closure that may be called from JS when `T` and `U` allow.
+///
+/// You can also use the [`callback!`](crate::callback!) macro to create a [`Callback`]
+/// which supports clone-capturing the environment.
 ///
 /// It only supports closures with exactly one input argument and some return
 /// value. Memory management is handled by Rust. Whenever Rust drops all clones
@@ -84,6 +82,12 @@ where
       f(arg)
     }
   }
+
+  /// Calls the callback with the given argument.
+  pub fn call(&self, arg: T) -> U {
+    let mut f = self.closure.borrow_mut();
+    f(arg)
+}
 
   /// Returns a new [`Callback`] by prepending the given closure to the callback.
   pub fn premap<V>(
@@ -167,6 +171,17 @@ where
   }
 }
 
+impl<F, T, U> From<F> for Callback<T, U>
+where
+  F: FnMut(T) -> U + 'static,
+  T: 'static,
+  U: 'static,
+{
+  fn from(value: F) -> Self {
+    Self::new(value)
+  }
+}
+
 impl<T, U> Debug for Callback<T, U> {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     f.write_str("Callback(|_| { … })")
@@ -187,114 +202,5 @@ impl<T, U> Clone for Callback<T, U> {
       closure: self.closure.clone(),
       js: self.js.clone(),
     }
-  }
-}
-
-impl<T, U> Callable<T, U> for Callback<T, U> {
-  fn call(&self, arg: T) -> U {
-    let mut f = self.closure.borrow_mut();
-    f(arg)
-  }
-}
-
-/// This is a wrapper around a [`Callback`] which can persist through the
-/// lifetime of a component.
-///
-/// Usually, this struct is created by using the
-/// [`use_callback()`](crate::hooks::use_callback()) hook.
-///
-/// As with [`Callback`], this only supports closures with exactly one input
-/// argument and some return value. The underlying Rust closure will be dropped
-/// when all of the following conditions are met:
-///
-/// - All clones have been dropped.
-/// - All clones to the underlying [`Callback`] have been dropped.
-/// - The React component has unmounted.
-///
-/// It can be dropped earlier, e.g. when the underlying [`Callback`] has been
-/// replaced by another and no more clones exist.
-pub struct PersistedCallback<T, U = ()>(pub(crate) Callback<T, U>);
-
-impl<T, U> Debug for PersistedCallback<T, U> {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    f.write_str("PersistedCallback(|_| { … })")
-  }
-}
-
-impl<T, U> Clone for PersistedCallback<T, U> {
-  fn clone(&self) -> Self {
-    Self(self.0.clone())
-  }
-}
-
-impl<T, U> PartialEq for PersistedCallback<T, U> {
-  fn eq(&self, other: &Self) -> bool {
-    self.0 == other.0
-  }
-}
-
-impl<T, U> Eq for PersistedCallback<T, U> {}
-
-impl<T, U> Deref for PersistedCallback<T, U> {
-  type Target = Callback<T, U>;
-
-  fn deref(&self) -> &Self::Target {
-    &self.0
-  }
-}
-
-impl<T, U> From<PersistedCallback<T, U>> for Callback<T, U> {
-  fn from(value: PersistedCallback<T, U>) -> Self {
-    value.0
-  }
-}
-
-impl<T, U> AsRef<Callback<T, U>> for PersistedCallback<T, U> {
-  fn as_ref(&self) -> &Callback<T, U> {
-    &self.0
-  }
-}
-
-impl<T: 'static, U: 'static> Persisted for PersistedCallback<T, U> {
-  fn ptr(&self) -> PersistedOrigin {
-    PersistedOrigin
-  }
-}
-
-impl<T, U> Callable<T, U> for PersistedCallback<T, U> {
-  fn call(&self, arg: T) -> U {
-    self.deref().call(arg)
-  }
-}
-
-/// A trait for callable structs with one and only one input argument and some
-/// return value.
-pub trait Callable<T, U = ()> {
-  /// Calls the struct with the given input argument.
-  fn call(&self, arg: T) -> U;
-}
-
-impl<T, U, F> Callable<T, U> for F
-where
-  F: Fn(T) -> U,
-{
-  fn call(&self, arg: T) -> U {
-    self(arg)
-  }
-}
-
-impl Callable<&JsValue, Result<JsValue, JsValue>> for Function {
-  fn call(&self, arg: &JsValue) -> Result<JsValue, JsValue> {
-    self.call1(&JsValue::undefined(), arg)
-  }
-}
-
-impl<T, U, F> Callable<T, U> for Option<F>
-where
-  U: Default,
-  F: Callable<T, U>,
-{
-  fn call(&self, arg: T) -> U {
-    self.as_ref().map(|f| f.call(arg)).unwrap_or_default()
   }
 }

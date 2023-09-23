@@ -11,16 +11,16 @@
 /// # fn f() -> VNode {
 /// h!(div)
 ///   .attr("id", &"app".into())
-///   .build(c![
-///     h!(h1).build(c!["Hello World!"])
-///   ])
+///   .build(
+///     h!(h1).build("Hello World!")
+///   )
 /// # }
 ///
 /// // <div id="app"><h1>Hello World!</h1></div>
 ///
 /// # fn g() -> VNode {
 /// h!("web-component")
-///   .build(c!["Hello World!"])
+///   .build("Hello World!")
 /// # }
 ///
 /// // <web-component>Hello World!</web-component>
@@ -33,7 +33,7 @@
 /// # use wasm_react::*;
 /// # fn f() -> VNode {
 /// h!(div[#"app"."some-class"."warning"])
-///   .build(c!["This is a warning!"])
+///   .build("This is a warning!")
 /// # }
 ///
 /// // <div id="app" class="some-class warning">This is a warning!</div>
@@ -54,65 +54,66 @@ macro_rules! h {
   };
 }
 
-/// This macro can take various objects to build a [`VNode`].
-///
-/// [`VNode`]: crate::VNode
+/// Creates a new [`Callback`](crate::Callback) which can clone-capture the
+/// environment.
 ///
 /// # Example
 ///
 /// ```
 /// # use wasm_react::*;
-/// #
-/// # struct SomeComponent { some_prop: () }
-/// # impl Component for SomeComponent {
-/// #   fn render(&self) -> VNode { VNode::empty() }
+/// let cb: Callback<u64, bool> = callback!(move |arg| arg < 100);
+/// ```
+/// 
+/// To clone-capture the environment, specify the variables inside a `clone` 
+/// directive:
+/// 
+/// ```
+/// # use wasm_react::{*, hooks::*};
+/// # fn f() {
+/// let state = use_state(|| 0);
+/// 
+/// let cb = callback!(clone(mut state), move |delta: i32| {
+///   state.set(|c| c + delta);
+/// });
 /// # }
-/// #
-/// # fn f(some_prop: (), vec: Vec<&str>, some_bool: bool) -> VNode {
-/// h!(div).build(c![
-///   "Counter: ", 5,
-///
-///   SomeComponent {
-///     some_prop,
-///   }
-///   .build(),
-///
-///   some_bool.then(||
-///     h!(p).build(c!["Conditional rendering"]),
-///   ),
-///
-///   h!(h1).build(c!["Hello World"]),
-///
-///   ..vec.iter()
-///     .map(|x| h!(p).build(c![*x])),
-/// ])
+/// ```
+/// 
+/// This is equivalent to the following:
+/// 
+/// ```
+/// # use wasm_react::{*, hooks::*};
+/// # fn f() {
+/// let state = use_state(|| 0);
+/// 
+/// let cb = {
+///   let mut state = state.clone();  
+/// 
+///   Callback::new(move |delta: i32| {
+///     state.set(|c| c + delta);
+///   })
+/// };
 /// # }
 /// ```
 #[macro_export]
-macro_rules! c {
-  [@single $list:ident <<] => {};
-
-  // Handle iterators
-  [@single $list:ident << ..$vnode_list:expr $(, $( $tail:tt )* )?] => {
-    $list.push(&$vnode_list.collect::<$crate::VNode>().into());
-    $crate::c![@single $list << $( $( $tail )* )?];
+macro_rules! callback {
+  (@clones $(,)? mut $id:ident $( $tail:tt )*) => {
+    let mut $id = $id.clone();
+    $crate::callback!(@clones $( $tail )*);
   };
-
-  // Handle `Into<VNode>`
-  [@single $list:ident << $into_vnode:expr $(, $( $tail:tt )* )?] => {
-    $list.push(&$into_vnode.into());
-    $crate::c![@single $list << $( $( $tail )* )?];
+  (@clones $(,)? $id:ident $( $tail:tt )*) => {
+    let $id = $id.clone();
+    $crate::callback!(@clones $( $tail )*);
   };
+  (@clones) => {};
 
-  [] => {
-    $crate::VNode::empty()
-  };
-  [$( $tt:tt )*] => {
+  (clone($( $tt:tt )+), $expr:expr) => {
     {
-      let mut list = $crate::VNode::empty();
-      $crate::c![@single list << $( $tt )*];
-      list
+      $crate::callback!(@clones $( $tt )+);
+      $crate::Callback::new($expr)
     }
+  };
+  ($expr:expr) => {
+    $crate::Callback::new($expr)
   };
 }
 
@@ -208,7 +209,7 @@ macro_rules! classnames {
 /// }
 ///
 /// impl Component for Counter {
-///   # fn render(&self) -> VNode { VNode::empty() }
+///   # fn render(&self) -> VNode { VNode::new() }
 ///   /* … */
 /// }
 ///
@@ -248,12 +249,12 @@ macro_rules! classnames {
 /// # use wasm_react::*;
 /// # use wasm_bindgen::prelude::*;
 /// # pub struct App; pub struct Counter;
-/// # impl Component for App { fn render(&self) -> VNode { VNode::empty() } }
+/// # impl Component for App { fn render(&self) -> VNode { VNode::new() } }
 /// # impl TryFrom<JsValue> for App {
 /// #   type Error = JsValue;
 /// #   fn try_from(_: JsValue) -> Result<Self, Self::Error> { todo!() }
 /// # }
-/// # impl Component for Counter { fn render(&self) -> VNode { VNode::empty() } }
+/// # impl Component for Counter { fn render(&self) -> VNode { VNode::new() } }
 /// # impl TryFrom<JsValue> for Counter {
 /// #   type Error = JsValue;
 /// #   fn try_from(_: JsValue) -> Result<Self, Self::Error> { todo!() }
@@ -299,8 +300,9 @@ macro_rules! export_components {
           move || $Component::try_from(props).unwrap()
         }, $crate::hooks::Deps::some(props));
 
-        let component = component_ref.value();
+        $crate::react_bindings::use_rust_tmp_refs();
 
+        let component = component_ref.value();
         $crate::Component::render(&*component).into()
       }
     }
@@ -327,7 +329,7 @@ macro_rules! export_components {
 /// export function RenamedComponent(props) { /* … */ }
 /// ```
 ///
-/// Then you can import them using [`import_components!`]:
+/// Then you can import them using `import_components!`:
 ///
 /// ```
 /// # use wasm_react::*;
@@ -353,11 +355,11 @@ macro_rules! export_components {
 /// # struct App;
 /// # impl Component for App {
 /// fn render(&self) -> VNode {
-///   h!(div).build(c![
+///   h!(div).build(
 ///     MyComponent::new()
 ///       .attr("prop", &"Hello World!".into())
-///       .build(c![])
-///   ])
+///       .build(())
+///   )
 /// }
 /// # }
 /// ```
@@ -386,11 +388,11 @@ macro_rules! export_components {
 /// # struct App;
 /// # impl Component for App {
 /// fn render(&self) -> VNode {
-///   h!(div).build(c![
+///   h!(div).build(
 ///     MyComponent::new()
 ///       .prop("Hello World!")
-///       .build(c![])
-///   ])
+///       .build(())
+///   )
 /// }
 /// # }
 /// ```
