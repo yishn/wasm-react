@@ -87,7 +87,7 @@ where
   pub fn call(&self, arg: T) -> U {
     let mut f = self.closure.borrow_mut();
     f(arg)
-}
+  }
 
   /// Returns a new [`Callback`] by prepending the given closure to the callback.
   pub fn premap<V>(

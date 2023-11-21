@@ -100,12 +100,12 @@ through the entire lifetime of the component.
 
 ### Add Event Handlers
 
-To create an event handler, you pass a `Callback` created from a Rust closure,
-either using the `callback!` macro, which can clone-capture the environment, or
-using `Callback::new()`.
+To create an event handler, you pass a `Callback` created from a Rust closure.
+You can use the helper macro `clones!` to clone-capture the environment more
+ergonomically.
 
 ```rust
-use wasm_react::{h, Component, callback, Callback, VNode};
+use wasm_react::{h, clones, Component, Callback, VNode};
 use wasm_react::hooks::{use_state, Deps};
 
 struct Counter {
@@ -114,24 +114,26 @@ struct Counter {
 
 impl Component for Counter {
   fn render(&self) -> VNode {
+    let message = use_state(|| "Hello World!");
     let counter = use_state(|| self.initial_counter);
 
     let value = h!(div)
       .build((
         h!(p).build(("Counter: ", *counter.value())),
 
-        // Use the `callback!` macro, clone-capturing `counter`:
         h!(button)
-          .on_click(&callback!(clone(mut counter), move |_| {
-            counter.set(|c| c + 1);
+          .on_click(&Callback::new({
+            clones!(message, mut counter);
+            move |_| {
+              println!("{}", message.value());
+              counter.set(|c| c + 1);
+            }
           }))
           .build("Increment"),
 
-        // Alternatively, use `Callback::new()`:
         h!(button)
           .on_click(&Callback::new({
-            let mut counter = counter.clone();
-
+            clones!(mut counter);
             move |_| counter.set(|c| c - 1)
           }))
           .build("Decrement"),

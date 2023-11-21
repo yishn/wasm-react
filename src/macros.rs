@@ -54,66 +54,60 @@ macro_rules! h {
   };
 }
 
-/// Creates a new [`Callback`](crate::Callback) which can clone-capture the
-/// environment.
+/// A helper macro which can be used to clone a list of variables. Helpful for
+/// creating a closure which clone-captures the environment.
 ///
 /// # Example
 ///
 /// ```
-/// # use wasm_react::*;
-/// let cb: Callback<u64, bool> = callback!(move |arg| arg < 100);
-/// ```
-/// 
-/// To clone-capture the environment, specify the variables inside a `clone` 
-/// directive:
-/// 
-/// ```
 /// # use wasm_react::{*, hooks::*};
 /// # fn f() {
-/// let state = use_state(|| 0);
-/// 
-/// let cb = callback!(clone(mut state), move |delta: i32| {
-///   state.set(|c| c + delta);
+/// let message = use_state(|| "Hello");
+/// let counter = use_state(|| 0);
+///
+/// let cb = Callback::new({
+///   clones!(message, mut counter);
+///   move |delta: i32| {
+///     println!("{}", message.value());
+///     counter.set(|c| c + delta);
+///   }
 /// });
 /// # }
 /// ```
-/// 
+///
 /// This is equivalent to the following:
-/// 
+///
 /// ```
 /// # use wasm_react::{*, hooks::*};
 /// # fn f() {
-/// let state = use_state(|| 0);
-/// 
-/// let cb = {
-///   let mut state = state.clone();  
-/// 
-///   Callback::new(move |delta: i32| {
-///     state.set(|c| c + delta);
-///   })
-/// };
+/// let message = use_state(|| "Hello");
+/// let counter = use_state(|| 0);
+///
+/// let cb = Callback::new({
+///   let message = message.clone();
+///   let mut counter = counter.clone();
+///
+///   move |delta: i32| {
+///     println!("{}", message.value());
+///     counter.set(|c| c + delta);
+///   }
+/// });
 /// # }
 /// ```
 #[macro_export]
-macro_rules! callback {
+macro_rules! clones {
   (@clones $(,)? mut $id:ident $( $tail:tt )*) => {
     let mut $id = $id.clone();
-    $crate::callback!(@clones $( $tail )*);
+    $crate::clones!(@clones $( $tail )*);
   };
   (@clones $(,)? $id:ident $( $tail:tt )*) => {
     let $id = $id.clone();
-    $crate::callback!(@clones $( $tail )*);
+    $crate::clones!(@clones $( $tail )*);
   };
   (@clones) => {};
 
-  (clone($( $tt:tt )+), $expr:expr) => {
-    {
-      $crate::callback!(@clones $( $tt )+);
-      $crate::Callback::new($expr)
-    }
-  };
-  ($expr:expr) => {
-    $crate::Callback::new($expr)
+  ($( $tt:tt )*) => {
+    $crate::clones!(@clones $( $tt )*);
   };
 }
 
