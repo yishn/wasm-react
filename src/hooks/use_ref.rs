@@ -93,7 +93,6 @@ impl<T> Clone for RefContainer<T> {
 ///       clones!(mut ref_container);
 ///       move || {
 ///         ref_container.current_mut().value = value;
-///         || ()
 ///       }
 ///     }, Deps::some(value));
 ///

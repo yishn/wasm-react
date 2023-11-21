@@ -14,8 +14,6 @@ use std::fmt::Debug;
 /// #
 /// use_effect(|| {
 ///   log("This effect will be called every time `self.id` or `state.counter` changes.");
-///
-///   || ()
 /// }, Deps::some((self.id, state.counter)));
 /// #
 /// #   }

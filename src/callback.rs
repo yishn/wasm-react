@@ -46,8 +46,8 @@ impl From<Void> for JsValue {
 /// This is a simplified, reference-counted wrapper around an [`FnMut(T) -> U`](FnMut)
 /// Rust closure that may be called from JS when `T` and `U` allow.
 ///
-/// You can also use the [`callback!`](crate::callback!) macro to create a [`Callback`]
-/// which supports clone-capturing the environment.
+/// You can also use the [`clones!`](crate::clones!) helper macro to
+/// clone-capture the environment more ergonomically.
 ///
 /// It only supports closures with exactly one input argument and some return
 /// value. Memory management is handled by Rust. Whenever Rust drops all clones

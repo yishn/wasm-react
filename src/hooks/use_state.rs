@@ -72,8 +72,6 @@ impl<T> Clone for State<T> {
 ///         state.greet = "Welcome!";
 ///         state
 ///       });
-///
-///       || ()
 ///     }
 ///   }, Deps::some(( /* … */ )));
 ///
