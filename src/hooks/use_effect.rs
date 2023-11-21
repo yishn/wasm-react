@@ -58,12 +58,11 @@ fn use_effect_inner<G, D>(
 /// # struct C { url: &'static str }
 /// # impl C {
 /// #   fn f(&self) {
+/// let url = self.url;
 /// let state = use_state(|| None);
 ///
 /// use_effect({
-///   let mut state = state.clone();
-///   let url = self.url;
-///
+///   clones!(mut state);
 ///   move || {
 ///     state.set(|_| Some(fetch(url)));
 ///     || ()

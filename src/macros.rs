@@ -84,9 +84,7 @@ macro_rules! h {
 /// let counter = use_state(|| 0);
 ///
 /// let cb = Callback::new({
-///   let message = message.clone();
-///   let mut counter = counter.clone();
-///
+///   clones!(message, mut counter);
 ///   move |delta: i32| {
 ///     println!("{}", message.value());
 ///     counter.set(|c| c + delta);

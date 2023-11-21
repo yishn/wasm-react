@@ -66,8 +66,7 @@ impl<T> Clone for State<T> {
 ///   let state = use_state(|| State { greet: "Hello!" });
 ///
 ///   use_effect({
-///     let mut state = state.clone();
-///
+///     clones!(mut state);
 ///     move || {
 ///       state.set(|mut state| {
 ///         state.greet = "Welcome!";
