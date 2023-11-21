@@ -1,8 +1,8 @@
 use std::rc::Rc;
 use wasm_bindgen::{JsCast, JsValue, UnwrapThrowExt};
 use wasm_react::{
-  clones, export_components, h, hooks::use_state, Callback, Component, VNode,
-  ValueContainer,
+  clones, export_components, h, hooks::use_state, Callback, Component,
+  PropContainer, VNode,
 };
 use web_sys::{Event, HtmlInputElement};
 
@@ -87,7 +87,7 @@ export_components! {
 }
 
 struct TaskList {
-  tasks: ValueContainer<Vec<(bool, Rc<str>)>>,
+  tasks: PropContainer<Vec<(bool, Rc<str>)>>,
   on_change: Option<Callback<(usize, bool)>>,
 }
 

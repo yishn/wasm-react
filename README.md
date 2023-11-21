@@ -340,15 +340,15 @@ struct TaskList {
 This works as long as the prop `tasks` is guaranteed to come from a state. But
 this assumption may not hold. You might want to pass on `Rc<Vec<Rc<str>>>` or
 `Memo<Vec<Rc<str>>>` instead in the future or somewhere else. To be as generic
-as possible, you can use `ValueContainer`:
+as possible, you can use `PropContainer`:
 
 ```rust
 use std::rc::Rc;
-use wasm_react::{h, Component, ValueContainer, VNode};
+use wasm_react::{h, Component, PropContainer, VNode};
 use wasm_react::hooks::{use_state, State};
 
 struct TaskList {
-  tasks: ValueContainer<Vec<Rc<str>>>
+  tasks: PropContainer<Vec<Rc<str>>>
 }
 
 impl Component for TaskList {
