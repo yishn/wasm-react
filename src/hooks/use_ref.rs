@@ -1,4 +1,4 @@
-use crate::{react_bindings, Persisted, PersistedOrigin};
+use crate::react_bindings;
 use std::{
   any::Any,
   cell::{Ref, RefCell, RefMut},
@@ -55,12 +55,6 @@ impl<T: 'static> RefContainer<T> {
   /// Panics if the underlying data is currently borrowed.
   pub fn set_current(&mut self, value: T) {
     *self.current_mut() = value;
-  }
-}
-
-impl<T: 'static> Persisted for RefContainer<T> {
-  fn ptr(&self) -> PersistedOrigin {
-    PersistedOrigin
   }
 }
 

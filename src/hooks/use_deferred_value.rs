@@ -1,5 +1,5 @@
 use super::{use_ref, RefContainer};
-use crate::{react_bindings, Persisted};
+use crate::react_bindings;
 use std::cell::Ref;
 use wasm_bindgen::UnwrapThrowExt;
 
@@ -14,12 +14,6 @@ impl<T: 'static> DeferredValue<T> {
     Ref::map(self.0.current(), |x| {
       &x.as_ref().expect_throw("no deferred value available").0
     })
-  }
-}
-
-impl<T: 'static> Persisted for DeferredValue<T> {
-  fn ptr(&self) -> crate::PersistedOrigin {
-    self.0.ptr()
   }
 }
 

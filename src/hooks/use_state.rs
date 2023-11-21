@@ -1,5 +1,5 @@
 use super::{use_ref, RefContainer};
-use crate::{react_bindings, Persisted, PersistedOrigin};
+use crate::react_bindings;
 use js_sys::Function;
 use std::cell::Ref;
 use wasm_bindgen::{JsValue, UnwrapThrowExt};
@@ -34,12 +34,6 @@ impl<T: 'static> State<T> {
       .update
       .call0(&JsValue::NULL)
       .expect_throw("unable to call state update");
-  }
-}
-
-impl<T: 'static> Persisted for State<T> {
-  fn ptr(&self) -> PersistedOrigin {
-    self.ref_container.ptr()
   }
 }
 

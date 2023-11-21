@@ -1,5 +1,4 @@
 use super::{use_ref, Deps, RefContainer};
-use crate::{Persisted, PersistedOrigin};
 use std::cell::Ref;
 use wasm_bindgen::UnwrapThrowExt;
 
@@ -13,12 +12,6 @@ impl<T: 'static> Memo<T> {
     Ref::map(self.0.current(), |x| {
       x.as_ref().expect_throw("no memo data available")
     })
-  }
-}
-
-impl<T: 'static> Persisted for Memo<T> {
-  fn ptr(&self) -> PersistedOrigin {
-    self.0.ptr()
   }
 }
 
