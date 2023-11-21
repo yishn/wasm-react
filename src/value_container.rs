@@ -100,6 +100,12 @@ impl<T: PartialEq + 'static> PartialEq for ValueContainer<T> {
   }
 }
 
+impl<T: PartialEq + 'static> PartialEq<T> for ValueContainer<T> {
+  fn eq(&self, other: &T) -> bool {
+    T::eq(&self.value(), other)
+  }
+}
+
 impl<T> From<T> for ValueContainer<T> {
   fn from(value: T) -> Self {
     Self::from(Rc::new(value))
