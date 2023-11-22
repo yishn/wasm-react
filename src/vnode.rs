@@ -4,11 +4,12 @@ use js_sys::{Array, JsString};
 use wasm_bindgen::JsValue;
 
 /// Represents a node in the virtual DOM of React.
+#[non_exhaustive]
 #[derive(Debug, Clone)]
 pub enum VNode {
-  #[doc(hidden)]
+  /// Represents a single virtual node.
   Single(JsValue),
-  #[doc(hidden)]
+  /// Represents an array of virtual nodes.
   List(Array),
 }
 
