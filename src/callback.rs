@@ -16,7 +16,7 @@ use wasm_bindgen::{
 /// ```
 /// # use wasm_react::*;
 /// # fn f() {
-/// let callback: Callback<Void> = Callback::new(|_: Void| ());
+/// let callback: Callback<Void> = Callback::new(|Void| ());
 /// # }
 /// ```
 #[derive(Debug, Default, PartialEq, Eq, Clone, Copy)]
@@ -25,6 +25,14 @@ pub struct Void;
 impl WasmDescribe for Void {
   fn describe() {
     JsValue::describe()
+  }
+}
+
+impl IntoWasmAbi for Void {
+  type Abi = <JsValue as IntoWasmAbi>::Abi;
+
+  fn into_abi(self) -> Self::Abi {
+    JsValue::undefined().into_abi()
   }
 }
 
