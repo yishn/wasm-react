@@ -82,12 +82,11 @@ impl Component for Counter {
   fn render(&self) -> VNode {
     let counter = use_state(|| self.initial_counter);
 
-    let vnode = h!(div)
+    h!(div)
       .build((
         h!(p).build(("Counter: ", *counter.value())),
         h!(button).build("Increment"),
-      ));
-    vnode
+      ))
   }
 }
 ```
@@ -116,13 +115,14 @@ impl Component for Counter {
     let message = use_state(|| "Hello World!");
     let counter = use_state(|| self.initial_counter);
 
-    let value = h!(div)
+    h!(div)
       .build((
         h!(p).build(("Counter: ", *counter.value())),
 
         h!(button)
           .on_click(&Callback::new({
             clones!(message, mut counter);
+
             move |_| {
               println!("{}", message.value());
               counter.set(|c| c + 1);
@@ -133,11 +133,11 @@ impl Component for Counter {
         h!(button)
           .on_click(&Callback::new({
             clones!(mut counter);
+
             move |_| counter.set(|c| c - 1)
           }))
           .build("Decrement"),
-      ));
-    value
+      ))
   }
 }
 ```

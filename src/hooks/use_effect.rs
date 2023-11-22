@@ -90,6 +90,7 @@ fn use_effect_inner<G, D>(
 ///
 /// use_effect({
 ///   clones!(self.url, mut state);
+///
 ///   move || {
 ///     state.set(|_| Some(fetch(url)));
 ///   }

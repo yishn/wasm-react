@@ -28,6 +28,7 @@ impl Component for App {
         tasks: tasks.clone().into(),
         on_change: Some(Callback::new({
           clones!(mut tasks);
+
           move |(id, done)| {
             tasks.set(|mut tasks| {
               tasks.get_mut(id).map(|task: &mut (bool, _)| task.0 = done);
@@ -41,6 +42,7 @@ impl Component for App {
       h!(form)
         .on_submit(&Callback::new({
           clones!(mut tasks, mut text);
+
           move |evt: Event| {
             evt.prevent_default();
 
@@ -59,6 +61,7 @@ impl Component for App {
             .value(&**text.value())
             .on_change(&Callback::new({
               clones!(mut text);
+
               move |evt: Event| {
                 text.set(|_| {
                   evt

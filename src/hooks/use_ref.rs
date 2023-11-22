@@ -90,6 +90,7 @@ impl<T> Clone for RefContainer<T> {
 ///
 ///     use_effect({
 ///       clones!(self.value, mut ref_container);
+///
 ///       move || {
 ///         ref_container.current_mut().value = value;
 ///       }
