@@ -33,14 +33,13 @@ will be able to write complex frontend applications with Rust.
 
 ## Getting Started
 
-Make sure you have Rust and Cargo installed. You can include `wasm-react` by
-adding it to your `Cargo.toml`. Furthermore, if you want to expose your Rust
-components to JS, you also need `wasm-bindgen` and install [`wasm-pack`].
+Make sure you have Rust and Cargo installed. You can install `wasm-react` with
+cargo. Furthermore, if you want to expose your Rust components to JS, you also
+need `wasm-bindgen` and install [`wasm-pack`].
 
-```toml
-[dependencies]
-wasm-react = "0.4"
-wasm-bindgen = "0.2"
+```sh
+$ cargo add wasm-react
+$ cargo add wasm-bindgen@0.2
 ```
 
 ### Creating a Component
@@ -274,7 +273,7 @@ impl Component for App {
 }
 ```
 
-### Passing Down State as Prop
+### Passing Down Non-Copy Props
 
 Say you define a component with the following struct:
 
