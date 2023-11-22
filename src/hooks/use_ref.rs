@@ -84,17 +84,16 @@ impl<T> Clone for RefContainer<T> {
 /// #
 /// impl Component for MyComponent {
 ///   fn render(&self) -> VNode {
-///     let value = self.value;
 ///     let ref_container = use_ref(MyData {
 ///       value: "Hello World!"
 ///     });
 ///
 ///     use_effect({
-///       clones!(mut ref_container);
+///       clones!(self.value, mut ref_container);
 ///       move || {
 ///         ref_container.current_mut().value = value;
 ///       }
-///     }, Deps::some(value));
+///     }, Deps::some(self.value));
 ///
 ///     let vnode = h!(div).build(
 ///       ref_container.current().value

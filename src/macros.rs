@@ -61,41 +61,58 @@ macro_rules! h {
 ///
 /// ```
 /// # use wasm_react::{*, hooks::*};
-/// # fn f() {
-/// let message = use_state(|| "Hello");
+/// # struct C { message: &'static str }
+/// # impl C { fn f(&self) {
+/// let switch = use_state(|| true);
 /// let counter = use_state(|| 0);
 ///
 /// let cb = Callback::new({
-///   clones!(message, mut counter);
+///   clones!(self.message, switch, mut counter);
 ///   move |delta: i32| {
-///     println!("{}", message.value());
+///     if (*switch.value()) {
+///       println!("{}", message);
+///     }
+///
 ///     counter.set(|c| c + delta);
 ///   }
 /// });
-/// # }
+/// # }}
 /// ```
 ///
 /// This is equivalent to the following:
 ///
 /// ```
 /// # use wasm_react::{*, hooks::*};
-/// # fn f() {
-/// let message = use_state(|| "Hello");
+/// # struct C { message: &'static str }
+/// # impl C { fn f(&self) {
+/// let switch = use_state(|| true);
 /// let counter = use_state(|| 0);
 ///
 /// let cb = Callback::new({
-///   let message = message.clone();
+///   let message = self.message.clone();
+///   let switch = switch.clone();
 ///   let mut counter = counter.clone();
 ///
 ///   move |delta: i32| {
-///     println!("{}", message.value());
+///     if (*switch.value()) {
+///       println!("{}", message);
+///     }
+///
 ///     counter.set(|c| c + delta);
 ///   }
 /// });
-/// # }
+/// # }}
 /// ```
 #[macro_export]
 macro_rules! clones {
+  (@clones $(,)? mut $obj:ident.$id:ident $( $tail:tt )*) => {
+    let mut $id = $obj.$id.clone();
+    $crate::clones!(@clones $( $tail )*);
+  };
+  (@clones $(,)? $obj:ident.$id:ident $( $tail:tt )*) => {
+    let $id = $obj.$id.clone();
+    $crate::clones!(@clones $( $tail )*);
+  };
   (@clones $(,)? mut $id:ident $( $tail:tt )*) => {
     let mut $id = $id.clone();
     $crate::clones!(@clones $( $tail )*);
