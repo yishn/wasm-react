@@ -152,7 +152,7 @@ macro_rules! clones {
 /// let disabled = "disabled".to_string();
 ///
 /// assert_eq!(
-///   classnames![."button".{is_blue}.{&disabled}],
+///   classnames![."button".{is_blue}.{disabled}],
 ///   "button blue disabled ",
 /// );
 /// ```
