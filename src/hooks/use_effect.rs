@@ -23,10 +23,10 @@ impl<F> IntoDestructor for F
 where
   F: FnOnce() + 'static,
 {
-  type Destructor = fn();
+  type Destructor = F;
 
   fn into_destructor(self) -> Self::Destructor {
-    || ()
+    self
   }
 }
 
