@@ -68,6 +68,7 @@ macro_rules! h {
 ///
 /// let cb = Callback::new({
 ///   clones!(self.message, switch, mut counter);
+///
 ///   move |delta: i32| {
 ///     if (*switch.value()) {
 ///       println!("{}", message);

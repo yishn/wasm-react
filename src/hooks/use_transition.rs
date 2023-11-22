@@ -43,15 +43,17 @@ impl Transition {
 ///   ),
 ///   h!(button).on_click(&Callback::new({
 ///     clones!(count, mut transition);
+///
 ///     move |_| {
 ///       transition.start({
 ///         clones!(mut count);
+///
 ///         move || {
 ///           count.set(|c| c + 1);
 ///         }
 ///       });
 ///     }
-///   })).build(()),
+///   })).build("Increment"),
 /// ))
 /// # }
 /// ```

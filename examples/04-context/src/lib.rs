@@ -49,6 +49,7 @@ impl Component for App {
                 })
                 .on_change(&Callback::new({
                   clones!(mut theme);
+
                   move |_| {
                     theme.set(|theme| {
                       match *theme {
