@@ -9,11 +9,9 @@ use std::{
 #[non_exhaustive]
 #[derive(Debug)]
 pub enum PropContainerRef<'a, T> {
-  #[doc(hidden)]
-  #[non_exhaustive]
+  #[allow(missing_docs)]
   Simple(&'a T),
-  #[doc(hidden)]
-  #[non_exhaustive]
+  #[allow(missing_docs)]
   Ref(Ref<'a, T>),
 }
 
@@ -44,16 +42,15 @@ macro_rules! define_value_container {
       $Variant:ident($id:ident: $Ty:ty) => $RefVariant:ident($expr:expr) $(,)?
     )*
   } => {
-    /// An abstraction over structs that contain a value which can be accessed
-    /// through an immutable borrow or [`Ref`].
+    /// A helpful abstraction over non-`Copy` types that can be used as a prop
+    /// type for components.
     ///
-    /// Can contain all hook containers and [`Rc<T>`], [`Rc<RefCell<T>>`].
+    /// Can contain all hook containers, [`Rc<T>`], and [`Rc<RefCell<T>>`].
     #[non_exhaustive]
     #[derive(Debug)]
     pub enum PropContainer<T> {
       $(
-        #[doc(hidden)]
-        #[non_exhaustive]
+        #[allow(missing_docs)]
         $Variant($Ty),
       )*
     }
