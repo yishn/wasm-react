@@ -14,9 +14,9 @@ impl Button {
     }
   }
 
-  pub fn text(mut self, text: &str) -> Self {
+  pub fn build(mut self, text: &str) -> VNode {
     self.text = Rc::from(text);
-    self
+    Component::build(self)
   }
 }
 

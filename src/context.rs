@@ -124,15 +124,10 @@ impl<T: 'static> ContextProvider<T> {
     self
   }
 
-  /// Sets the children of the component.
-  pub fn children(mut self, children: impl Into<VNode>) -> Self {
-    self.children = children.into();
-    self
-  }
-
   /// Returns a [`VNode`] to be included in a render function.
-  pub fn build(self, children: impl Into<VNode>) -> VNode {
-    Component::build(self.children(children))
+  pub fn build(mut self, children: impl Into<VNode>) -> VNode {
+    self.children = children.into();
+    Component::build(self)
   }
 }
 

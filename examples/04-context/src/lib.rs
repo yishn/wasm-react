@@ -6,8 +6,8 @@ use card::Card;
 use std::rc::Rc;
 use wasm_bindgen::JsValue;
 use wasm_react::{
-  create_context, export_components, h, hooks::use_state, Component, Context,
-  ContextProvider, VNode, Callback, clones,
+  clones, create_context, export_components, h, hooks::use_state, Callback,
+  Component, Context, ContextProvider, VNode,
 };
 
 pub enum Theme {
@@ -64,16 +64,14 @@ impl Component for App {
             )),
           )),
           //
-          Card::new()
-            .children((
-              h!(p).build("Hello World!"),
-              h!(p).build((
-                Button::new().text("OK").build(),
-                " ",
-                Button::new().text("Cancel").build(),
-              )),
-            ))
-            .build(),
+          Card::new().build((
+            h!(p).build("Hello World!"),
+            h!(p).build((
+              Button::new().build("OK"),
+              " ",
+              Button::new().build("Cancel"),
+            )),
+          )),
         )),
     );
     result

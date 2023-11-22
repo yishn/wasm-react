@@ -28,7 +28,7 @@ will be able to write complex frontend applications with Rust.
 ### Non-Goals
 
 - Provide bindings for any other library than `react`, e.g. `react-dom`.
-- Provide a reimplementation of the reconciliation algorithm or another runtime.
+- Reimplementation of the reconciliation algorithm or runtime.
 - Emphasis on performance.
 
 ## Getting Started
