@@ -5,7 +5,7 @@ use wasm_bindgen::prelude::*;
 
 /// Implemented by types which can serve as a [React key][key].
 ///
-/// [key]: https://reactjs.org/docs/lists-and-keys.html
+/// [key]: https://react.dev/learn/rendering-lists#keeping-list-items-in-order-with-key
 pub trait KeyType: Into<JsValue> {}
 
 macro_rules! impl_key_type {
@@ -59,7 +59,7 @@ pub trait Component: Sized + 'static {
 
   /// Sets the [React key][key].
   ///
-  /// [key]: https://reactjs.org/docs/lists-and-keys.html
+  /// [key]: https://react.dev/learn/rendering-lists#keeping-list-items-in-order-with-key
   fn key(self, key: Option<impl KeyType>) -> Keyed<Self> {
     Keyed(self, key.map(|x| x.into()))
   }
@@ -143,7 +143,7 @@ pub trait Component: Sized + 'static {
 ///
 /// See [`Component::key()`].
 ///
-/// [key]: https://reactjs.org/docs/lists-and-keys.html
+/// [key]: https://react.dev/learn/rendering-lists#keeping-list-items-in-order-with-key
 #[derive(Debug, PartialEq)]
 pub struct Keyed<T>(T, Option<JsValue>);
 

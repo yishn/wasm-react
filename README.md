@@ -375,6 +375,13 @@ impl Component for App {
 }
 ```
 
+## Known Caveats
+
+- Rust components cannot be part of the subtree of a `StrictMode` component.
+
+  wasm-react uses React hooks to manually manage Rust memory. `StrictMode` will
+  run hooks and their destructors twice which will result in a double free.
+
 ## License
 
 Licensed under either of
@@ -392,5 +399,5 @@ Unless you explicitly state otherwise, any contribution intentionally submitted
 for inclusion in the work by you, as defined in the Apache-2.0 license, shall be
 dual licensed as above, without any additional terms or conditions.
 
-[react]: https://reactjs.org/
+[react]: https://react.dev
 [`wasm-pack`]: https://rustwasm.github.io/wasm-pack/

@@ -10,7 +10,7 @@ use wasm_bindgen::JsValue;
 ///
 /// For more information, see [React documentation about code-splitting][docs].
 ///
-/// [docs]: https://reactjs.org/docs/code-splitting.html
+/// [docs]: https://react.dev/reference/react/Suspense
 ///
 /// # Example
 ///

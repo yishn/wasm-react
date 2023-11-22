@@ -25,7 +25,7 @@ macro_rules! impl_attr {
 impl H<HtmlTag<'_>> {
   /// Equivalent to `props.dangerouslySetInnerHTML = { __html: value.__html };`.
   ///
-  /// See also [React documentation](https://reactjs.org/docs/dom-elements.html#dangerouslysetinnerhtml).
+  /// See also [React documentation](https://react.dev/reference/react-dom/components/common#dangerously-setting-the-inner-html).
   ///
   /// # Example
   ///

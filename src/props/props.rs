@@ -37,7 +37,7 @@ impl Props {
 
   /// Sets the [React key][key].
   ///
-  /// [key]: https://reactjs.org/docs/lists-and-keys.html
+  /// [key]: https://react.dev/learn/rendering-lists#keeping-list-items-in-order-with-key
   pub fn key(self, value: Option<impl KeyType>) -> Self {
     self.insert(
       "key",
@@ -48,14 +48,14 @@ impl Props {
   /// Sets the [React ref][ref] to the given ref container created with the
   /// [`use_js_ref()`](crate::hooks::use_js_ref()) hook.
   ///
-  /// [ref]: https://reactjs.org/docs/refs-and-the-dom.html
+  /// [ref]: https://react.dev/learn/manipulating-the-dom-with-refs
   pub fn ref_container<T>(self, ref_container: &JsRefContainer<T>) -> Self {
     self.insert("ref", ref_container.as_ref())
   }
 
   /// Sets the [React ref][ref] to the given ref callback.
   ///
-  /// [ref]: https://reactjs.org/docs/refs-and-the-dom.html
+  /// [ref]: https://react.dev/learn/manipulating-the-dom-with-refs
   pub fn ref_callback<T>(self, ref_callback: &Callback<Option<T>>) -> Self
   where
     T: OptionFromWasmAbi + 'static,

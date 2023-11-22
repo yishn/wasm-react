@@ -10,7 +10,7 @@ use wasm_bindgen::{intern, JsValue, UnwrapThrowExt};
 ///
 /// See [`create_context()`] for usage.
 ///
-/// [context]: https://reactjs.org/docs/context.html
+/// [context]: https://react.dev/learn/passing-data-deeply-with-context
 #[derive(Debug)]
 pub struct Context<T> {
   js_context: JsValue,
@@ -35,7 +35,7 @@ impl<T> From<Context<T>> for JsValue {
 /// [`use_context()`](crate::hooks::use_context()) to get access to the context
 /// value.
 ///
-/// [context]: https://reactjs.org/docs/context.html
+/// [context]: https://react.dev/learn/passing-data-deeply-with-context
 ///
 /// # Example
 ///
@@ -87,7 +87,7 @@ impl<T> From<Context<T>> for JsValue {
 ///             Theme::DarkMode => "black",
 ///           })
 ///       )
-///       .build(())
+///       .build("Button")
 ///   }
 /// }
 /// ```

@@ -109,7 +109,7 @@ where
 
 /// Same as [`use_effect()`], but it fires synchronously after all DOM mutations.
 ///
-/// See [React documentation](https://reactjs.org/docs/hooks-reference.html#uselayouteffect).
+/// See [React documentation](https://react.dev/reference/react/useLayoutEffect).
 pub fn use_layout_effect<G, D>(
   effect: impl FnOnce() -> G + 'static,
   deps: Deps<D>,
