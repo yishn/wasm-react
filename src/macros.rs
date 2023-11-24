@@ -133,9 +133,9 @@ macro_rules! clones {
 /// # Example
 ///
 /// ```
-/// # use wasm_react::*;
+/// # use wasm_react::classnames;
 /// assert_eq!(
-///   classnames![."button"."blue"],
+///   classnames!(."button"."blue"),
 ///   "button blue ".to_string(),
 /// );
 ///
@@ -143,50 +143,50 @@ macro_rules! clones {
 /// let disabled = true;
 ///
 /// assert_eq!(
-///   classnames![."button".blue.disabled],
+///   classnames!(."button".blue.disabled),
 ///   "button disabled ".to_string(),
 /// );
 ///
 /// let is_blue = Some("blue");
-/// let disabled = "disabled".to_string();
+/// let is_disabled = "disabled".to_string();
 ///
 /// assert_eq!(
-///   classnames![."button".{is_blue}.{disabled}],
+///   classnames!(."button".{is_blue}.{is_disabled}),
 ///   "button blue disabled ",
 /// );
 /// ```
 #[macro_export]
 macro_rules! classnames {
-  [@single $result:ident <<] => {};
+  (@single $result:ident <<) => {};
 
   // Handle string literals
-  [@single $result:ident << .$str:literal $( $tail:tt )*] => {
+  (@single $result:ident << .$str:literal $( $tail:tt )*) => {
     $crate::props::Classnames::append_to(&$str, &mut $result);
-    $crate::classnames![@single $result << $( $tail ) *];
+    $crate::classnames!(@single $result << $( $tail ) *);
   };
 
   // Handle boolean variables
-  [@single $result:ident << .$bool:ident $( $tail:tt )*] => {
+  (@single $result:ident << .$bool:ident $( $tail:tt )*) => {
     $crate::props::Classnames::append_to(
       &$bool.then(|| stringify!($bool)),
       &mut $result
     );
-    $crate::classnames![@single $result << $( $tail ) *];
+    $crate::classnames!(@single $result << $( $tail ) *);
   };
 
   // Handle block expressions
-  [@single $result:ident << .$block:block $( $tail:tt )*] => {
+  (@single $result:ident << .$block:block $( $tail:tt )*) => {
     $crate::props::Classnames::append_to(&$block, &mut $result);
-    $crate::classnames![@single $result << $( $tail ) *];
+    $crate::classnames!(@single $result << $( $tail ) *);
   };
 
-  [] => {
+  () => {
     ::std::string::String::new()
   };
-  [$( $tt:tt )*] => {
+  ($( $tt:tt )*) => {
     {
       let mut result = ::std::string::String::new();
-      $crate::classnames![@single result << $( $tt )*];
+      $crate::classnames!(@single result << $( $tt )*);
       result
     }
   };
