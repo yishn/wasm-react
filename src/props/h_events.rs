@@ -1,3 +1,5 @@
+#![cfg(feature = "web-sys")]
+
 use super::{HtmlTag, H};
 use wasm_bindgen::intern;
 use web_sys::{
