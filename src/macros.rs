@@ -28,18 +28,19 @@
 ///
 /// It is also possible to add an id and/or classes to the element using a
 /// shorthand notation. You can use the same syntax as [`classnames!`](crate::classnames!).
+///
 /// Due to a restriction in Rust, there needs to be a whitespace between the tag
 /// name and `#`.
 ///
 /// ```
 /// # use wasm_react::*;
-/// # fn f() -> VNode {
+/// # fn f() {
 /// h!(div #"app"."some-class"."warning")
-///   .build("This is a warning!")
+///   .build("This is a warning!");
 ///
 /// // <div id="app" class="some-class warning">This is a warning!</div>
 ///
-/// h!(div."small").build("This is small!")
+/// h!(div."small").build("This is small!");
 ///
 /// // <div class="small">This is small!</div>
 /// # }
@@ -49,7 +50,7 @@ macro_rules! h {
   (@internal $h:block $( #$id:literal )? $( .$( $classnames:tt )+ )?) => {
     $h
     $( .id($id) )?
-    $( .class_name(&$crate::classnames![.$( $classnames )+]) )?
+    $( .class_name(&$crate::classnames!(.$( $classnames )+)) )?
   };
   ($tag:literal $( $tt:tt )*) => {
     $crate::h!(@internal { $crate::props::H::new($crate::props::HtmlTag($tag)) } $( $tt )*)

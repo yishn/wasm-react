@@ -17,10 +17,9 @@ use wasm_bindgen::JsValue;
 /// ```
 /// # use wasm_react::*;
 /// #
-/// # struct SomeLazyComponent {}
-/// # impl Component for SomeLazyComponent {
-/// #   fn render(&self) -> VNode { VNode::default() }
-/// # }
+/// # struct SomeLazyComponent;
+/// # impl SomeLazyComponent { fn new() -> Self { Self } }
+/// # impl Component for SomeLazyComponent { fn render(&self) -> VNode { todo!() } }
 /// #
 /// # fn f() -> VNode {
 /// Suspense::new()
@@ -28,7 +27,7 @@ use wasm_bindgen::JsValue;
 ///     h!(div."loading").build("Loading…"),
 ///   )
 ///   .build(
-///     SomeLazyComponent { /* … */ }.build()
+///     SomeLazyComponent::new().build()
 ///   )
 /// # }
 /// ```
