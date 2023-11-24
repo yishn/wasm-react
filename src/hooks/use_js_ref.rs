@@ -7,9 +7,15 @@ use wasm_bindgen::{intern, JsCast, JsValue, UnwrapThrowExt};
 pub struct JsRefContainer<T>(JsValue, PhantomData<T>);
 
 impl<T: JsCast> JsRefContainer<T> {
-  /// Returns the underlying typed JS data.
+  /// Returns the underlying typed JS data by runtime checked cast.
   pub fn current(&self) -> Option<T> {
     self.current_untyped().dyn_into::<T>().ok()
+  }
+
+  /// Returns the underlying typed JS data by zero-cost unchecked cast.
+  pub fn current_unchecked(&self) -> Option<T> {
+    let current = self.current_untyped();
+    (!current.is_null()).then(|| current.unchecked_into::<T>())
   }
 
   /// Returns the underlying JS data as [`JsValue`].
@@ -68,6 +74,7 @@ impl<T> From<JsValue> for JsRefContainer<T> {
 ///
 /// ```
 /// # use wasm_react::{*, hooks::*};
+/// # use wasm_bindgen::JsValue;
 /// # struct MyComponent;
 /// impl Component for MyComponent {
 ///   fn render(&self) -> VNode {
