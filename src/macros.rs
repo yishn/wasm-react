@@ -26,29 +26,36 @@
 /// // <web-component>Hello World!</web-component>
 /// ```
 ///
-/// It is also possible to add an id and/or classes to the element using a terse
-/// notation. You can use the same syntax as [`classnames!`](crate::classnames!).
+/// It is also possible to add an id and/or classes to the element using a
+/// shorthand notation. You can use the same syntax as [`classnames!`](crate::classnames!).
+/// Due to a restriction in Rust, there needs to be a whitespace between the tag
+/// name and `#`.
 ///
 /// ```
 /// # use wasm_react::*;
 /// # fn f() -> VNode {
 /// h!(div #"app"."some-class"."warning")
 ///   .build("This is a warning!")
-/// # }
 ///
 /// // <div id="app" class="some-class warning">This is a warning!</div>
+///
+/// h!(div."small").build("This is small!")
+///
+/// // <div class="small">This is small!</div>
+/// # }
 /// ```
 #[macro_export]
 macro_rules! h {
-  ($tag:literal $( #$id:literal )? $( .$( $classnames:tt )+ )?) => {
-    $crate::props::H::new($crate::props::HtmlTag($tag))
-      $( .id($id) )?
-      $( .class_name(&$crate::classnames![.$( $classnames )+]) )?
+  (@internal $h:block $( #$id:literal )? $( .$( $classnames:tt )+ )?) => {
+    $h
+    $( .id($id) )?
+    $( .class_name(&$crate::classnames![.$( $classnames )+]) )?
   };
-  ($tag:ident $( #$id:literal )? $( .$( $classnames:tt )+ )?) => {
-    $crate::props::H::new($crate::props::HtmlTag(stringify!($tag)))
-      $( .id($id) )?
-      $( .class_name(&$crate::classnames![.$( $classnames )+]) )?
+  ($tag:literal $( $tt:tt )*) => {
+    $crate::h!(@internal { $crate::props::H::new($crate::props::HtmlTag($tag)) } $( $tt )*)
+  };
+  ($tag:ident $( $tt:tt )*) => {
+    $crate::h!(@internal { $crate::props::H::new($crate::props::HtmlTag(stringify!($tag))) } $( $tt )*)
   };
 }
 
