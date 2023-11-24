@@ -68,10 +68,11 @@ impl<T> From<JsValue> for JsRefContainer<T> {
 ///
 /// ```
 /// # use wasm_react::{*, hooks::*};
+/// # use web_sys::Element;
 /// # struct MyComponent;
 /// impl Component for MyComponent {
 ///   fn render(&self) -> VNode {
-///     let input_element = use_js_ref(None);
+///     let input_element = use_js_ref::<Element>(None);
 ///
 ///     h!(div)
 ///       .build(
