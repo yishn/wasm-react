@@ -25,7 +25,7 @@ use wasm_bindgen::JsValue;
 /// # fn f() -> VNode {
 /// Suspense::new()
 ///   .fallback(
-///     h!(div[."loading"]).build("Loading…"),
+///     h!(div."loading").build("Loading…"),
 ///   )
 ///   .build(
 ///     SomeLazyComponent { /* … */ }.build()

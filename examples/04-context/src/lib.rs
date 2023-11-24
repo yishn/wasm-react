@@ -30,7 +30,7 @@ impl Component for App {
       Theme::DarkMode => "dark",
     };
 
-    let result = h!(div[.{theme_class}]).build(
+    let result = h!(div.{theme_class}).build(
       //
       ContextProvider::from(&THEME_CONTEXT)
         .value(Some({

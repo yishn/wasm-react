@@ -113,7 +113,7 @@ pub trait Component: Sized + 'static {
   ///
   /// impl Component for MessageBox {
   ///   fn render(&self) -> VNode {
-  ///     h!(h1[."message-box"]).build(&*self.message)
+  ///     h!(h1."message-box").build(&*self.message)
   ///   }
   /// }
   ///
@@ -121,7 +121,7 @@ pub trait Component: Sized + 'static {
   ///
   /// impl Component for App {
   ///   fn render(&self) -> VNode {
-  ///     h!(div[#"app"]).build(
+  ///     h!(div #"app").build(
   ///       MessageBox {
   ///         message: Rc::from("Hello World!"),
   ///       }

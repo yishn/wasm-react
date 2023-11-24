@@ -32,7 +32,7 @@
 /// ```
 /// # use wasm_react::*;
 /// # fn f() -> VNode {
-/// h!(div[#"app"."some-class"."warning"])
+/// h!(div #"app"."some-class"."warning")
 ///   .build("This is a warning!")
 /// # }
 ///
@@ -40,17 +40,15 @@
 /// ```
 #[macro_export]
 macro_rules! h {
-  ($tag:literal $( [$( #$id:literal )? $( .$( $classnames:tt )+ )?] )?) => {
-    $crate::props::H::new($crate::props::HtmlTag($tag)) $(
+  ($tag:literal $( #$id:literal )? $( .$( $classnames:tt )+ )?) => {
+    $crate::props::H::new($crate::props::HtmlTag($tag))
       $( .id($id) )?
       $( .class_name(&$crate::classnames![.$( $classnames )+]) )?
-    )?
   };
-  ($tag:ident $( [$( #$id:literal )? $( .$( $classnames:tt )+ )?] )?) => {
-    $crate::props::H::new($crate::props::HtmlTag(stringify!($tag))) $(
+  ($tag:ident $( #$id:literal )? $( .$( $classnames:tt )+ )?) => {
+    $crate::props::H::new($crate::props::HtmlTag(stringify!($tag)))
       $( .id($id) )?
       $( .class_name(&$crate::classnames![.$( $classnames )+]) )?
-    )?
   };
 }
 
