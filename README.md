@@ -35,7 +35,7 @@ will be able to write complex frontend applications with Rust.
 
 Make sure you have Rust and Cargo installed. You can install `wasm-react` with
 cargo. Furthermore, if you want to expose your Rust components to JS, you also
-need `wasm-bindgen` and install [`wasm-pack`].
+need `wasm-bindgen` and have [`wasm-pack`] installed.
 
 ```sh
 $ cargo add wasm-react
@@ -82,11 +82,12 @@ impl Component for Counter {
   fn render(&self) -> VNode {
     let counter = use_state(|| self.initial_counter);
 
-    h!(div)
+    let result = h!(div)
       .build((
         h!(p).build(("Counter: ", *counter.value())),
         h!(button).build("Increment"),
-      ))
+      ));
+    result
   }
 }
 ```
@@ -115,7 +116,7 @@ impl Component for Counter {
     let message = use_state(|| "Hello World!");
     let counter = use_state(|| self.initial_counter);
 
-    h!(div)
+    let result = h!(div)
       .build((
         h!(p).build(("Counter: ", *counter.value())),
 
@@ -137,7 +138,8 @@ impl Component for Counter {
             move |_| counter.set(|c| c - 1)
           }))
           .build("Decrement"),
-      ))
+      ));
+    result
   }
 }
 ```
