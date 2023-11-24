@@ -28,19 +28,18 @@ will be able to write complex frontend applications with Rust.
 ### Non-Goals
 
 - Provide bindings for any other library than `react`, e.g. `react-dom`.
-- Provide a reimplementation of the reconciliation algorithm or another runtime.
+- Reimplementation of the reconciliation algorithm or runtime.
 - Emphasis on performance.
 
 ## Getting Started
 
-Make sure you have Rust and Cargo installed. You can include `wasm-react` by
-adding it to your `Cargo.toml`. Furthermore, if you want to expose your Rust
-components to JS, you also need `wasm-bindgen` and install [`wasm-pack`].
+Make sure you have Rust and Cargo installed. You can install `wasm-react` with
+cargo. Furthermore, if you want to expose your Rust components to JS, you also
+need `wasm-bindgen` and have [`wasm-pack`] installed.
 
-```toml
-[dependencies]
-wasm-react = "0.4"
-wasm-bindgen = "0.2"
+```sh
+$ cargo add wasm-react
+$ cargo add wasm-bindgen@0.2
 ```
 
 ### Creating a Component
@@ -83,12 +82,12 @@ impl Component for Counter {
   fn render(&self) -> VNode {
     let counter = use_state(|| self.initial_counter);
 
-    let vnode = h!(div)
+    let result = h!(div)
       .build((
         h!(p).build(("Counter: ", *counter.value())),
         h!(button).build("Increment"),
       ));
-    vnode
+    result
   }
 }
 ```
@@ -100,12 +99,12 @@ through the entire lifetime of the component.
 
 ### Add Event Handlers
 
-To create an event handler, you pass a `Callback` created from a Rust closure,
-either using the `callback!` macro, which can clone-capture the environment, or
-using `Callback::new()`.
+To create an event handler, you pass a `Callback` created from a Rust closure.
+You can use the helper macro `clones!` to clone-capture the environment more
+ergonomically.
 
 ```rust
-use wasm_react::{h, Component, callback, Callback, VNode};
+use wasm_react::{h, clones, Component, Callback, VNode};
 use wasm_react::hooks::{use_state, Deps};
 
 struct Counter {
@@ -114,29 +113,33 @@ struct Counter {
 
 impl Component for Counter {
   fn render(&self) -> VNode {
+    let message = use_state(|| "Hello World!");
     let counter = use_state(|| self.initial_counter);
 
-    let value = h!(div)
+    let result = h!(div)
       .build((
         h!(p).build(("Counter: ", *counter.value())),
 
-        // Use the `callback!` macro, clone-capturing `counter`:
         h!(button)
-          .on_click(&callback!(clone(mut counter), move |_| {
-            counter.set(|c| c + 1);
+          .on_click(&Callback::new({
+            clones!(message, mut counter);
+
+            move |_| {
+              println!("{}", message.value());
+              counter.set(|c| c + 1);
+            }
           }))
           .build("Increment"),
 
-        // Alternatively, use `Callback::new()`:
         h!(button)
           .on_click(&Callback::new({
-            let mut counter = counter.clone();
+            clones!(mut counter);
 
             move |_| counter.set(|c| c - 1)
           }))
           .build("Decrement"),
       ));
-    value
+    result
   }
 }
 ```
@@ -272,7 +275,7 @@ impl Component for App {
 }
 ```
 
-### Passing Down State as Prop
+### Passing Down Non-Copy Props
 
 Say you define a component with the following struct:
 
@@ -338,15 +341,15 @@ struct TaskList {
 This works as long as the prop `tasks` is guaranteed to come from a state. But
 this assumption may not hold. You might want to pass on `Rc<Vec<Rc<str>>>` or
 `Memo<Vec<Rc<str>>>` instead in the future or somewhere else. To be as generic
-as possible, you can use `ValueContainer`:
+as possible, you can use `PropContainer`:
 
 ```rust
 use std::rc::Rc;
-use wasm_react::{h, Component, ValueContainer, VNode};
+use wasm_react::{h, Component, PropContainer, VNode};
 use wasm_react::hooks::{use_state, State};
 
 struct TaskList {
-  tasks: ValueContainer<Vec<Rc<str>>>
+  tasks: PropContainer<Vec<Rc<str>>>
 }
 
 impl Component for TaskList {
@@ -374,6 +377,13 @@ impl Component for App {
 }
 ```
 
+## Known Caveats
+
+- Rust components cannot be part of the subtree of a `StrictMode` component.
+
+  wasm-react uses React hooks to manually manage Rust memory. `StrictMode` will
+  run hooks and their destructors twice which will result in a double free.
+
 ## License
 
 Licensed under either of
@@ -391,5 +401,5 @@ Unless you explicitly state otherwise, any contribution intentionally submitted
 for inclusion in the work by you, as defined in the Apache-2.0 license, shall be
 dual licensed as above, without any additional terms or conditions.
 
-[react]: https://reactjs.org/
+[react]: https://react.dev
 [`wasm-pack`]: https://rustwasm.github.io/wasm-pack/

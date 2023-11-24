@@ -4,11 +4,12 @@ use js_sys::{Array, JsString};
 use wasm_bindgen::JsValue;
 
 /// Represents a node in the virtual DOM of React.
+#[non_exhaustive]
 #[derive(Debug, Clone)]
 pub enum VNode {
-  #[doc(hidden)]
+  /// Represents a single virtual node.
   Single(JsValue),
-  #[doc(hidden)]
+  /// Represents an array of virtual nodes.
   List(Array),
 }
 
@@ -117,36 +118,29 @@ impl From<()> for VNode {
 }
 
 macro_rules! impl_into_vnode_for_tuples {
-  { $( ($( $x:ident ),*) ),* $(,)? } => {
-    $(
-      impl<$( $x, )*> From<($( $x, )*)> for VNode
-      where $( $x: Into<VNode>, )*
-      {
-        fn from(($( $x, )*): ($( $x, )*)) -> VNode {
-          let mut result = VNode::new();
-          $( result.push(&$x.into()); )*
-          result
-        }
+  (@impl) => {};
+  (@impl $( $x:ident ),+) => {
+    impl<$( $x, )+> From<($( $x, )+)> for VNode
+    where $( $x: Into<VNode>, )+
+    {
+      fn from(($( $x, )+): ($( $x, )+)) -> VNode {
+        let mut result = VNode::new();
+        $( result.push(&$x.into()); )+
+        result
       }
-    )*
+    }
+
+    impl_into_vnode_for_tuples!(@next $( $x ),+);
   };
+  (@next $first:ident) => {};
+  (@next $first:ident, $( $tt:tt )*) => {
+    impl_into_vnode_for_tuples!(@impl $( $tt )*);
+  };
+  ($( $x:ident ),*) => {
+    impl_into_vnode_for_tuples!(@impl $( $x ),*);
+  }
 }
 
-impl_into_vnode_for_tuples! {
-  (A),
-  (A, B),
-  (A, B, C),
-  (A, B, C, D),
-  (A, B, C, D, E),
-  (A, B, C, D, E, F),
-  (A, B, C, D, E, F, G),
-  (A, B, C, D, E, F, G, H),
-  (A, B, C, D, E, F, G, H, I),
-  (A, B, C, D, E, F, G, H, I, J),
-  (A, B, C, D, E, F, G, H, I, J, K),
-  (A, B, C, D, E, F, G, H, I, J, K, L),
-  (A, B, C, D, E, F, G, H, I, J, K, L, M),
-  (A, B, C, D, E, F, G, H, I, J, K, L, M, N),
-  (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O),
-  (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P),
-}
+impl_into_vnode_for_tuples!(
+  A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z
+);

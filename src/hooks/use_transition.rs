@@ -41,13 +41,19 @@ impl Transition {
 ///   transition.is_pending().then(||
 ///     h!(div).build("Loading…")
 ///   ),
-///   h!(button).on_click(&callback!(clone(mut transition), move |_| {
-///     let mut count = count.clone();
+///   h!(button).on_click(&Callback::new({
+///     clones!(count, mut transition);
 ///
-///     transition.start(move || {
-///       count.set(|c| c + 1);
-///     });
-///   })).build(()),
+///     move |_| {
+///       transition.start({
+///         clones!(mut count);
+///
+///         move || {
+///           count.set(|c| c + 1);
+///         }
+///       });
+///     }
+///   })).build("Increment"),
 /// ))
 /// # }
 /// ```

@@ -16,15 +16,23 @@ use wasm_bindgen::{
 /// ```
 /// # use wasm_react::*;
 /// # fn f() {
-/// let callback: Callback<Void> = Callback::new(|_: Void| ());
+/// let cb: Callback<Void, usize> = Callback::new(|Void| 5);
 /// # }
 /// ```
-#[derive(Debug, Default, PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Clone, Copy)]
 pub struct Void;
 
 impl WasmDescribe for Void {
   fn describe() {
     JsValue::describe()
+  }
+}
+
+impl IntoWasmAbi for Void {
+  type Abi = <JsValue as IntoWasmAbi>::Abi;
+
+  fn into_abi(self) -> Self::Abi {
+    JsValue::undefined().into_abi()
   }
 }
 
@@ -46,8 +54,8 @@ impl From<Void> for JsValue {
 /// This is a simplified, reference-counted wrapper around an [`FnMut(T) -> U`](FnMut)
 /// Rust closure that may be called from JS when `T` and `U` allow.
 ///
-/// You can also use the [`callback!`](crate::callback!) macro to create a [`Callback`]
-/// which supports clone-capturing the environment.
+/// You can also use the [`clones!`](crate::clones!) helper macro to
+/// clone-capture the environment more ergonomically.
 ///
 /// It only supports closures with exactly one input argument and some return
 /// value. Memory management is handled by Rust. Whenever Rust drops all clones
@@ -75,56 +83,43 @@ where
 
   /// Returns a Rust closure from the callback.
   pub fn to_closure(&self) -> impl FnMut(T) -> U + 'static {
-    let closure = self.closure.clone();
-
-    move |arg| {
-      let mut f = closure.borrow_mut();
-      f(arg)
-    }
+    let callback = self.clone();
+    move |arg| callback.call(arg)
   }
 
   /// Calls the callback with the given argument.
   pub fn call(&self, arg: T) -> U {
     let mut f = self.closure.borrow_mut();
     f(arg)
-}
+  }
 
   /// Returns a new [`Callback`] by prepending the given closure to the callback.
-  pub fn premap<V>(
-    &self,
-    mut f: impl FnMut(V) -> T + 'static,
-  ) -> Callback<V, U> {
-    Callback {
-      closure: Rc::new(RefCell::new({
-        let closure = self.closure.clone();
+  pub fn premap<V>(&self, mut f: impl FnMut(V) -> T + 'static) -> Callback<V, U>
+  where
+    V: 'static,
+  {
+    let cb = self.clone();
 
-        move |v| {
-          let t = f(v);
-          let mut g = closure.borrow_mut();
-          g(t)
-        }
-      })),
-      js: Default::default(),
-    }
+    Callback::new(move |v| {
+      let t = f(v);
+      cb.call(t)
+    })
   }
 
   /// Returns a new [`Callback`] by appending the given closure to the callback.
   pub fn postmap<V>(
     &self,
     mut f: impl FnMut(U) -> V + 'static,
-  ) -> Callback<T, V> {
-    Callback {
-      closure: Rc::new(RefCell::new({
-        let closure = self.closure.clone();
+  ) -> Callback<T, V>
+  where
+    V: 'static,
+  {
+    let cb = self.clone();
 
-        move |t| {
-          let mut g = closure.borrow_mut();
-          let u = g(t);
-          f(u)
-        }
-      })),
-      js: Default::default(),
-    }
+    Callback::new(move |t| {
+      let u = cb.call(t);
+      f(u)
+    })
   }
 
   /// Returns a reference to `JsValue` of the callback.
@@ -134,18 +129,16 @@ where
     U: IntoWasmAbi,
   {
     {
-      let mut borrow = self.js.borrow_mut();
-
-      if borrow.is_none() {
-        *borrow = Some(Closure::new({
+      self.js.borrow_mut().get_or_insert_with(|| {
+        Closure::new({
           let closure = self.closure.clone();
 
           move |arg| {
             let mut f = closure.borrow_mut();
             f(arg)
           }
-        }));
-      }
+        })
+      });
     }
 
     Ref::map(self.js.borrow(), |x| {

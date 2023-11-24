@@ -10,7 +10,7 @@ use wasm_bindgen::{intern, JsValue, UnwrapThrowExt};
 ///
 /// See [`create_context()`] for usage.
 ///
-/// [context]: https://reactjs.org/docs/context.html
+/// [context]: https://react.dev/learn/passing-data-deeply-with-context
 #[derive(Debug)]
 pub struct Context<T> {
   js_context: JsValue,
@@ -35,7 +35,7 @@ impl<T> From<Context<T>> for JsValue {
 /// [`use_context()`](crate::hooks::use_context()) to get access to the context
 /// value.
 ///
-/// [context]: https://reactjs.org/docs/context.html
+/// [context]: https://react.dev/learn/passing-data-deeply-with-context
 ///
 /// # Example
 ///
@@ -87,7 +87,7 @@ impl<T> From<Context<T>> for JsValue {
 ///             Theme::DarkMode => "black",
 ///           })
 ///       )
-///       .build(())
+///       .build("Button")
 ///   }
 /// }
 /// ```
@@ -124,15 +124,10 @@ impl<T: 'static> ContextProvider<T> {
     self
   }
 
-  /// Sets the children of the component.
-  pub fn children(mut self, children: impl Into<VNode>) -> Self {
-    self.children = children.into();
-    self
-  }
-
   /// Returns a [`VNode`] to be included in a render function.
-  pub fn build(self, children: impl Into<VNode>) -> VNode {
-    Component::build(self.children(children))
+  pub fn build(mut self, children: impl Into<VNode>) -> VNode {
+    self.children = children.into();
+    Component::build(self)
   }
 }
 

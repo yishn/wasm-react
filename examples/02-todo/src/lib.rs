@@ -1,8 +1,8 @@
 use std::rc::Rc;
 use wasm_bindgen::{JsCast, JsValue, UnwrapThrowExt};
 use wasm_react::{
-  callback, export_components, h, hooks::use_state, Callback, Component, VNode,
-  ValueContainer,
+  clones, export_components, h, hooks::use_state, Callback, Component,
+  PropContainer, VNode,
 };
 use web_sys::{Event, HtmlInputElement};
 
@@ -26,41 +26,53 @@ impl Component for App {
       //
       TaskList {
         tasks: tasks.clone().into(),
-        on_change: Some(callback!(clone(mut tasks), move |(id, done)| {
-          tasks.set(|mut tasks| {
-            tasks.get_mut(id).map(|task: &mut (bool, _)| task.0 = done);
-            tasks
-          })
+        on_change: Some(Callback::new({
+          clones!(mut tasks);
+
+          move |(id, done)| {
+            tasks.set(|mut tasks| {
+              tasks.get_mut(id).map(|task: &mut (bool, _)| task.0 = done);
+              tasks
+            })
+          }
         })),
       }
       .build(),
       //
       h!(form)
-        .on_submit(&callback!(clone(mut tasks, mut text), move |evt: Event| {
-          evt.prevent_default();
+        .on_submit(&Callback::new({
+          clones!(mut tasks, mut text);
 
-          if !text.value().is_empty() {
-            tasks.set(|mut tasks| {
-              tasks.push((false, text.value().clone()));
-              tasks
-            });
-            text.set(|_| "".into());
+          move |evt: Event| {
+            evt.prevent_default();
+
+            if !text.value().is_empty() {
+              tasks.set(|mut tasks| {
+                tasks.push((false, text.value().clone()));
+                tasks
+              });
+              text.set(|_| "".into());
+            }
           }
         }))
         .build((
           h!(input)
             .placeholder("Add new item…")
             .value(&**text.value())
-            .on_change(&callback!(clone(mut text), move |evt: Event| {
-              text.set(|_| {
-                evt
-                  .current_target()
-                  .unwrap_throw()
-                  .dyn_into::<HtmlInputElement>()
-                  .unwrap_throw()
-                  .value()
-                  .into()
-              })
+            .on_change(&Callback::new({
+              clones!(mut text);
+
+              move |evt: Event| {
+                text.set(|_| {
+                  evt
+                    .current_target()
+                    .unwrap_throw()
+                    .dyn_into::<HtmlInputElement>()
+                    .unwrap_throw()
+                    .value()
+                    .into()
+                })
+              }
             }))
             .build(()),
           " ",
@@ -78,7 +90,7 @@ export_components! {
 }
 
 struct TaskList {
-  tasks: ValueContainer<Vec<(bool, Rc<str>)>>,
+  tasks: PropContainer<Vec<(bool, Rc<str>)>>,
   on_change: Option<Callback<(usize, bool)>>,
 }
 

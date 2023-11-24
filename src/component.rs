@@ -1,6 +1,25 @@
-use crate::{react_bindings, KeyType, VNode};
+use crate::{react_bindings, VNode};
 use std::any::{type_name, Any};
+use js_sys::JsString;
 use wasm_bindgen::prelude::*;
+
+/// Implemented by types which can serve as a [React key][key].
+///
+/// [key]: https://react.dev/learn/rendering-lists#keeping-list-items-in-order-with-key
+pub trait KeyType: Into<JsValue> {}
+
+macro_rules! impl_key_type {
+  { $( $T:ty ),* $( , )? } => {
+    $( impl KeyType for $T {} )*
+  };
+}
+
+impl_key_type! {
+  &str, String, JsString,
+  f32, f64,
+  i8, i16, i32, i64, i128, isize,
+  u8, u16, u32, u64, u128, usize,
+}
 
 #[doc(hidden)]
 pub struct BuildParams {
@@ -40,7 +59,7 @@ pub trait Component: Sized + 'static {
 
   /// Sets the [React key][key].
   ///
-  /// [key]: https://reactjs.org/docs/lists-and-keys.html
+  /// [key]: https://react.dev/learn/rendering-lists#keeping-list-items-in-order-with-key
   fn key(self, key: Option<impl KeyType>) -> Keyed<Self> {
     Keyed(self, key.map(|x| x.into()))
   }
@@ -124,7 +143,7 @@ pub trait Component: Sized + 'static {
 ///
 /// See [`Component::key()`].
 ///
-/// [key]: https://reactjs.org/docs/lists-and-keys.html
+/// [key]: https://react.dev/learn/rendering-lists#keeping-list-items-in-order-with-key
 #[derive(Debug, PartialEq)]
 pub struct Keyed<T>(T, Option<JsValue>);
 

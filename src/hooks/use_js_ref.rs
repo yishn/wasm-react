@@ -1,7 +1,7 @@
-use crate::{react_bindings, Persisted, PersistedOrigin};
+use crate::react_bindings;
 use js_sys::Reflect;
 use std::{fmt::Debug, marker::PhantomData};
-use wasm_bindgen::{JsCast, JsValue, UnwrapThrowExt, intern};
+use wasm_bindgen::{intern, JsCast, JsValue, UnwrapThrowExt};
 
 /// Allows access to the underlying JS data persisted with [`use_js_ref()`].
 pub struct JsRefContainer<T>(JsValue, PhantomData<T>);
@@ -26,12 +26,6 @@ impl<T: JsCast> JsRefContainer<T> {
       value.map(|t| t.as_ref()).unwrap_or(&JsValue::null()),
     )
     .expect_throw("cannot write into ref container");
-  }
-}
-
-impl<T: 'static> Persisted for JsRefContainer<T> {
-  fn ptr(&self) -> PersistedOrigin {
-    PersistedOrigin
   }
 }
 

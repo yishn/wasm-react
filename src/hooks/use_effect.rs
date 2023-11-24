@@ -2,12 +2,40 @@ use super::{use_ref, Deps};
 use crate::react_bindings;
 use wasm_bindgen::{prelude::Closure, JsValue, UnwrapThrowExt};
 
+/// Denotes types that can be used as destructors for effects.
+pub trait IntoDestructor {
+  #[doc(hidden)]
+  type Destructor: FnOnce() + 'static;
+
+  #[doc(hidden)]
+  fn into_destructor(self) -> Self::Destructor;
+}
+
+impl IntoDestructor for () {
+  type Destructor = fn();
+
+  fn into_destructor(self) -> Self::Destructor {
+    || ()
+  }
+}
+
+impl<F> IntoDestructor for F
+where
+  F: FnOnce() + 'static,
+{
+  type Destructor = F;
+
+  fn into_destructor(self) -> Self::Destructor {
+    self
+  }
+}
+
 fn use_effect_inner<G, D>(
   effect: impl FnOnce() -> G + 'static,
   deps: Deps<D>,
   f: impl FnOnce(&JsValue, u8),
 ) where
-  G: FnOnce() + 'static,
+  G: IntoDestructor,
   D: PartialEq + 'static,
 {
   let create_effect_closure = move || {
@@ -15,7 +43,7 @@ fn use_effect_inner<G, D>(
       let destructor = effect();
 
       // The effect destructor will definitely be called exactly once by React
-      Closure::once_into_js(destructor)
+      Closure::once_into_js(destructor.into_destructor())
     })
   };
 
@@ -61,12 +89,10 @@ fn use_effect_inner<G, D>(
 /// let state = use_state(|| None);
 ///
 /// use_effect({
-///   let mut state = state.clone();
-///   let url = self.url;
+///   clones!(self.url, mut state);
 ///
 ///   move || {
 ///     state.set(|_| Some(fetch(url)));
-///     || ()
 ///   }
 /// }, Deps::some(self.url));
 /// #
@@ -75,7 +101,7 @@ fn use_effect_inner<G, D>(
 /// ```
 pub fn use_effect<G, D>(effect: impl FnOnce() -> G + 'static, deps: Deps<D>)
 where
-  G: FnOnce() + 'static,
+  G: IntoDestructor,
   D: PartialEq + 'static,
 {
   use_effect_inner(effect, deps, react_bindings::use_rust_effect);
@@ -83,12 +109,12 @@ where
 
 /// Same as [`use_effect()`], but it fires synchronously after all DOM mutations.
 ///
-/// See [React documentation](https://reactjs.org/docs/hooks-reference.html#uselayouteffect).
+/// See [React documentation](https://react.dev/reference/react/useLayoutEffect).
 pub fn use_layout_effect<G, D>(
   effect: impl FnOnce() -> G + 'static,
   deps: Deps<D>,
 ) where
-  G: FnOnce() + 'static,
+  G: IntoDestructor,
   D: PartialEq + 'static,
 {
   use_effect_inner(effect, deps, react_bindings::use_rust_layout_effect);

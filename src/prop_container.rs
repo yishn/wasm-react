@@ -5,35 +5,33 @@ use std::{
   rc::Rc,
 };
 
-/// Allows read-only access to the underlying value of [`ValueContainer`].
+/// Allows read-only access to the underlying value of [`PropContainer`].
 #[non_exhaustive]
 #[derive(Debug)]
-pub enum ValueContainerRef<'a, T> {
-  #[doc(hidden)]
-  #[non_exhaustive]
+pub enum PropContainerRef<'a, T> {
+  #[allow(missing_docs)]
   Simple(&'a T),
-  #[doc(hidden)]
-  #[non_exhaustive]
+  #[allow(missing_docs)]
   Ref(Ref<'a, T>),
 }
 
-impl<T> ValueContainerRef<'_, T> {
+impl<T> PropContainerRef<'_, T> {
   /// Clones the reference.
   pub fn clone(orig: &Self) -> Self {
     match orig {
-      ValueContainerRef::Simple(x) => ValueContainerRef::Simple(x),
-      ValueContainerRef::Ref(x) => ValueContainerRef::Ref(Ref::clone(x)),
+      PropContainerRef::Simple(x) => PropContainerRef::Simple(x),
+      PropContainerRef::Ref(x) => PropContainerRef::Ref(Ref::clone(x)),
     }
   }
 }
 
-impl<T> Deref for ValueContainerRef<'_, T> {
+impl<T> Deref for PropContainerRef<'_, T> {
   type Target = T;
 
   fn deref(&self) -> &Self::Target {
     match &self {
-      ValueContainerRef::Simple(x) => x,
-      ValueContainerRef::Ref(x) => x.deref(),
+      PropContainerRef::Simple(x) => x,
+      PropContainerRef::Ref(x) => x.deref(),
     }
   }
 }
@@ -44,30 +42,29 @@ macro_rules! define_value_container {
       $Variant:ident($id:ident: $Ty:ty) => $RefVariant:ident($expr:expr) $(,)?
     )*
   } => {
-    /// An abstraction over structs that contain a value which can be accessed
-    /// through an immutable borrow or [`Ref`].
+    /// A helpful abstraction over non-`Copy` types that can be used as a prop
+    /// type for components.
     ///
-    /// Can contain all hook containers and [`Rc<T>`], [`Rc<RefCell<T>>`].
+    /// Can contain all hook containers, [`Rc<T>`], and [`Rc<RefCell<T>>`].
     #[non_exhaustive]
     #[derive(Debug)]
-    pub enum ValueContainer<T> {
+    pub enum PropContainer<T> {
       $(
-        #[doc(hidden)]
-        #[non_exhaustive]
+        #[allow(missing_docs)]
         $Variant($Ty),
       )*
     }
 
-    impl<T: 'static> ValueContainer<T> {
+    impl<T: 'static> PropContainer<T> {
       /// Returns a read-only reference to the underlying value.
-      pub fn value(&self) -> ValueContainerRef<'_, T> {
+      pub fn value(&self) -> PropContainerRef<'_, T> {
         match self {
-          $( Self::$Variant($id) => ValueContainerRef::$RefVariant($expr), )*
+          $( Self::$Variant($id) => PropContainerRef::$RefVariant($expr), )*
         }
       }
     }
 
-    impl<T> Clone for ValueContainer<T> {
+    impl<T> Clone for PropContainer<T> {
       fn clone(&self) -> Self {
         match self {
           $( Self::$Variant(x) => Self::$Variant(x.clone()), )*
@@ -76,7 +73,7 @@ macro_rules! define_value_container {
     }
 
     $(
-      impl<T> From<$Ty> for ValueContainer<T> {
+      impl<T> From<$Ty> for PropContainer<T> {
         fn from(value: $Ty) -> Self {
           Self::$Variant(value)
         }
@@ -94,13 +91,19 @@ define_value_container! {
   DeferredValue(x: DeferredValue<T>) => Ref(x.value()),
 }
 
-impl<T: PartialEq + 'static> PartialEq for ValueContainer<T> {
+impl<T: PartialEq + 'static> PartialEq for PropContainer<T> {
   fn eq(&self, other: &Self) -> bool {
     T::eq(&self.value(), &other.value())
   }
 }
 
-impl<T> From<T> for ValueContainer<T> {
+impl<T: PartialEq + 'static> PartialEq<T> for PropContainer<T> {
+  fn eq(&self, other: &T) -> bool {
+    T::eq(&self.value(), other)
+  }
+}
+
+impl<T> From<T> for PropContainer<T> {
   fn from(value: T) -> Self {
     Self::from(Rc::new(value))
   }

@@ -1,5 +1,5 @@
 use super::{use_ref, RefContainer};
-use crate::{react_bindings, Persisted, PersistedOrigin};
+use crate::react_bindings;
 use js_sys::Function;
 use std::cell::Ref;
 use wasm_bindgen::{JsValue, UnwrapThrowExt};
@@ -37,12 +37,6 @@ impl<T: 'static> State<T> {
   }
 }
 
-impl<T: 'static> Persisted for State<T> {
-  fn ptr(&self) -> PersistedOrigin {
-    self.ref_container.ptr()
-  }
-}
-
 impl<T> Clone for State<T> {
   fn clone(&self) -> Self {
     Self {
@@ -72,15 +66,13 @@ impl<T> Clone for State<T> {
 ///   let state = use_state(|| State { greet: "Hello!" });
 ///
 ///   use_effect({
-///     let mut state = state.clone();
+///     clones!(mut state);
 ///
 ///     move || {
 ///       state.set(|mut state| {
 ///         state.greet = "Welcome!";
 ///         state
 ///       });
-///
-///       || ()
 ///     }
 ///   }, Deps::some(( /* … */ )));
 ///

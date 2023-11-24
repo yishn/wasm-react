@@ -1,4 +1,4 @@
-use crate::{react_bindings, Persisted, PersistedOrigin};
+use crate::react_bindings;
 use std::{
   any::Any,
   cell::{Ref, RefCell, RefMut},
@@ -58,12 +58,6 @@ impl<T: 'static> RefContainer<T> {
   }
 }
 
-impl<T: 'static> Persisted for RefContainer<T> {
-  fn ptr(&self) -> PersistedOrigin {
-    PersistedOrigin
-  }
-}
-
 impl<T> Clone for RefContainer<T> {
   fn clone(&self) -> Self {
     Self(self.0.clone())
@@ -95,12 +89,10 @@ impl<T> Clone for RefContainer<T> {
 ///     });
 ///
 ///     use_effect({
-///       let value = self.value;
-///       let mut ref_container = ref_container.clone();
+///       clones!(self.value, mut ref_container);
 ///
 ///       move || {
 ///         ref_container.current_mut().value = value;
-///         || ()
 ///       }
 ///     }, Deps::some(self.value));
 ///

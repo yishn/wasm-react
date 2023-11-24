@@ -14,7 +14,7 @@ impl TryFrom<JsValue> for App {
     Ok(App {
       name: Reflect::get(&value, &"name".into())?
         .as_string()
-        .map(|x| x.into_boxed_str().into()),
+        .map(|x| x.into()),
     })
   }
 }

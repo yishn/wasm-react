@@ -11,9 +11,9 @@ impl Card {
     Self::default()
   }
 
-  pub fn children(mut self, children: impl Into<VNode>) -> Self {
+  pub fn build(mut self, children: impl Into<VNode>) -> VNode {
     self.children = children.into();
-    self
+    Component::build(self)
   }
 }
 

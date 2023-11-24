@@ -11,8 +11,7 @@ mod callback;
 mod component;
 mod context;
 mod macros;
-mod marker;
-mod value_container;
+mod prop_container;
 mod vnode;
 
 pub mod hooks;
@@ -27,10 +26,9 @@ pub use builtin_components::*;
 pub use callback::*;
 pub use component::*;
 pub use context::*;
-pub use marker::*;
 #[doc(hidden)]
 pub use paste::paste;
-pub use value_container::*;
+pub use prop_container::*;
 pub use vnode::*;
 
 /// Contains all functions exported to JS by `wasm-react`. These functions should

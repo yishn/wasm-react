@@ -6,8 +6,8 @@ use card::Card;
 use std::rc::Rc;
 use wasm_bindgen::JsValue;
 use wasm_react::{
-  callback, create_context, export_components, h, hooks::use_state, Component,
-  Context, ContextProvider, VNode,
+  clones, create_context, export_components, h, hooks::use_state, Callback,
+  Component, Context, ContextProvider, VNode,
 };
 
 pub enum Theme {
@@ -47,30 +47,32 @@ impl Component for App {
                   Theme::LightMode => false,
                   Theme::DarkMode => true,
                 })
-                .on_change(&callback!(clone(mut theme), move |_| {
-                  theme.set(|theme| {
-                    match *theme {
-                      Theme::LightMode => Theme::DarkMode,
-                      Theme::DarkMode => Theme::LightMode,
-                    }
-                    .into()
-                  })
+                .on_change(&Callback::new({
+                  clones!(mut theme);
+
+                  move |_| {
+                    theme.set(|theme| {
+                      match *theme {
+                        Theme::LightMode => Theme::DarkMode,
+                        Theme::DarkMode => Theme::LightMode,
+                      }
+                      .into()
+                    })
+                  }
                 }))
                 .build(()),
               "Dark Mode",
             )),
           )),
           //
-          Card::new()
-            .children((
-              h!(p).build("Hello World!"),
-              h!(p).build((
-                Button::new().text("OK").build(),
-                " ",
-                Button::new().text("Cancel").build(),
-              )),
-            ))
-            .build(),
+          Card::new().build((
+            h!(p).build("Hello World!"),
+            h!(p).build((
+              Button::new().build("OK"),
+              " ",
+              Button::new().build("Cancel"),
+            )),
+          )),
         )),
     );
     result

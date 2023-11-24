@@ -7,11 +7,23 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const examplesPath = path.resolve(__dirname, "../examples");
 const items = await fs.readdir(examplesPath);
 
+const exists = (p) =>
+  fs.access(p).then(
+    () => true,
+    () => false
+  );
+
 for (const item of items) {
   const examplePath = path.resolve(examplesPath, item);
-  const stat = await fs.stat(path.resolve(examplePath, "Cargo.toml"));
+  const exec = (command) =>
+    execSync(command, { cwd: examplePath, stdio: "inherit" });
 
-  if (stat.isFile()) {
-    execSync("wasm-pack build --target web", { cwd: examplePath });
+  if (await exists(path.resolve(examplePath, "Cargo.toml"))) {
+    exec("wasm-pack build --target web");
+  }
+
+  if (await exists(path.resolve(examplePath, "package.json"))) {
+    exec("npm install");
+    exec("npm run build");
   }
 }

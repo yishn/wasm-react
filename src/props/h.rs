@@ -56,7 +56,7 @@ impl<T: HType> H<T> {
 
   /// Sets the [React key][key].
   ///
-  /// [key]: https://reactjs.org/docs/lists-and-keys.html
+  /// [key]: https://react.dev/learn/rendering-lists#keeping-list-items-in-order-with-key
   pub fn key(mut self, value: Option<impl KeyType>) -> Self {
     self.props = self.props.key(value);
     self
@@ -65,7 +65,7 @@ impl<T: HType> H<T> {
   /// Sets the [React ref][ref] to the given ref container created with the
   /// [`use_js_ref()`](crate::hooks::use_js_ref()) hook.
   ///
-  /// [ref]: https://reactjs.org/docs/refs-and-the-dom.html
+  /// [ref]: https://react.dev/learn/manipulating-the-dom-with-refs
   pub fn ref_container(
     mut self,
     ref_container: &JsRefContainer<Element>,
@@ -76,7 +76,7 @@ impl<T: HType> H<T> {
 
   /// Sets the [React ref][ref] to the given ref callback.
   ///
-  /// [ref]: https://reactjs.org/docs/refs-and-the-dom.html
+  /// [ref]: https://react.dev/learn/manipulating-the-dom-with-refs
   pub fn ref_callback(
     mut self,
     ref_callback: &Callback<Option<Element>>,
