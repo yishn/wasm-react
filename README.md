@@ -113,7 +113,6 @@ struct Counter {
 
 impl Component for Counter {
   fn render(&self) -> VNode {
-    let message = use_state(|| "Hello World!");
     let counter = use_state(|| self.initial_counter);
 
     let result = h!(div)
@@ -122,12 +121,9 @@ impl Component for Counter {
 
         h!(button)
           .on_click(&Callback::new({
-            clones!(message, mut counter);
+            clones!(mut counter);
 
-            move |_| {
-              println!("{}", message.value());
-              counter.set(|c| c + 1);
-            }
+            move |_| counter.set(|c| c + 1)
           }))
           .build("Increment"),
 

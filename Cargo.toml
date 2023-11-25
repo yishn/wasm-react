@@ -32,7 +32,6 @@ optional = true
 features = [
   "Event", "MouseEvent", "FocusEvent", "KeyboardEvent", "DragEvent",
   "PointerEvent", "WheelEvent", "AnimationEvent", "TransitionEvent",
-  "Element"
 ]
 
 [workspace]
