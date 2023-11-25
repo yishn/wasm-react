@@ -169,14 +169,14 @@ macro_rules! classnames {
 
   // Handle string literals
   (@single $result:ident << .$str:literal $( $tail:tt )*) => {
-    $crate::props::Classnames::append_to(&$str, &mut $result);
+    $crate::props::Classnames::append_to(&::wasm_bindgen::intern($str), &mut $result);
     $crate::classnames!(@single $result << $( $tail ) *);
   };
 
   // Handle boolean variables
   (@single $result:ident << .$bool:ident $( $tail:tt )*) => {
     $crate::props::Classnames::append_to(
-      &$bool.then(|| stringify!($bool)),
+      &$bool.then(|| ::wasm_bindgen::intern(stringify!($bool))),
       &mut $result
     );
     $crate::classnames!(@single $result << $( $tail ) *);
