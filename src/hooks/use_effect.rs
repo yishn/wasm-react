@@ -4,10 +4,10 @@ use wasm_bindgen::{prelude::Closure, JsValue, UnwrapThrowExt};
 
 /// Denotes types that can be used as destructors for effects.
 pub trait IntoDestructor {
-  #[doc(hidden)]
+  #[allow(missing_docs)]
   type Destructor: FnOnce() + 'static;
 
-  #[doc(hidden)]
+  #[allow(missing_docs)]
   fn into_destructor(self) -> Self::Destructor;
 }
 

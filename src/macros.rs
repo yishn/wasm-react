@@ -442,8 +442,8 @@ macro_rules! import_components {
     $crate::paste! {
       #[$from]
       extern "C" {
-        #[wasm_bindgen::prelude::wasm_bindgen(js_name = $Component)]
-        static [<__WASMREACT_IMPORT_ $Name:upper>]: wasm_bindgen::JsValue;
+        #[::wasm_bindgen::prelude::wasm_bindgen(js_name = $Component)]
+        static [<__WASMREACT_IMPORT_ $Name:upper>]: ::wasm_bindgen::JsValue;
       }
 
       $( #[$meta] )*
@@ -459,8 +459,8 @@ macro_rules! import_components {
       }
 
       impl $crate::props::HType for $Name {
-        fn as_js(&self) -> std::borrow::Cow<'_, JsValue> {
-          std::borrow::Cow::Borrowed(&[<__WASMREACT_IMPORT_ $Name:upper>])
+        fn as_js(&self) -> ::std::borrow::Cow<'_, JsValue> {
+          ::std::borrow::Cow::Borrowed(&[<__WASMREACT_IMPORT_ $Name:upper>])
         }
       }
     }
