@@ -52,6 +52,12 @@ macro_rules! h {
     $( .id($id) )?
     $( .class_name(&$crate::classnames!(.$( $classnames )+)) )?
   };
+  ($tag:literal [$( $tt:tt )*]) => {
+    $crate::h!($tag $( $tt )*)
+  };
+  ($tag:ident [$( $tt:tt )*]) => {
+    $crate::h!($tag $( $tt )*)
+  };
   ($tag:literal $( $tt:tt )*) => {
     $crate::h!(@internal { $crate::props::H::new($crate::props::HtmlTag($tag)) } $( $tt )*)
   };
