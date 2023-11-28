@@ -92,6 +92,31 @@ fn use_effect_inner<G, D>(
 /// #   }
 /// # }
 /// ```
+///
+/// Effect with clean-up:
+///
+///
+/// ```
+/// # use wasm_react::{*, hooks::*};
+/// #
+/// # fn connect(url: &str) -> C { todo!() }
+/// # struct C { url: &'static str }
+/// # impl C {
+/// #   fn disconnect(self) {}
+/// #   fn f(&self) {
+/// use_effect({
+///   clones!(self.url);
+///
+///   move || {
+///     let client = connect(url);
+///
+///     move || client.disconnect();
+///   }
+/// }, Deps::some(self.url));
+/// #
+/// #   }
+/// # }
+/// ```
 pub fn use_effect<G, D>(effect: impl FnOnce() -> G + 'static, deps: Deps<D>)
 where
   G: Destructor + 'static,
