@@ -297,8 +297,13 @@ struct TaskList {
 
 impl Component for TaskList {
   fn render(&self) -> VNode {
-    /* … */
-    VNode::default()
+    h!(ul).build(
+      self
+        .tasks
+        .iter()
+        .map(|task| h!(li).build(&**task))
+        .collect::<VNode>()
+    )
   }
 }
 
@@ -350,8 +355,14 @@ struct TaskList {
 
 impl Component for TaskList {
   fn render(&self) -> VNode {
-    /* Do something with `self.tasks.value()`… */
-    VNode::default()
+    h!(ul).build(
+      self
+        .tasks
+        .value()
+        .iter()
+        .map(|task| h!(li).build(&**task))
+        .collect::<VNode>()
+    )
   }
 }
 
