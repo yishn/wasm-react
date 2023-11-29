@@ -8,19 +8,36 @@ use std::{
 /// Allows read-only access to the underlying value of [`PropContainer`].
 #[non_exhaustive]
 #[derive(Debug)]
-pub enum PropContainerRef<'a, T> {
+pub enum PropContainerRef<'a, T>
+where
+  T: ?Sized,
+{
   #[allow(missing_docs)]
   Simple(&'a T),
   #[allow(missing_docs)]
   Ref(Ref<'a, T>),
 }
 
-impl<T> PropContainerRef<'_, T> {
+impl<'a, T> PropContainerRef<'a, T>
+where
+  T: ?Sized,
+{
   /// Clones the reference.
   pub fn clone(orig: &Self) -> Self {
     match orig {
       PropContainerRef::Simple(x) => PropContainerRef::Simple(x),
       PropContainerRef::Ref(x) => PropContainerRef::Ref(Ref::clone(x)),
+    }
+  }
+
+  /// Maps the reference to another type.
+  pub fn map<U>(orig: Self, f: impl FnOnce(&T) -> &U) -> PropContainerRef<'a, U>
+  where
+    U: ?Sized,
+  {
+    match orig {
+      PropContainerRef::Simple(x) => PropContainerRef::Simple(f(x)),
+      PropContainerRef::Ref(x) => PropContainerRef::Ref(Ref::map(x, f)),
     }
   }
 }
