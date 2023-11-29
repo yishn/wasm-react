@@ -58,6 +58,9 @@ extern "C" {
     callback: &mut dyn FnMut(&RefContainerValue),
   );
 
+  #[wasm_bindgen(js_name = buildArray)]
+  pub fn build_array(args: Box<[JsValue]>) -> Array;
+
   // From the React namespace:
 
   #[wasm_bindgen(js_namespace = React, js_name = Fragment)]

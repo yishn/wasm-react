@@ -149,3 +149,7 @@ export function useRustLayoutEffect(effect, dep) {
 export function useRustContext(context, callback) {
   callback(React.useContext(context));
 }
+
+export function buildArray(items) {
+  return items;
+}
