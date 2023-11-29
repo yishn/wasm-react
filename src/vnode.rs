@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use crate::react_bindings::build_array;
+use crate::react_bindings::cast_array;
 use js_sys::{Array, JsString};
 use wasm_bindgen::JsValue;
 
@@ -126,7 +126,7 @@ macro_rules! impl_into_vnode_for_tuples {
     {
       fn from(($( $x, )+): ($( $x, )+)) -> VNode {
         VNode::List(
-          build_array(vec![$( JsValue::from($x.into()) ),+].into_boxed_slice())
+          cast_array (vec![$( JsValue::from($x.into()) ),+].into_boxed_slice())
         )
       }
     }

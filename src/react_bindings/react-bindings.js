@@ -150,6 +150,6 @@ export function useRustContext(context, callback) {
   callback(React.useContext(context));
 }
 
-export function buildArray(items) {
-  return items;
+export function cast(x) {
+  return x;
 }
