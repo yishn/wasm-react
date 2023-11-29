@@ -82,13 +82,13 @@ impl Extend<VNode> for VNode {
 
 impl FromIterator<VNode> for VNode {
   fn from_iter<T: IntoIterator<Item = VNode>>(iter: T) -> Self {
-    let mut result = Self::new();
+    let slice = iter
+      .into_iter()
+      .map(JsValue::from)
+      .collect::<Vec<_>>()
+      .into_boxed_slice();
 
-    for node in iter.into_iter() {
-      result.push(&node);
-    }
-
-    result
+    VNode::List(cast_array(slice))
   }
 }
 
@@ -126,7 +126,7 @@ macro_rules! impl_into_vnode_for_tuples {
     {
       fn from(($( $x, )+): ($( $x, )+)) -> VNode {
         VNode::List(
-          cast_array (vec![$( JsValue::from($x.into()) ),+].into_boxed_slice())
+          cast_array(vec![$( JsValue::from($x.into()) ),+].into_boxed_slice())
         )
       }
     }
