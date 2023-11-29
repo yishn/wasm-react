@@ -23,7 +23,7 @@ impl Style {
     Self(Props::new())
   }
 
-  /// Equivalent to `props[key] = value;`.
+  /// Equivalent to `style[key] = value;`.
   pub fn insert(self, key: &str, value: &JsValue) -> Self {
     Self(self.0.insert(key, value))
   }

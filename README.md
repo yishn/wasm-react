@@ -119,7 +119,7 @@ impl Component for Counter {
       .build((
         h!(p).build(("Counter: ", *counter.value())),
 
-        h!(button)
+        h!(button."increment")
           .on_click(&Callback::new({
             clones!(mut counter);
 
@@ -127,7 +127,7 @@ impl Component for Counter {
           }))
           .build("Increment"),
 
-        h!(button)
+        h!(button."decrement")
           .on_click(&Callback::new({
             clones!(mut counter);
 
