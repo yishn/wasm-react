@@ -2,6 +2,7 @@
 
 use super::{HtmlTag, H};
 use wasm_bindgen::intern;
+#[cfg(feature = "web-sys")]
 use web_sys::{
   AnimationEvent, DragEvent, Event, FocusEvent, KeyboardEvent, MouseEvent,
   PointerEvent, TransitionEvent, UiEvent, WheelEvent,
@@ -21,6 +22,7 @@ macro_rules! impl_event {
 }
 
 /// Provides auto-completion for DOM events on [`H`].
+#[cfg(feature = "web-sys")]
 impl H<HtmlTag<'_>> {
   impl_event! {
     on_focus, "onFocus" => FocusEvent;
