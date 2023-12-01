@@ -14,6 +14,9 @@ crate-type = ["cdylib", "rlib"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[features]
+default = ["web-sys"]
+
 [profile.release]
 lto = true
 opt-level = 's'
@@ -25,10 +28,10 @@ paste = "1.0.14"
 
 [dependencies.web-sys]
 version = "0.3.64"
+optional = true
 features = [
   "Event", "MouseEvent", "FocusEvent", "KeyboardEvent", "DragEvent",
   "PointerEvent", "WheelEvent", "AnimationEvent", "TransitionEvent",
-  "Element"
 ]
 
 [workspace]

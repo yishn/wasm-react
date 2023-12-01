@@ -26,31 +26,43 @@
 /// // <web-component>Hello World!</web-component>
 /// ```
 ///
-/// It is also possible to add an id and/or classes to the element using a terse
-/// notation. You can use the same syntax as [`classnames!`](crate::classnames!).
+/// It is also possible to add an id and/or classes to the element using a
+/// shorthand notation. You can use the same syntax as [`classnames!`](crate::classnames!).
+///
+/// Due to a restriction in Rust, there needs to be a whitespace between the tag
+/// name and `#`.
 ///
 /// ```
 /// # use wasm_react::*;
-/// # fn f() -> VNode {
-/// h!(div[#"app"."some-class"."warning"])
-///   .build("This is a warning!")
-/// # }
+/// # fn f() {
+/// h!(div #"app"."some-class"."warning")
+///   .build("This is a warning!");
 ///
 /// // <div id="app" class="some-class warning">This is a warning!</div>
+///
+/// h!(div."small").build("This is small!");
+///
+/// // <div class="small">This is small!</div>
+/// # }
 /// ```
 #[macro_export]
 macro_rules! h {
-  ($tag:literal $( [$( #$id:literal )? $( .$( $classnames:tt )+ )?] )?) => {
-    $crate::props::H::new($crate::props::HtmlTag($tag)) $(
-      $( .id($id) )?
-      $( .class_name(&$crate::classnames![.$( $classnames )+]) )?
-    )?
+  (@internal $h:block $( #$id:literal )? $( .$( $classnames:tt )+ )?) => {
+    $h
+    $( .id($id) )?
+    $( .class_name(&$crate::classnames!(.$( $classnames )+)) )?
   };
-  ($tag:ident $( [$( #$id:literal )? $( .$( $classnames:tt )+ )?] )?) => {
-    $crate::props::H::new($crate::props::HtmlTag(stringify!($tag))) $(
-      $( .id($id) )?
-      $( .class_name(&$crate::classnames![.$( $classnames )+]) )?
-    )?
+  ($tag:literal [$( $tt:tt )*]) => {
+    $crate::h!($tag $( $tt )*)
+  };
+  ($tag:ident [$( $tt:tt )*]) => {
+    $crate::h!($tag $( $tt )*)
+  };
+  ($tag:literal $( $tt:tt )*) => {
+    $crate::h!(@internal { $crate::props::H::new($crate::props::HtmlTag($tag)) } $( $tt )*)
+  };
+  ($tag:ident $( $tt:tt )*) => {
+    $crate::h!(@internal { $crate::props::H::new($crate::props::HtmlTag(stringify!($tag))) } $( $tt )*)
   };
 }
 
@@ -135,9 +147,9 @@ macro_rules! clones {
 /// # Example
 ///
 /// ```
-/// # use wasm_react::*;
+/// # use wasm_react::classnames;
 /// assert_eq!(
-///   classnames![."button"."blue"],
+///   classnames!(."button"."blue"),
 ///   "button blue ".to_string(),
 /// );
 ///
@@ -145,50 +157,50 @@ macro_rules! clones {
 /// let disabled = true;
 ///
 /// assert_eq!(
-///   classnames![."button".blue.disabled],
+///   classnames!(."button".blue.disabled),
 ///   "button disabled ".to_string(),
 /// );
 ///
 /// let is_blue = Some("blue");
-/// let disabled = "disabled".to_string();
+/// let is_disabled = "disabled".to_string();
 ///
 /// assert_eq!(
-///   classnames![."button".{is_blue}.{disabled}],
+///   classnames!(."button".{is_blue}.{is_disabled}),
 ///   "button blue disabled ",
 /// );
 /// ```
 #[macro_export]
 macro_rules! classnames {
-  [@single $result:ident <<] => {};
+  (@single $result:ident <<) => {};
 
   // Handle string literals
-  [@single $result:ident << .$str:literal $( $tail:tt )*] => {
-    $crate::props::Classnames::append_to(&$str, &mut $result);
-    $crate::classnames![@single $result << $( $tail ) *];
+  (@single $result:ident << .$str:literal $( $tail:tt )*) => {
+    $crate::props::Classnames::append_to(&::wasm_bindgen::intern($str), &mut $result);
+    $crate::classnames!(@single $result << $( $tail ) *);
   };
 
   // Handle boolean variables
-  [@single $result:ident << .$bool:ident $( $tail:tt )*] => {
+  (@single $result:ident << .$bool:ident $( $tail:tt )*) => {
     $crate::props::Classnames::append_to(
-      &$bool.then(|| stringify!($bool)),
+      &$bool.then(|| ::wasm_bindgen::intern(stringify!($bool))),
       &mut $result
     );
-    $crate::classnames![@single $result << $( $tail ) *];
+    $crate::classnames!(@single $result << $( $tail ) *);
   };
 
   // Handle block expressions
-  [@single $result:ident << .$block:block $( $tail:tt )*] => {
+  (@single $result:ident << .$block:block $( $tail:tt )*) => {
     $crate::props::Classnames::append_to(&$block, &mut $result);
-    $crate::classnames![@single $result << $( $tail ) *];
+    $crate::classnames!(@single $result << $( $tail ) *);
   };
 
-  [] => {
+  () => {
     ::std::string::String::new()
   };
-  [$( $tt:tt )*] => {
+  ($( $tt:tt )*) => {
     {
       let mut result = ::std::string::String::new();
-      $crate::classnames![@single result << $( $tt )*];
+      $crate::classnames!(@single result << $( $tt )*);
       result
     }
   };
@@ -430,8 +442,8 @@ macro_rules! import_components {
     $crate::paste! {
       #[$from]
       extern "C" {
-        #[wasm_bindgen::prelude::wasm_bindgen(js_name = $Component)]
-        static [<__WASMREACT_IMPORT_ $Name:upper>]: wasm_bindgen::JsValue;
+        #[::wasm_bindgen::prelude::wasm_bindgen(js_name = $Component)]
+        static [<__WASMREACT_IMPORT_ $Name:upper>]: ::wasm_bindgen::JsValue;
       }
 
       $( #[$meta] )*
@@ -447,8 +459,8 @@ macro_rules! import_components {
       }
 
       impl $crate::props::HType for $Name {
-        fn as_js(&self) -> std::borrow::Cow<'_, JsValue> {
-          std::borrow::Cow::Borrowed(&[<__WASMREACT_IMPORT_ $Name:upper>])
+        fn as_js(&self) -> ::std::borrow::Cow<'_, JsValue> {
+          ::std::borrow::Cow::Borrowed(&[<__WASMREACT_IMPORT_ $Name:upper>])
         }
       }
     }

@@ -21,7 +21,7 @@ impl Component for App {
     let tasks = use_state(|| vec![]);
     let text = use_state(|| Rc::<str>::from(""));
 
-    let result = h!(div[#"app"]).build((
+    let result = h!(div #"app").build((
       h!(h1).build("Todo"),
       //
       TaskList {
@@ -96,7 +96,7 @@ struct TaskList {
 
 impl Component for TaskList {
   fn render(&self) -> VNode {
-    h!(div[."task-list"]).build(
+    h!(div."task-list").build(
       //
       h!(ul).build(
         self
@@ -131,7 +131,7 @@ struct TaskItem {
 
 impl Component for TaskItem {
   fn render(&self) -> VNode {
-    h!(li[."task-item"]).build(
+    h!(li."task-item").build(
       //
       h!(label).build((
         h!(input)

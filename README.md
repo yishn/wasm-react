@@ -113,25 +113,21 @@ struct Counter {
 
 impl Component for Counter {
   fn render(&self) -> VNode {
-    let message = use_state(|| "Hello World!");
     let counter = use_state(|| self.initial_counter);
 
     let result = h!(div)
       .build((
         h!(p).build(("Counter: ", *counter.value())),
 
-        h!(button)
+        h!(button."increment")
           .on_click(&Callback::new({
-            clones!(message, mut counter);
+            clones!(mut counter);
 
-            move |_| {
-              println!("{}", message.value());
-              counter.set(|c| c + 1);
-            }
+            move |_| counter.set(|c| c + 1)
           }))
           .build("Increment"),
 
-        h!(button)
+        h!(button."decrement")
           .on_click(&Callback::new({
             clones!(mut counter);
 
@@ -301,8 +297,13 @@ struct TaskList {
 
 impl Component for TaskList {
   fn render(&self) -> VNode {
-    /* … */
-    VNode::default()
+    h!(ul).build(
+      self
+        .tasks
+        .iter()
+        .map(|task| h!(li).build(&**task))
+        .collect::<VNode>()
+    )
   }
 }
 
@@ -354,8 +355,14 @@ struct TaskList {
 
 impl Component for TaskList {
   fn render(&self) -> VNode {
-    /* Do something with `self.tasks.value()`… */
-    VNode::default()
+    h!(ul).build(
+      self
+        .tasks
+        .value()
+        .iter()
+        .map(|task| h!(li).build(&**task))
+        .collect::<VNode>()
+    )
   }
 }
 

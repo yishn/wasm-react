@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
 
+use crate::react_bindings::cast_array;
 use js_sys::{Array, JsString};
 use wasm_bindgen::JsValue;
 
@@ -81,13 +82,13 @@ impl Extend<VNode> for VNode {
 
 impl FromIterator<VNode> for VNode {
   fn from_iter<T: IntoIterator<Item = VNode>>(iter: T) -> Self {
-    let mut result = Self::new();
+    let slice = iter
+      .into_iter()
+      .map(JsValue::from)
+      .collect::<Vec<_>>()
+      .into_boxed_slice();
 
-    for node in iter.into_iter() {
-      result.push(&node);
-    }
-
-    result
+    VNode::List(cast_array(slice))
   }
 }
 
@@ -124,16 +125,16 @@ macro_rules! impl_into_vnode_for_tuples {
     where $( $x: Into<VNode>, )+
     {
       fn from(($( $x, )+): ($( $x, )+)) -> VNode {
-        let mut result = VNode::new();
-        $( result.push(&$x.into()); )+
-        result
+        VNode::List(
+          cast_array(vec![$( JsValue::from($x.into()) ),+].into_boxed_slice())
+        )
       }
     }
 
     impl_into_vnode_for_tuples!(@next $( $x ),+);
   };
-  (@next $first:ident) => {};
-  (@next $first:ident, $( $tt:tt )*) => {
+  (@next $_:ident) => {};
+  (@next $_:ident, $( $tt:tt )*) => {
     impl_into_vnode_for_tuples!(@impl $( $tt )*);
   };
   ($( $x:ident ),*) => {

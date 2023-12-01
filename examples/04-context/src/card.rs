@@ -34,6 +34,6 @@ impl Component for Card {
       style
     };
 
-    h!(div[."card"]).style(&style).build(self.children.clone())
+    h!(div."card").style(&style).build(self.children.clone())
   }
 }

@@ -3,30 +3,23 @@ use crate::react_bindings;
 use wasm_bindgen::{prelude::Closure, JsValue, UnwrapThrowExt};
 
 /// Denotes types that can be used as destructors for effects.
-pub trait IntoDestructor {
-  #[doc(hidden)]
-  type Destructor: FnOnce() + 'static;
-
-  #[doc(hidden)]
-  fn into_destructor(self) -> Self::Destructor;
+pub trait Destructor {
+  /// Cleans up the effect.
+  fn clean_up(self);
 }
 
-impl IntoDestructor for () {
-  type Destructor = fn();
-
-  fn into_destructor(self) -> Self::Destructor {
-    || ()
+impl Destructor for () {
+  fn clean_up(self) {
+    // Do nothing
   }
 }
 
-impl<F> IntoDestructor for F
+impl<F> Destructor for F
 where
   F: FnOnce() + 'static,
 {
-  type Destructor = F;
-
-  fn into_destructor(self) -> Self::Destructor {
-    self
+  fn clean_up(self) {
+    self()
   }
 }
 
@@ -35,7 +28,7 @@ fn use_effect_inner<G, D>(
   deps: Deps<D>,
   f: impl FnOnce(&JsValue, u8),
 ) where
-  G: IntoDestructor,
+  G: Destructor + 'static,
   D: PartialEq + 'static,
 {
   let create_effect_closure = move || {
@@ -43,7 +36,7 @@ fn use_effect_inner<G, D>(
       let destructor = effect();
 
       // The effect destructor will definitely be called exactly once by React
-      Closure::once_into_js(destructor.into_destructor())
+      Closure::once_into_js(move || destructor.clean_up())
     })
   };
 
@@ -99,9 +92,34 @@ fn use_effect_inner<G, D>(
 /// #   }
 /// # }
 /// ```
+///
+/// Effect with clean-up:
+///
+///
+/// ```
+/// # use wasm_react::{*, hooks::*};
+/// #
+/// # fn connect(url: &str) -> C { todo!() }
+/// # struct C { url: &'static str }
+/// # impl C {
+/// #   fn disconnect(self) {}
+/// #   fn f(&self) {
+/// use_effect({
+///   clones!(self.url);
+///
+///   move || {
+///     let client = connect(url);
+///
+///     move || client.disconnect();
+///   }
+/// }, Deps::some(self.url));
+/// #
+/// #   }
+/// # }
+/// ```
 pub fn use_effect<G, D>(effect: impl FnOnce() -> G + 'static, deps: Deps<D>)
 where
-  G: IntoDestructor,
+  G: Destructor + 'static,
   D: PartialEq + 'static,
 {
   use_effect_inner(effect, deps, react_bindings::use_rust_effect);
@@ -114,7 +132,7 @@ pub fn use_layout_effect<G, D>(
   effect: impl FnOnce() -> G + 'static,
   deps: Deps<D>,
 ) where
-  G: IntoDestructor,
+  G: Destructor + 'static,
   D: PartialEq + 'static,
 {
   use_effect_inner(effect, deps, react_bindings::use_rust_layout_effect);

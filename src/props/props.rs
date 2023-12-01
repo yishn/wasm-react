@@ -49,16 +49,16 @@ impl Props {
   /// [`use_js_ref()`](crate::hooks::use_js_ref()) hook.
   ///
   /// [ref]: https://react.dev/learn/manipulating-the-dom-with-refs
-  pub fn ref_container<T>(self, ref_container: &JsRefContainer<T>) -> Self {
+  pub fn ref_container<E>(self, ref_container: &JsRefContainer<E>) -> Self {
     self.insert("ref", ref_container.as_ref())
   }
 
   /// Sets the [React ref][ref] to the given ref callback.
   ///
   /// [ref]: https://react.dev/learn/manipulating-the-dom-with-refs
-  pub fn ref_callback<T>(self, ref_callback: &Callback<Option<T>>) -> Self
+  pub fn ref_callback<E>(self, ref_callback: &Callback<Option<E>>) -> Self
   where
-    T: OptionFromWasmAbi + 'static,
+    E: OptionFromWasmAbi + 'static,
   {
     self.insert_callback("ref", ref_callback)
   }
