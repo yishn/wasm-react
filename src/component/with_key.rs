@@ -32,7 +32,7 @@ extern "C" {
 }
 
 impl<C: Component> Component for WithKey<C> {
-  fn render(&self, children: VNode) -> VNode {
+  fn render(&self, children: VNode) -> impl Into<VNode> {
     self.component.render(children)
   }
 
@@ -44,7 +44,7 @@ impl<C: Component> Component for WithKey<C> {
     props
   }
 
-  fn build_with_extra_props(self, extra_props: &Object) -> VNode {
-    self.component.build_with_extra_props(extra_props)
+  fn build(self, extra_props: &Object) -> VNode {
+    self.component.build(extra_props)
   }
 }

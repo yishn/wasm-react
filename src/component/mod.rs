@@ -19,8 +19,9 @@ extern "C" {
 }
 
 pub trait Component: Sized + 'static {
-  fn render(&self, children: VNode) -> VNode;
+  fn render(&self, children: VNode) -> impl Into<VNode>;
 
+  #[doc(hidden)]
   fn js_render(props: &JsValue) -> Result<JsValue, JsValue>
   where
     Self: TryFrom<JsValue, Error = JsValue>,
@@ -28,7 +29,7 @@ pub trait Component: Sized + 'static {
     let component = Self::try_from(props.clone())?;
     let children = CHILDREN.with(|children| Reflect::get(props, children))?;
 
-    Ok(component.render(VNode(children)).into())
+    Ok(component.render(VNode(children)).into().into())
   }
 
   fn extra_props(&self) -> Object {
@@ -49,17 +50,11 @@ pub trait Component: Sized + 'static {
     }
   }
 
-  fn build_with_extra_props(self, extra_props: &Object) -> VNode {
+  fn build(self, extra_props: &Object) -> VNode {
     let name = type_name::<Self>();
     let component = ComponentWrapper::from(self);
 
     VNode(create_rust_component(name, component, extra_props))
-  }
-
-  fn build(self) -> VNode {
-    let extra_props = self.extra_props();
-
-    self.build_with_extra_props(&extra_props)
   }
 }
 
@@ -70,7 +65,14 @@ pub trait DynComponent: 'static {
 
 impl<T: Component> DynComponent for T {
   fn render(&self, children: VNode) -> VNode {
-    Component::render(self, children)
+    Component::render(self, children).into()
+  }
+}
+
+impl<T: Component> From<T> for VNode {
+  fn from(component: T) -> Self {
+    let extra_props = component.extra_props();
+    component.build(&extra_props)
   }
 }
 

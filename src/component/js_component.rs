@@ -18,7 +18,7 @@ impl<T> Component for JsComponent<T>
 where
   T: AsRef<JsValue> + 'static,
 {
-  fn render(&self, _children: VNode) -> VNode {
+  fn render(&self, _children: VNode) -> impl Into<VNode> {
     VNode::empty()
   }
 
@@ -26,7 +26,7 @@ where
     self.props.clone()
   }
 
-  fn build_with_extra_props(self, extra_props: &Object) -> VNode {
+  fn build(self, extra_props: &Object) -> VNode {
     VNode(create_element(self.typ.as_ref(), extra_props))
   }
 }
