@@ -21,8 +21,8 @@ impl<C: Component> Component for WithChildren<C> {
     self.component.render(children)
   }
 
-  fn extra_props(&self) -> Object {
-    let props = self.component.extra_props();
+  fn props(&self) -> Object {
+    let props = self.component.props();
 
     CHILDREN.with(|children| {
       Reflect::set(&props, &children, &self.children).unwrap_throw()
@@ -31,7 +31,7 @@ impl<C: Component> Component for WithChildren<C> {
     props
   }
 
-  fn build(self, extra_props: &Object) -> VNode {
-    self.component.build(extra_props)
+  fn build(self, props: &Object) -> VNode {
+    self.component.build(props)
   }
 }

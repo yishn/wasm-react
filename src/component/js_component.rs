@@ -22,12 +22,12 @@ where
     VNode::empty()
   }
 
-  fn extra_props(&self) -> Object {
+  fn props(&self) -> Object {
     self.props.clone()
   }
 
-  fn build(self, extra_props: &Object) -> VNode {
-    VNode(create_element(self.typ.as_ref(), extra_props))
+  fn build(self, props: &Object) -> VNode {
+    VNode(create_element(self.typ.as_ref(), props))
   }
 }
 

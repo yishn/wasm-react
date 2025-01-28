@@ -32,7 +32,7 @@ pub trait Component: Sized + 'static {
     Ok(component.render(VNode(children)).into().into())
   }
 
-  fn extra_props(&self) -> Object {
+  fn props(&self) -> Object {
     Object::new()
   }
 
@@ -50,11 +50,11 @@ pub trait Component: Sized + 'static {
     }
   }
 
-  fn build(self, extra_props: &Object) -> VNode {
+  fn build(self, props: &Object) -> VNode {
     let name = type_name::<Self>();
     let component = ComponentWrapper::from(self);
 
-    VNode(create_rust_component(name, component, extra_props))
+    VNode(create_rust_component(name, component, props))
   }
 }
 
@@ -71,7 +71,7 @@ impl<T: Component> DynComponent for T {
 
 impl<T: Component> From<T> for VNode {
   fn from(component: T) -> Self {
-    let extra_props = component.extra_props();
+    let extra_props = component.props();
     component.build(&extra_props)
   }
 }

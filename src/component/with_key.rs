@@ -36,15 +36,15 @@ impl<C: Component> Component for WithKey<C> {
     self.component.render(children)
   }
 
-  fn extra_props(&self) -> Object {
-    let props = self.component.extra_props();
+  fn props(&self) -> Object {
+    let props = self.component.props();
 
     KEY.with(|key| Reflect::set(&props, &key, &self.key).unwrap_throw());
 
     props
   }
 
-  fn build(self, extra_props: &Object) -> VNode {
-    self.component.build(extra_props)
+  fn build(self, props: &Object) -> VNode {
+    self.component.build(props)
   }
 }
