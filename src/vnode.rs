@@ -1,8 +1,15 @@
 use js_sys::{Array, JsString};
+use std::ops::Deref;
 use wasm_bindgen::JsValue;
 
 #[derive(Debug, Clone)]
 pub struct VNode(pub(crate) JsValue);
+
+impl VNode {
+  pub fn empty() -> Self {
+    VNode::default()
+  }
+}
 
 impl Default for VNode {
   fn default() -> Self {
@@ -12,6 +19,14 @@ impl Default for VNode {
 
 impl AsRef<JsValue> for VNode {
   fn as_ref(&self) -> &JsValue {
+    &self.0
+  }
+}
+
+impl Deref for VNode {
+  type Target = JsValue;
+
+  fn deref(&self) -> &Self::Target {
     &self.0
   }
 }
