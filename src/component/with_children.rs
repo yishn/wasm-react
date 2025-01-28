@@ -30,4 +30,8 @@ impl<C: Component> Component for WithChildren<C> {
 
     props
   }
+
+  fn build_with_extra_props(self, extra_props: &Object) -> VNode {
+    self.component.build_with_extra_props(extra_props)
+  }
 }

@@ -1,5 +1,5 @@
 use wasm_bindgen::JsValue;
-use wasm_react::{Component, Tag, VNode};
+use wasm_react::{export_components, Component, Tag, VNode};
 
 pub struct App;
 
@@ -22,4 +22,8 @@ impl TryFrom<JsValue> for App {
   fn try_from(_value: JsValue) -> Result<Self, Self::Error> {
     Ok(App)
   }
+}
+
+export_components! {
+  App,
 }

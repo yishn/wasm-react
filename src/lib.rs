@@ -2,10 +2,13 @@ mod component;
 mod dom;
 mod react_bindings;
 mod vnode;
+mod macros;
 
 pub use component::*;
 pub use dom::*;
 pub use vnode::*;
+#[doc(hidden)]
+pub use paste::paste;
 
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 

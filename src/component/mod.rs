@@ -7,12 +7,29 @@ pub use with_children::*;
 pub use with_key::*;
 
 use crate::{react_bindings::create_rust_component, VNode};
-use js_sys::Object;
+use js_sys::{JsString, Object, Reflect};
 use std::any::type_name;
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
+#[wasm_bindgen]
+#[rustfmt::skip]
+extern "C" {
+  #[wasm_bindgen(thread_local_v2, static_string)]
+  static CHILDREN: JsString = "children";
+}
+
 pub trait Component: Sized + 'static {
   fn render(&self, children: VNode) -> VNode;
+
+  fn js_render(props: &JsValue) -> Result<JsValue, JsValue>
+  where
+    Self: TryFrom<JsValue, Error = JsValue>,
+  {
+    let component = Self::try_from(props.clone())?;
+    let children = CHILDREN.with(|children| Reflect::get(props, children))?;
+
+    Ok(component.render(VNode(children)).into())
+  }
 
   fn extra_props(&self) -> Object {
     Object::new()
