@@ -5,13 +5,19 @@ use std::marker::PhantomData;
 use wasm_bindgen::{JsValue, UnwrapThrowExt};
 
 #[derive(Debug, Clone)]
-pub struct JsComponent<M = ()> {
-  typ: JsValue,
+pub struct JsComponent<T>
+where
+  T: AsRef<JsValue>,
+{
+  typ: T,
   props: Object,
-  phantom: PhantomData<M>,
+  phantom: PhantomData<T>,
 }
 
-impl<M: 'static> Component for JsComponent<M> {
+impl<T> Component for JsComponent<T>
+where
+  T: AsRef<JsValue> + 'static,
+{
   fn render(&self, _children: VNode) -> VNode {
     VNode::empty()
   }
@@ -21,12 +27,15 @@ impl<M: 'static> Component for JsComponent<M> {
   }
 
   fn build_with_extra_props(self, extra_props: &Object) -> VNode {
-    VNode(create_element(&self.typ, extra_props))
+    VNode(create_element(self.typ.as_ref(), extra_props))
   }
 }
 
-impl<M> JsComponent<M> {
-  pub fn new(typ: JsValue) -> Self {
+impl<T> JsComponent<T>
+where
+  T: AsRef<JsValue>,
+{
+  pub fn new(typ: T) -> Self {
     Self {
       typ,
       props: Object::new(),

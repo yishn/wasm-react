@@ -1,0 +1,7 @@
+{
+  "type": "module",
+  "devDependencies": {
+    "serve": "^14.2.4",
+    "wasm-pack": "^0.13.1"
+  }
+}

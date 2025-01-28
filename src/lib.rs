@@ -1,8 +1,10 @@
 mod component;
+mod dom;
 mod react_bindings;
 mod vnode;
 
 pub use component::*;
+pub use dom::*;
 pub use vnode::*;
 
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
