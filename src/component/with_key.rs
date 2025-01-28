@@ -1,4 +1,4 @@
-use super::{Component, ComponentWithChildren};
+use super::Component;
 use crate::VNode;
 use js_sys::{JsString, Object, Reflect};
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue, UnwrapThrowExt};
@@ -31,11 +31,9 @@ extern "C" {
   static KEY: JsString = "key";
 }
 
-impl<C: ComponentWithChildren> ComponentWithChildren for WithKey<C> {}
-
 impl<C: Component> Component for WithKey<C> {
-  fn render(&self) -> VNode {
-    self.component.render()
+  fn render(&self, children: VNode) -> VNode {
+    self.component.render(children)
   }
 
   fn extra_props(&self) -> Object {

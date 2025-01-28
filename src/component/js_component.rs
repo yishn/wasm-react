@@ -1,4 +1,4 @@
-use super::{Component, ComponentWithChildren};
+use super::Component;
 use crate::{react_bindings::create_element, VNode};
 use js_sys::{JsString, Object, Reflect};
 use std::marker::PhantomData;
@@ -12,7 +12,7 @@ pub struct JsComponent<M = ()> {
 }
 
 impl<M: 'static> Component for JsComponent<M> {
-  fn render(&self) -> VNode {
+  fn render(&self, _children: VNode) -> VNode {
     VNode::empty()
   }
 

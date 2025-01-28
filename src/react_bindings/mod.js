@@ -27,7 +27,7 @@ export function createRustComponent(name, component, extraProps) {
       // Get the `ComponentWrapper`
       const componentWrapper = props.component;
 
-      return componentWrapper.render();
+      return componentWrapper.render(props.children);
     },
     { displayName: name }
   );

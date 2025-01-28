@@ -12,7 +12,7 @@ use std::any::type_name;
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
 pub trait Component: Sized + 'static {
-  fn render(&self) -> VNode;
+  fn render(&self, children: VNode) -> VNode;
 
   fn extra_props(&self) -> Object {
     Object::new()
@@ -25,10 +25,7 @@ pub trait Component: Sized + 'static {
     }
   }
 
-  fn children(self, children: impl Into<VNode>) -> WithChildren<Self>
-  where
-    Self: ComponentWithChildren,
-  {
+  fn children(self, children: impl Into<VNode>) -> WithChildren<Self> {
     WithChildren {
       component: self,
       children: children.into(),
@@ -49,16 +46,14 @@ pub trait Component: Sized + 'static {
   }
 }
 
-pub trait ComponentWithChildren: Component {}
-
 #[doc(hidden)]
 pub trait DynComponent: 'static {
-  fn render(&self) -> VNode;
+  fn render(&self, children: VNode) -> VNode;
 }
 
 impl<T: Component> DynComponent for T {
-  fn render(&self) -> VNode {
-    Component::render(self)
+  fn render(&self, children: VNode) -> VNode {
+    Component::render(self, children)
   }
 }
 
@@ -74,7 +69,7 @@ impl ComponentWrapper {
 
 #[wasm_bindgen(js_class = __WasmReact_ComponentWrapper)]
 impl ComponentWrapper {
-  pub fn render(&self) -> JsValue {
-    self.0.render().into()
+  pub fn render(&self, children: JsValue) -> JsValue {
+    self.0.render(VNode(children)).into()
   }
 }
