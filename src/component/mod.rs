@@ -1,3 +1,4 @@
+mod import_export;
 mod js_component;
 mod with_children;
 mod with_key;

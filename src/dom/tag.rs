@@ -16,3 +16,18 @@ impl Tag {
     JsComponent::new(Tag(typ.into()))
   }
 }
+
+#[macro_export]
+macro_rules! h {
+  (@internal $tag:block $( #$id:literal )? $( .$( $classnames:tt )+ )?) => {
+    $tag
+    $( .id($id) )?
+    $( .classname(&$crate::classnames!(.$( $classnames )+)) )?
+  };
+  ($tag:literal $( $tt:tt )*) => {
+    $crate::h!(@internal { $crate::Tag::new($tag) } $( $tt )*)
+  };
+  ($tag:ident $( $tt:tt )*) => {
+    $crate::h!(@internal { $crate::Tag::new(stringify!($tag)) } $( $tt )*)
+  };
+}
