@@ -27,7 +27,7 @@ macro_rules! export_components {
         $Component: $crate::Component
           + TryFrom<::wasm_bindgen::JsValue, Error = ::wasm_bindgen::JsValue>
       {
-        $Component::js_render(&props)
+        <$Component as $crate::Component>::js_render(&props)
       }
     }
 
