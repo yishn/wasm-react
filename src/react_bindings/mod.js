@@ -51,3 +51,8 @@ export function useOwner(init, callback) {
 export function useRef(init, callback) {
   return useOwner(init, callback);
 }
+
+export function useUpdate() {
+  const [, set] = React.useState({});
+  return () => set({});
+}

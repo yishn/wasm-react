@@ -3,6 +3,7 @@ use crate::react_bindings;
 use generational_box::{GenerationalBox, GenerationalRef, GenerationalRefMut};
 use std::{
   any::Any,
+  fmt::Debug,
   marker::PhantomData,
   ops::{Deref, DerefMut},
 };
@@ -13,7 +14,6 @@ use wasm_bindgen::{prelude::wasm_bindgen, UnwrapThrowExt};
 #[derive(Debug, Clone, Copy)]
 pub struct AnyRefContainer(GenerationalBox<Box<dyn Any>>);
 
-#[derive(Debug)]
 pub struct RefContainerRef<T>(
   GenerationalRef<std::cell::Ref<'static, Box<dyn Any>>>,
   PhantomData<T>,
@@ -46,7 +46,6 @@ impl<T: 'static> DerefMut for RefContainerRefMut<T> {
   }
 }
 
-#[derive(Debug, Clone, Copy)]
 pub struct RefContainer<T>(AnyRefContainer, PhantomData<T>);
 
 impl<T: 'static> RefContainer<T> {
@@ -62,6 +61,23 @@ impl<T: 'static> RefContainer<T> {
     *self.current_mut() = value;
   }
 }
+
+impl<T> Debug for RefContainer<T> {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    f.debug_tuple("RefContainer")
+      .field(&self.0)
+      .field(&self.1)
+      .finish()
+  }
+}
+
+impl<T> Clone for RefContainer<T> {
+  fn clone(&self) -> Self {
+    Self(self.0, PhantomData)
+  }
+}
+
+impl<T> Copy for RefContainer<T> {}
 
 pub fn use_ref<T: 'static>(init: impl Fn() -> T) -> RefContainer<T> {
   let owner = use_owner();

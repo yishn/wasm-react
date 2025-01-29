@@ -1,5 +1,6 @@
 use crate::hooks::{AnyRefContainer, OwnerContainer};
 use crate::ComponentWrapper;
+use js_sys::Function;
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
 #[wasm_bindgen(module = "/src/react_bindings/mod.js")]
@@ -31,4 +32,7 @@ extern "C" {
     init: &dyn Fn() -> AnyRefContainer,
     callback: &mut dyn FnMut(&AnyRefContainer),
   );
+
+  #[wasm_bindgen(js_name = useUpdate)]
+  pub fn use_update() -> Function;
 }

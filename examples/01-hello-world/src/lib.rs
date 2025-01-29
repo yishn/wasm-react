@@ -1,17 +1,23 @@
 use wasm_bindgen::JsValue;
-use wasm_react::{export_components, h, Component, VNode};
+use wasm_react::{export_components, h, hooks::use_state, Component, VNode};
 
 struct App;
 
 impl Component for App {
   fn render(&self, _children: VNode) -> impl Into<VNode> {
+    let (counter, counter_mut) = use_state(|| 0);
+
+    counter_mut.lazy_set(5);
+
     (
       h!(h1."title").children((
         "Hello ", //
         h!(em).children("World"),
         "!",
       )),
-      Counter { count: 0 },
+      Counter {
+        count: *counter.get(),
+      },
     )
   }
 }
