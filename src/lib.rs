@@ -1,5 +1,6 @@
 mod component;
 mod dom;
+pub mod hooks;
 mod react_bindings;
 mod vnode;
 

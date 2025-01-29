@@ -1,3 +1,4 @@
+use crate::hooks::{AnyRefContainer, OwnerContainer};
 use crate::ComponentWrapper;
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
@@ -18,4 +19,16 @@ extern "C" {
     component: ComponentWrapper,
     extra_props: &JsValue,
   ) -> JsValue;
+
+  #[wasm_bindgen(js_name = useOwner)]
+  pub fn use_owner(
+    init: &dyn Fn() -> OwnerContainer,
+    callback: &mut dyn FnMut(&OwnerContainer),
+  );
+
+  #[wasm_bindgen(js_name = useRef)]
+  pub fn use_ref(
+    init: &dyn Fn() -> AnyRefContainer,
+    callback: &mut dyn FnMut(&AnyRefContainer),
+  );
 }
