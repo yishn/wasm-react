@@ -16,17 +16,23 @@ extern "C" {
 pub trait Component: Sized + 'static {
   fn render(&self, children: VNode) -> impl Into<VNode>;
 
+  fn name() -> &'static str {
+    type_name::<Self>()
+  }
+
+  fn prerender(&self) {
+    use_owner_setup();
+  }
+
   #[doc(hidden)]
   fn js_render(props: &JsValue) -> Result<JsValue, JsValue>
   where
     Self: TryFrom<JsValue, Error = JsValue>,
   {
-    use_owner_setup();
-
     let component = Self::try_from(props.clone())?;
     let children = CHILDREN.with(|children| Reflect::get(props, children))?;
 
-    Ok(component.render(VNode(children)).into().into())
+    Ok(DynComponent::render(&component, VNode(children)).into())
   }
 
   fn props(&self) -> Object {
@@ -48,7 +54,7 @@ pub trait Component: Sized + 'static {
   }
 
   fn build(self, props: &Object) -> VNode {
-    let name = type_name::<Self>();
+    let name = Self::name();
     let component = ComponentWrapper::from(self);
 
     VNode(create_rust_component(name, component, props))
@@ -62,6 +68,7 @@ pub trait DynComponent: 'static {
 
 impl<T: Component> DynComponent for T {
   fn render(&self, children: VNode) -> VNode {
+    Component::prerender(self);
     Component::render(self, children).into()
   }
 }

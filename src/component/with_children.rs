@@ -21,6 +21,10 @@ impl<C: Component> Component for WithChildren<C> {
     self.component.render(children)
   }
 
+  fn name() -> &'static str {
+    C::name()
+  }
+
   fn props(&self) -> Object {
     let props = self.component.props();
 
