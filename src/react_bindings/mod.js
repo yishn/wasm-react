@@ -38,7 +38,21 @@ export function createRustComponent(name, component, extraProps) {
   });
 }
 
-export function useOwner(init, callback) {
+let ownerRef;
+
+export function useOwnerSetup(init) {
+  ownerRef = React.useRef(null);
+
+  if (ownerRef.current == null) {
+    ownerRef.current = init();
+  }
+}
+
+export function useOwner(callback) {
+  callback(ownerRef.current);
+}
+
+export function useRef(init, callback) {
   const ref = React.useRef(null);
 
   if (ref.current == null) {
@@ -46,10 +60,6 @@ export function useOwner(init, callback) {
   }
 
   callback(ref.current);
-}
-
-export function useRef(init, callback) {
-  return useOwner(init, callback);
 }
 
 export function useUpdate() {

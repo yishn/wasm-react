@@ -21,15 +21,16 @@ impl Deref for OwnerContainer {
   }
 }
 
+pub(crate) fn use_owner_setup() {
+  react_bindings::use_owner_setup(&|| OwnerContainer::new());
+}
+
 pub(super) fn use_owner() -> OwnerContainer {
   let mut result = None;
 
-  react_bindings::use_owner(
-    &|| OwnerContainer::new(),
-    &mut |owner_container| {
-      result = Some(owner_container.clone());
-    },
-  );
+  react_bindings::use_owner(&mut |owner_container| {
+    result = Some(owner_container.clone());
+  });
 
   result.unwrap_throw()
 }

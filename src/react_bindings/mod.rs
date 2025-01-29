@@ -21,11 +21,11 @@ extern "C" {
     extra_props: &JsValue,
   ) -> JsValue;
 
+  #[wasm_bindgen(js_name = useOwnerSetup)]
+  pub fn use_owner_setup(init: &dyn Fn() -> OwnerContainer);
+
   #[wasm_bindgen(js_name = useOwner)]
-  pub fn use_owner(
-    init: &dyn Fn() -> OwnerContainer,
-    callback: &mut dyn FnMut(&OwnerContainer),
-  );
+  pub fn use_owner(callback: &mut dyn FnMut(&OwnerContainer));
 
   #[wasm_bindgen(js_name = useRef)]
   pub fn use_ref(

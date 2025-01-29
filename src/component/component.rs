@@ -1,5 +1,7 @@
 use super::{KeyType, WithChildren, WithKey};
-use crate::{react_bindings::create_rust_component, VNode};
+use crate::{
+  hooks::use_owner_setup, react_bindings::create_rust_component, VNode,
+};
 use js_sys::{JsString, Object, Reflect};
 use std::any::type_name;
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
@@ -19,6 +21,8 @@ pub trait Component: Sized + 'static {
   where
     Self: TryFrom<JsValue, Error = JsValue>,
   {
+    use_owner_setup();
+
     let component = Self::try_from(props.clone())?;
     let children = CHILDREN.with(|children| Reflect::get(props, children))?;
 
