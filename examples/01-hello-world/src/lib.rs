@@ -1,13 +1,13 @@
 use wasm_bindgen::JsValue;
-use wasm_react::{export_components, h, hooks::use_state, Component, VNode};
+use wasm_react::{
+  export_components, h, hooks::use_state, Callback, Component, VNode, Void,
+};
 
 struct App;
 
 impl Component for App {
   fn render(&self, _children: VNode) -> impl Into<VNode> {
     let (counter, counter_mut) = use_state(|| 0);
-
-    counter_mut.lazy_set(5);
 
     (
       h!(h1."title").children((
@@ -17,6 +17,12 @@ impl Component for App {
       )),
       Counter {
         count: *counter.get(),
+        on_increment: Callback::new(move |_| {
+          counter_mut.update(|counter| counter + 1)
+        }),
+        on_decrement: Callback::new(move |_| {
+          counter_mut.update(|counter| counter - 1)
+        }),
       },
     )
   }
@@ -36,16 +42,25 @@ export_components! {
 
 struct Counter {
   count: i32,
+  on_increment: Callback<Void>,
+  on_decrement: Callback<Void>,
 }
 
 impl Component for Counter {
   fn render(&self, _children: VNode) -> impl Into<VNode> {
+    let on_decrement = self.on_decrement;
+    let on_increment = self.on_increment;
+
     h!(div."counter").children((
       h!(span).children(("Counter: ", self.count)),
       " ",
-      h!(button).children("Decrement"),
+      h!(button)
+        .on_click(move |_| on_decrement.call(Void))
+        .children("Decrement"),
       " ",
-      h!(button).children("Increment"),
+      h!(button)
+        .on_click(move |_| on_increment.call(Void))
+        .children("Increment"),
     ))
   }
 }

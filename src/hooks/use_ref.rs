@@ -1,4 +1,4 @@
-use super::use_owner;
+use super::get_owner;
 use crate::react_bindings;
 use generational_box::{GenerationalBox, GenerationalRef, GenerationalRefMut};
 use std::{
@@ -80,7 +80,7 @@ impl<T> Clone for RefContainer<T> {
 impl<T> Copy for RefContainer<T> {}
 
 pub fn use_ref<T: 'static>(init: impl Fn() -> T) -> RefContainer<T> {
-  let owner = use_owner();
+  let owner = get_owner();
   let mut result = None;
 
   react_bindings::use_ref(

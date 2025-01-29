@@ -1,7 +1,7 @@
 use super::Tag;
-use crate::JsComponent;
+use crate::{Callback, JsComponent};
 use paste::paste;
-use wasm_bindgen::{closure::Closure, intern};
+use wasm_bindgen::intern;
 use web_sys::{
   AnimationEvent, DragEvent, Event, FocusEvent, KeyboardEvent, MouseEvent,
   PointerEvent, TransitionEvent, UiEvent, WheelEvent,
@@ -12,19 +12,13 @@ macro_rules! impl_event {
     $(
       paste! {
         #[allow(missing_docs)]
-        pub fn [<on_ $Event:lower>](self, f: impl FnMut($E) + 'static) -> Self {
-          self.prop(
-            intern(stringify!([<on $Event>])),
-            Closure::new(f).into_js_value()
-          )
+        pub fn [<on_ $Event:lower>](self, f: impl Into<Callback<$E>>) -> Self {
+          self.prop(intern(stringify!([<on $Event>])), f.into())
         }
 
         #[allow(missing_docs)]
-        pub fn [<on_ $Event:lower _capture>](self, f: impl FnMut($E) + 'static) -> Self {
-          self.prop(
-            intern(stringify!([<on $Event Capture>])),
-            Closure::new(f).into_js_value()
-          )
+        pub fn [<on_ $Event:lower _capture>](self, f: impl Into<Callback<$E>>) -> Self {
+          self.prop(intern(stringify!([<on $Event Capture>])), f.into())
         }
       }
     )*

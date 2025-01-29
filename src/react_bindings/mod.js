@@ -48,8 +48,10 @@ export function useOwnerSetup(init) {
   }
 }
 
-export function useOwner(callback) {
-  callback(ownerRef.current);
+export function getOwner(callback) {
+  if (ownerRef != null) {
+    callback(ownerRef.current);
+  }
 }
 
 export function useRef(init, callback) {

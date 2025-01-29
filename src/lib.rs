@@ -3,7 +3,9 @@ mod dom;
 pub mod hooks;
 mod react_bindings;
 mod vnode;
+mod callback;
 
+pub use callback::*;
 pub use component::*;
 pub use dom::*;
 #[doc(hidden)]

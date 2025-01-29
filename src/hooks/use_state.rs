@@ -1,5 +1,6 @@
-use super::{use_ref, RefContainer, RefContainerRef};
+use super::{get_owner, use_ref, RefContainer, RefContainerRef};
 use crate::react_bindings::use_update;
+use generational_box::GenerationalBox;
 use js_sys::Function;
 use std::{fmt::Debug, ops::Deref};
 use wasm_bindgen::{JsValue, UnwrapThrowExt};
@@ -36,12 +37,12 @@ impl<T> Clone for State<T> {
 
 impl<T> Copy for State<T> {}
 
-pub struct StateMut<T>(RefContainer<Option<T>>, RefContainer<Function>);
+pub struct StateMut<T>(RefContainer<Option<T>>, GenerationalBox<Function>);
 
 impl<T: 'static> StateMut<T> {
   pub fn set(&self, value: T) {
     self.0.set_current(Some(value));
-    self.1.current().call0(&JsValue::NULL).unwrap_throw();
+    self.1.read().call0(&JsValue::NULL).unwrap_throw();
   }
 
   pub fn update(&self, updater: impl FnOnce(T) -> T) {
@@ -77,8 +78,9 @@ impl<T> Clone for StateMut<T> {
 impl<T> Copy for StateMut<T> {}
 
 pub fn use_state<T: 'static>(init: impl Fn() -> T) -> (State<T>, StateMut<T>) {
+  let owner = get_owner();
   let ref_container = use_ref(|| Some(init()));
-  let update = use_ref(|| use_update());
+  let update = owner.insert(use_update());
 
   (State(ref_container), StateMut(ref_container, update))
 }
