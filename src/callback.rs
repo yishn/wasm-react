@@ -1,4 +1,4 @@
-use crate::hooks::get_owner;
+use crate::hooks::get_tmp_owner;
 use generational_box::GenerationalBox;
 use std::{fmt::Debug, ops::DerefMut};
 use wasm_bindgen::{
@@ -71,7 +71,7 @@ where
   U: 'static,
 {
   pub fn new(f: impl FnMut(T) -> U + 'static) -> Self {
-    let owner = get_owner();
+    let owner = get_tmp_owner();
 
     Self {
       closure: owner.insert(Box::new(f)),

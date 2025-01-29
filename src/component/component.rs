@@ -1,6 +1,8 @@
 use super::{KeyType, WithChildren, WithKey};
 use crate::{
-  hooks::use_owner_setup, react_bindings::create_rust_component, VNode,
+  hooks::{use_owner_setup, use_tmp_owner_setup},
+  react_bindings::create_rust_component,
+  VNode,
 };
 use js_sys::{JsString, Object, Reflect};
 use std::any::type_name;
@@ -22,6 +24,7 @@ pub trait Component: Sized + 'static {
 
   fn prerender(&self) {
     use_owner_setup();
+    use_tmp_owner_setup();
   }
 
   #[doc(hidden)]

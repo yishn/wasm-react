@@ -27,6 +27,12 @@ extern "C" {
   #[wasm_bindgen(js_name = getOwner)]
   pub fn get_owner(callback: &mut dyn FnMut(&OwnerContainer));
 
+  #[wasm_bindgen(js_name = useTmpOwnerSetup)]
+  pub fn use_tmp_owner_setup(init: &dyn Fn() -> OwnerContainer);
+
+  #[wasm_bindgen(js_name = getTmpOwner)]
+  pub fn get_tmp_owner(callback: &mut dyn FnMut(&OwnerContainer));
+
   #[wasm_bindgen(js_name = useRef)]
   pub fn use_ref(
     init: &dyn Fn() -> AnyRefContainer,

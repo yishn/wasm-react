@@ -54,6 +54,22 @@ export function getOwner(callback) {
   }
 }
 
+let tmpOwnerRef;
+
+export function useTmpOwnerSetup(init) {
+  tmpOwnerRef = React.useRef(null);
+
+  React.useEffect(function setUpTmpOwner() {
+    tmpOwnerRef.current = init();
+  });
+}
+
+export function getTmpOwner(callback) {
+  if (tmpOwnerRef != null) {
+    callback(tmpOwnerRef.current);
+  }
+}
+
 export function useRef(init, callback) {
   const ref = React.useRef(null);
 
