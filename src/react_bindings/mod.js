@@ -83,3 +83,15 @@ export function useUpdate() {
   const [, set] = React.useState({});
   return () => set({});
 }
+
+export function useEffect(f, dep) {
+  React.useEffect(f, [dep]);
+}
+
+export function useLayoutEffect(f, dep) {
+  React.useLayoutEffect(f, [dep]);
+}
+
+export function useInsertionEffect(f, dep) {
+  React.useInsertionEffect(f, [dep]);
+}

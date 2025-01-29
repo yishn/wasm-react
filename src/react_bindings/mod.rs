@@ -38,4 +38,13 @@ extern "C" {
 
   #[wasm_bindgen(js_name = useUpdate)]
   pub fn use_update() -> Function;
+
+  #[wasm_bindgen(js_name = useEffect)]
+  pub fn use_effect(f: &JsValue, dep: u8);
+
+  #[wasm_bindgen(js_name = useLayoutEffect)]
+  pub fn use_layout_effect(f: &JsValue, dep: u8);
+
+  #[wasm_bindgen(js_name = useInsertionEffect)]
+  pub fn use_insertion_effect(f: &JsValue, dep: u8);
 }
