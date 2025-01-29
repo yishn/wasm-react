@@ -20,19 +20,21 @@ pub trait Component: Sized + 'static {
     type_name::<Self>()
   }
 
-  fn prerender(&self) {
+  fn prerender() {
     use_owner_setup();
   }
 
   #[doc(hidden)]
-  fn js_render(props: &JsValue) -> Result<JsValue, JsValue>
+  fn js_render(props: JsValue) -> Result<JsValue, JsValue>
   where
     Self: TryFrom<JsValue, Error = JsValue>,
   {
-    let component = Self::try_from(props.clone())?;
-    let children = CHILDREN.with(|children| Reflect::get(props, children))?;
+    Self::prerender();
 
-    Ok(DynComponent::render(&component, VNode(children)).into())
+    let children = CHILDREN.with(|children| Reflect::get(&props, children))?;
+    let component = Self::try_from(props)?;
+
+    Ok(Self::render(&component, VNode(children)).into().into())
   }
 
   fn props(&self) -> Object {
@@ -68,8 +70,8 @@ pub trait DynComponent: 'static {
 
 impl<T: Component> DynComponent for T {
   fn render(&self, children: VNode) -> VNode {
-    Component::prerender(self);
-    Component::render(self, children).into()
+    <Self as Component>::prerender();
+    <Self as Component>::render(self, children).into()
   }
 }
 
