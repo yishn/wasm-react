@@ -31,5 +31,8 @@ features = [
   "TransitionEvent",
 ]
 
+[features]
+default = ["web-sys"]
+
 [workspace]
 members = ["./examples/01-hello-world", "examples/01-hello-world"]
