@@ -35,10 +35,6 @@ pub(crate) fn get_owner() -> OwnerContainer {
   result.unwrap_throw()
 }
 
-pub(crate) fn use_tmp_owner_setup() {
-  react_bindings::use_tmp_owner_setup(&|| OwnerContainer::new());
-}
-
 pub(crate) fn get_tmp_owner() -> OwnerContainer {
   let mut result = None;
 

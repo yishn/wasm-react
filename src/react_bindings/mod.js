@@ -39,6 +39,7 @@ export function createRustComponent(name, component, extraProps) {
 }
 
 let ownerRef;
+let tmpOwnerRef;
 
 export function useOwnerSetup(init) {
   ownerRef = React.useRef(null);
@@ -46,6 +47,9 @@ export function useOwnerSetup(init) {
   if (ownerRef.current == null) {
     ownerRef.current = init();
   }
+
+  tmpOwnerRef = React.useRef(null);
+  tmpOwnerRef.current = init();
 }
 
 export function getOwner(callback) {
@@ -54,14 +58,9 @@ export function getOwner(callback) {
   }
 }
 
-let tmpOwnerRef;
-
 export function useTmpOwnerSetup(init) {
   tmpOwnerRef = React.useRef(null);
-
-  React.useEffect(function setUpTmpOwner() {
-    tmpOwnerRef.current = init();
-  });
+  tmpOwnerRef.current = init();
 }
 
 export function getTmpOwner(callback) {
