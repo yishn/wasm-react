@@ -5,6 +5,7 @@ mod use_owner;
 mod use_ref;
 mod use_state;
 
+pub use crate::react_bindings::use_id;
 pub use deps::*;
 pub use use_effect::*;
 pub use use_memo::*;
