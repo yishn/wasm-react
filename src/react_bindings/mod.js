@@ -20,14 +20,28 @@ export function createElement(type, props) {
 }
 
 const rustComponents = {};
+let ownerRef;
+let tmpOwnerRef;
 
 export function createRustComponent(name, component, extraProps) {
   rustComponents[name] ??= Object.assign(
     (props) => {
-      // Get the `ComponentWrapper`
-      const componentWrapper = props.component;
+      // Get `ComponentWrapper` struct
+      const component = props.component;
 
-      return componentWrapper.render(props.children);
+      // Set up owners
+      ownerRef = React.useRef(null);
+
+      if (ownerRef.current == null) {
+        ownerRef.current = component.newOwner();
+      }
+
+      tmpOwnerRef = React.useRef(null);
+      tmpOwnerRef.current?.free();
+      tmpOwnerRef.current = component.newOwner();
+
+      // Render
+      return component.render(props.children);
     },
     { displayName: name }
   );
@@ -36,21 +50,6 @@ export function createRustComponent(name, component, extraProps) {
     ...extraProps,
     component,
   });
-}
-
-let ownerRef;
-let tmpOwnerRef;
-
-export function useOwnerSetup(init) {
-  ownerRef = React.useRef(null);
-
-  if (ownerRef.current == null) {
-    ownerRef.current = init();
-  }
-
-  tmpOwnerRef = React.useRef(null);
-  tmpOwnerRef.current?.free();
-  tmpOwnerRef.current = init();
 }
 
 export function getOwner(callback) {

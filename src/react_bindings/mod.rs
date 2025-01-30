@@ -21,9 +21,6 @@ extern "C" {
     extra_props: &JsValue,
   ) -> JsValue;
 
-  #[wasm_bindgen(js_name = useOwnerSetup)]
-  pub fn use_owner_setup(init: &dyn Fn() -> OwnerContainer);
-
   #[wasm_bindgen(js_name = getOwner)]
   pub fn get_owner(callback: &mut dyn FnMut(&OwnerContainer));
 

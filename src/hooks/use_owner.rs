@@ -21,10 +21,6 @@ impl Deref for OwnerContainer {
   }
 }
 
-pub(crate) fn use_owner_setup() {
-  react_bindings::use_owner_setup(&|| OwnerContainer::new());
-}
-
 pub(crate) fn get_owner() -> OwnerContainer {
   let mut result = None;
 

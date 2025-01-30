@@ -1,6 +1,6 @@
 use super::{KeyType, WithChildren, WithKey};
 use crate::{
-  hooks::use_owner_setup, react_bindings::create_rust_component, VNode,
+  hooks::OwnerContainer, react_bindings::create_rust_component, VNode,
 };
 use js_sys::{JsString, Object, Reflect};
 use std::any::type_name;
@@ -20,21 +20,15 @@ pub trait Component: Sized + 'static {
     type_name::<Self>()
   }
 
-  fn prerender() {
-    use_owner_setup();
-  }
-
   #[doc(hidden)]
   fn js_render(props: JsValue) -> Result<JsValue, JsValue>
   where
     Self: TryFrom<JsValue, Error = JsValue>,
   {
-    Self::prerender();
-
     let children = CHILDREN.with(|children| Reflect::get(&props, children))?;
     let component = Self::try_from(props)?;
 
-    Ok(Self::render(&component, VNode(children)).into().into())
+    Ok(VNode::from(component.children(VNode(children))).into())
   }
 
   fn props(&self) -> Object {
@@ -70,8 +64,7 @@ pub trait DynComponent: 'static {
 
 impl<T: Component> DynComponent for T {
   fn render(&self, children: VNode) -> VNode {
-    <Self as Component>::prerender();
-    <Self as Component>::render(self, children).into()
+    Component::render(self, children).into()
   }
 }
 
@@ -94,6 +87,11 @@ impl ComponentWrapper {
 
 #[wasm_bindgen(js_class = __WasmReact_ComponentWrapper)]
 impl ComponentWrapper {
+  #[wasm_bindgen(js_name = newOwner)]
+  pub fn new_owner(&self) -> OwnerContainer {
+    OwnerContainer::new()
+  }
+
   pub fn render(&self, children: JsValue) -> JsValue {
     self.0.render(VNode(children)).into()
   }
