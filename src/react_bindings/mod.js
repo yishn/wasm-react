@@ -49,6 +49,7 @@ export function useOwnerSetup(init) {
   }
 
   tmpOwnerRef = React.useRef(null);
+  tmpOwnerRef.current?.free();
   tmpOwnerRef.current = init();
 }
 
@@ -56,11 +57,6 @@ export function getOwner(callback) {
   if (ownerRef != null) {
     callback(ownerRef.current);
   }
-}
-
-export function useTmpOwnerSetup(init) {
-  tmpOwnerRef = React.useRef(null);
-  tmpOwnerRef.current = init();
 }
 
 export function getTmpOwner(callback) {
