@@ -79,35 +79,32 @@ where
     }
   }
 
-  pub fn call(&self, arg: T) -> U {
+  pub fn call(self, arg: T) -> U {
     let mut closure = self.closure.write();
     closure(arg)
   }
 
-  pub fn to_closure(&self) -> impl FnMut(T) -> U + 'static {
-    let cb = *self;
-    move |arg| cb.call(arg)
+  pub fn to_closure(self) -> impl FnMut(T) -> U + 'static {
+    move |arg| self.call(arg)
   }
 
   /// Returns a new [`Callback`] by prepending the given closure to the callback.
-  pub fn premap<V>(&self, mut f: impl FnMut(V) -> T + 'static) -> Callback<V, U>
+  pub fn premap<V>(self, mut f: impl FnMut(V) -> T + 'static) -> Callback<V, U>
   where
     V: 'static,
   {
-    let cb = *self;
-    Callback::new(move |v| cb.call(f(v)))
+    Callback::new(move |v| self.call(f(v)))
   }
 
   /// Returns a new [`Callback`] by appending the given closure to the callback.
   pub fn postmap<V>(
-    &self,
+    self,
     mut f: impl FnMut(U) -> V + 'static,
   ) -> Callback<T, V>
   where
     V: 'static,
   {
-    let cb = *self;
-    Callback::new(move |t| f(cb.call(t)))
+    Callback::new(move |t| f(self.call(t)))
   }
 }
 

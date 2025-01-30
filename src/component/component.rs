@@ -15,7 +15,10 @@ extern "C" {
   static CHILDREN: JsString = "children";
 }
 
-pub trait Component: Sized + Copy + 'static {
+pub trait Component
+where
+  Self: Sized + Copy + 'static,
+{
   fn render(self, children: VNode) -> impl Into<VNode>;
 
   fn name() -> &'static str {

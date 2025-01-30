@@ -1,15 +1,17 @@
+mod callback;
 mod component;
 mod dom;
 pub mod hooks;
+mod prop;
 mod react_bindings;
 mod vnode;
-mod callback;
 
 pub use callback::*;
 pub use component::*;
 pub use dom::*;
 #[doc(hidden)]
 pub use paste::paste;
+pub use prop::*;
 pub use vnode::*;
 
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};

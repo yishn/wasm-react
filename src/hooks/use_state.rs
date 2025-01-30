@@ -18,7 +18,7 @@ impl<T: 'static> Deref for StateRef<T> {
 pub struct State<T>(RefContainer<Option<T>>);
 
 impl<T: 'static> State<T> {
-  pub fn get(&self) -> StateRef<T> {
+  pub fn get(self) -> StateRef<T> {
     StateRef(self.0.current())
   }
 }

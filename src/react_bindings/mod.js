@@ -45,7 +45,9 @@ export function createRustComponent(name, component, extraProps) {
 
       ownerRef = undefined;
       tmpOwnerRef = undefined;
-      oldTmpOwnerRef?.free();
+
+      setTimeout(() => oldTmpOwnerRef?.free());
+
       return result;
     },
     { displayName: name }
