@@ -3,6 +3,7 @@ use generational_box::{AnyStorage, Owner, UnsyncStorage};
 use std::ops::Deref;
 use wasm_bindgen::{prelude::wasm_bindgen, UnwrapThrowExt};
 
+#[doc(hidden)]
 #[wasm_bindgen(js_name = __WasmReact_OwnerContainer)]
 #[derive(Clone)]
 pub struct OwnerContainer(Owner);

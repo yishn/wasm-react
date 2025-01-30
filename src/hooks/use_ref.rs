@@ -27,12 +27,12 @@ impl<T: 'static> Deref for RefContainerRef<T> {
   }
 }
 
-pub struct RefContainerRefMut<T>(
+pub struct RefContainerMut<T>(
   GenerationalRefMut<std::cell::RefMut<'static, Box<dyn Any>>>,
   PhantomData<T>,
 );
 
-impl<T: 'static> Deref for RefContainerRefMut<T> {
+impl<T: 'static> Deref for RefContainerMut<T> {
   type Target = T;
 
   fn deref(&self) -> &Self::Target {
@@ -40,7 +40,7 @@ impl<T: 'static> Deref for RefContainerRefMut<T> {
   }
 }
 
-impl<T: 'static> DerefMut for RefContainerRefMut<T> {
+impl<T: 'static> DerefMut for RefContainerMut<T> {
   fn deref_mut(&mut self) -> &mut Self::Target {
     self.0.downcast_mut().unwrap_throw()
   }
@@ -53,8 +53,8 @@ impl<T: 'static> RefContainer<T> {
     RefContainerRef(self.0 .0.read(), PhantomData)
   }
 
-  pub fn current_mut(&self) -> RefContainerRefMut<T> {
-    RefContainerRefMut(self.0 .0.write(), PhantomData)
+  pub fn current_mut(&self) -> RefContainerMut<T> {
+    RefContainerMut(self.0 .0.write(), PhantomData)
   }
 
   pub fn set_current(&self, value: T) {
