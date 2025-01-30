@@ -1,6 +1,8 @@
 use super::{KeyType, WithChildren, WithKey};
 use crate::{
-  hooks::OwnerContainer, react_bindings::create_rust_component, VNode,
+  hooks::{get_tmp_owner, OwnerContainer},
+  react_bindings::create_rust_component,
+  VNode,
 };
 use js_sys::{JsString, Object, Reflect};
 use std::any::type_name;
@@ -13,8 +15,8 @@ extern "C" {
   static CHILDREN: JsString = "children";
 }
 
-pub trait Component: Sized + 'static {
-  fn render(&self, children: VNode) -> impl Into<VNode>;
+pub trait Component: Sized + Copy + 'static {
+  fn render(self, children: VNode) -> impl Into<VNode>;
 
   fn name() -> &'static str {
     type_name::<Self>()
@@ -25,27 +27,35 @@ pub trait Component: Sized + 'static {
   where
     Self: TryFrom<JsValue, Error = JsValue>,
   {
-    let children = CHILDREN.with(|children| Reflect::get(&props, children))?;
     let component = Self::try_from(props)?;
+    let props = component.props();
 
-    Ok(VNode::from(component.children(VNode(children))).into())
+    CHILDREN.with(|children| {
+      Reflect::set(&props, children, &Reflect::get(&props, children)?)
+    })?;
+
+    Ok(component.build(&props).into())
   }
 
-  fn props(&self) -> Object {
+  fn props(self) -> Object {
     Object::new()
   }
 
   fn key(self, key: impl KeyType) -> WithKey<Self> {
+    let owner = get_tmp_owner();
+
     WithKey {
       component: self,
-      key: key.into(),
+      key: owner.insert(key.into()),
     }
   }
 
   fn children(self, children: impl Into<VNode>) -> WithChildren<Self> {
+    let owner = get_tmp_owner();
+
     WithChildren {
       component: self,
-      children: children.into(),
+      children: owner.insert(children.into()),
     }
   }
 
@@ -64,14 +74,14 @@ pub trait DynComponent: 'static {
 
 impl<T: Component> DynComponent for T {
   fn render(&self, children: VNode) -> VNode {
-    Component::render(self, children).into()
+    Component::render(*self, children).into()
   }
 }
 
 impl<T: Component> From<T> for VNode {
   fn from(component: T) -> Self {
-    let extra_props = component.props();
-    component.build(&extra_props)
+    let props = component.props();
+    component.build(&props)
   }
 }
 

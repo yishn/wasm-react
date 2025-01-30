@@ -37,11 +37,16 @@ export function createRustComponent(name, component, extraProps) {
       }
 
       tmpOwnerRef = React.useRef(null);
-      tmpOwnerRef.current?.free();
+      const oldTmpOwnerRef = tmpOwnerRef.current;
       tmpOwnerRef.current = component.newOwner();
 
       // Render
-      return component.render(props.children);
+      const result = component.render(props.children);
+
+      ownerRef = undefined;
+      tmpOwnerRef = undefined;
+      oldTmpOwnerRef?.free();
+      return result;
     },
     { displayName: name }
   );

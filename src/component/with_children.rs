@@ -1,12 +1,13 @@
 use super::Component;
 use crate::VNode;
+use generational_box::GenerationalBox;
 use js_sys::{JsString, Object, Reflect};
 use wasm_bindgen::{prelude::wasm_bindgen, UnwrapThrowExt};
 
-#[derive(Debug, Default, Clone)]
-pub struct WithChildren<C: Component> {
+#[derive(Debug, Clone, Copy)]
+pub struct WithChildren<C> {
   pub(super) component: C,
-  pub(super) children: VNode,
+  pub(super) children: GenerationalBox<VNode>,
 }
 
 #[wasm_bindgen]
@@ -17,7 +18,7 @@ extern "C" {
 }
 
 impl<C: Component> Component for WithChildren<C> {
-  fn render(&self, children: VNode) -> impl Into<VNode> {
+  fn render(self, children: VNode) -> impl Into<VNode> {
     self.component.render(children)
   }
 
@@ -25,11 +26,11 @@ impl<C: Component> Component for WithChildren<C> {
     C::name()
   }
 
-  fn props(&self) -> Object {
+  fn props(self) -> Object {
     let props = self.component.props();
 
     CHILDREN.with(|children| {
-      Reflect::set(&props, &children, &self.children).unwrap_throw()
+      Reflect::set(&props, &children, &self.children.read()).unwrap_throw()
     });
 
     props

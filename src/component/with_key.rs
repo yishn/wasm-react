@@ -1,5 +1,6 @@
 use super::Component;
 use crate::VNode;
+use generational_box::GenerationalBox;
 use js_sys::{JsString, Object, Reflect};
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue, UnwrapThrowExt};
 
@@ -18,10 +19,16 @@ impl_key_type! {
   u8, u16, u32, u64, u128, usize,
 }
 
-#[derive(Debug, Default, PartialEq, Clone)]
-pub struct WithKey<C: Component> {
+#[derive(Debug, Clone, Copy)]
+pub struct WithKey<C> {
   pub(super) component: C,
-  pub(super) key: JsValue,
+  pub(super) key: GenerationalBox<JsValue>,
+}
+
+impl<C: PartialEq> PartialEq for WithKey<C> {
+  fn eq(&self, other: &Self) -> bool {
+    self.component == other.component
+  }
 }
 
 #[wasm_bindgen]
@@ -32,7 +39,7 @@ extern "C" {
 }
 
 impl<C: Component> Component for WithKey<C> {
-  fn render(&self, children: VNode) -> impl Into<VNode> {
+  fn render(self, children: VNode) -> impl Into<VNode> {
     self.component.render(children)
   }
 
@@ -40,10 +47,10 @@ impl<C: Component> Component for WithKey<C> {
     C::name()
   }
 
-  fn props(&self) -> Object {
+  fn props(self) -> Object {
     let props = self.component.props();
 
-    KEY.with(|key| Reflect::set(&props, &key, &self.key).unwrap_throw());
+    KEY.with(|key| Reflect::set(&props, &key, &self.key.read()).unwrap_throw());
 
     props
   }

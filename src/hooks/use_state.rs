@@ -40,17 +40,17 @@ impl<T> Copy for State<T> {}
 pub struct StateMut<T>(RefContainer<Option<T>>, GenerationalBox<Function>);
 
 impl<T: 'static> StateMut<T> {
-  pub fn set(&self, value: T) {
+  pub fn set(self, value: T) {
     self.0.set_current(Some(value));
     self.1.read().call0(&JsValue::NULL).unwrap_throw();
   }
 
-  pub fn update(&self, updater: impl FnOnce(T) -> T) {
+  pub fn update(self, updater: impl FnOnce(T) -> T) {
     let value = self.0.current_mut().take().unwrap_throw();
     self.set(updater(value));
   }
 
-  pub fn lazy_set(&self, value: T)
+  pub fn lazy_set(self, value: T)
   where
     T: PartialEq,
   {

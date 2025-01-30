@@ -29,7 +29,7 @@ pub(crate) fn get_owner() -> OwnerContainer {
     result = Some(owner_container.clone());
   });
 
-  result.unwrap_throw()
+  result.expect_throw("has to be called within a render function")
 }
 
 pub(crate) fn get_tmp_owner() -> OwnerContainer {
@@ -39,5 +39,5 @@ pub(crate) fn get_tmp_owner() -> OwnerContainer {
     result = Some(owner_container.clone());
   });
 
-  result.unwrap_throw()
+  result.expect_throw("has to be called within a render function")
 }

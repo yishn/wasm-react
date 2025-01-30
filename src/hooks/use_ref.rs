@@ -49,15 +49,15 @@ impl<T: 'static> DerefMut for RefContainerMut<T> {
 pub struct RefContainer<T>(AnyRefContainer, PhantomData<T>);
 
 impl<T: 'static> RefContainer<T> {
-  pub fn current(&self) -> RefContainerRef<T> {
+  pub fn current(self) -> RefContainerRef<T> {
     RefContainerRef(self.0 .0.read(), PhantomData)
   }
 
-  pub fn current_mut(&self) -> RefContainerMut<T> {
+  pub fn current_mut(self) -> RefContainerMut<T> {
     RefContainerMut(self.0 .0.write(), PhantomData)
   }
 
-  pub fn set_current(&self, value: T) {
+  pub fn set_current(self, value: T) {
     *self.current_mut() = value;
   }
 }

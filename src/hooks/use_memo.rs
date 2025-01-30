@@ -14,7 +14,7 @@ impl<T: 'static> Deref for MemoRef<T> {
 pub struct Memo<T>(RefContainer<T>);
 
 impl<T: 'static> Memo<T> {
-  pub fn get(&self) -> MemoRef<T> {
+  pub fn get(self) -> MemoRef<T> {
     MemoRef(self.0.current())
   }
 }
