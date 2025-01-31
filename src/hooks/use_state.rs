@@ -77,7 +77,9 @@ impl<T> Clone for StateMut<T> {
 
 impl<T> Copy for StateMut<T> {}
 
-pub fn use_state<T: 'static>(init: impl Fn() -> T) -> (State<T>, StateMut<T>) {
+pub fn use_state<T: 'static>(
+  init: impl FnOnce() -> T,
+) -> (State<T>, StateMut<T>) {
   let owner = get_owner();
   let ref_container = use_ref(|| Some(init()));
   let update = owner.insert(use_update());

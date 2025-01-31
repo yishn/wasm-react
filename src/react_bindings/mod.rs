@@ -1,6 +1,6 @@
 use crate::hooks::{AnyRefContainer, OwnerContainer};
 use crate::component::{ComponentWrapper, MemoComponentWrapper};
-use js_sys::Function;
+use js_sys::{Function, JsString};
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
 #[wasm_bindgen(module = "/src/react_bindings/mod.js")]
@@ -37,7 +37,7 @@ extern "C" {
 
   #[wasm_bindgen(js_name = useRef)]
   pub fn use_ref(
-    init: &dyn Fn() -> AnyRefContainer,
+    init: &mut dyn FnMut() -> AnyRefContainer,
     callback: &mut dyn FnMut(&AnyRefContainer),
   );
 
@@ -77,5 +77,5 @@ extern "C" {
   pub fn start_transition(f: &JsValue);
 
   #[wasm_bindgen(js_namespace = React, js_name = useId)]
-  pub fn use_id() -> String;
+  pub fn use_id() -> JsString;
 }

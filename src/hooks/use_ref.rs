@@ -79,12 +79,18 @@ impl<T> Clone for RefContainer<T> {
 
 impl<T> Copy for RefContainer<T> {}
 
-pub fn use_ref<T: 'static>(init: impl Fn() -> T) -> RefContainer<T> {
+pub fn use_ref<T: 'static>(init: impl FnOnce() -> T) -> RefContainer<T> {
   let owner = get_owner();
   let mut result = None;
+  let mut init_option = Some(init);
 
   react_bindings::use_ref(
-    &|| AnyRefContainer(owner.insert(Box::new(init()))),
+    &mut move || {
+      init_option
+        .take()
+        .map(|init| AnyRefContainer(owner.insert(Box::new(init()))))
+        .unwrap_throw()
+    },
     &mut |container| {
       result = Some(RefContainer(*container, PhantomData));
     },
