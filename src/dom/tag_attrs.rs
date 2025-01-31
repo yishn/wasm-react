@@ -111,6 +111,8 @@ extern "C" {
   #[wasm_bindgen(thread_local_v2, static_string)]
   static CHECKED: JsString = "checked";
   #[wasm_bindgen(thread_local_v2, static_string)]
+  static DEFAULT_CHECKED: JsString = "defaultChecked";
+  #[wasm_bindgen(thread_local_v2, static_string)]
   static CITE: JsString = "cite";
   #[wasm_bindgen(thread_local_v2, static_string)]
   static CLASSID: JsString = "classID";
@@ -142,6 +144,8 @@ extern "C" {
   static DOWNLOAD: JsString = "download";
   #[wasm_bindgen(thread_local_v2, static_string)]
   static ENCTYPE: JsString = "encType";
+  #[wasm_bindgen(thread_local_v2, static_string)]
+  static ENTERKEYHINT: JsString = "enterKeyHint";
   #[wasm_bindgen(thread_local_v2, static_string)]
   static FORM: JsString = "form";
   #[wasm_bindgen(thread_local_v2, static_string)]
@@ -283,6 +287,8 @@ extern "C" {
   #[wasm_bindgen(thread_local_v2, static_string)]
   static VALUE: JsString = "value";
   #[wasm_bindgen(thread_local_v2, static_string)]
+  static DEFAULT_VALUE: JsString = "defaultValue";
+  #[wasm_bindgen(thread_local_v2, static_string)]
   static WIDTH: JsString = "width";
   #[wasm_bindgen(thread_local_v2, static_string)]
   static WMODE: JsString = "wmode";
@@ -342,6 +348,7 @@ impl JsComponent<Tag> {
     challenge, CHALLENGE;
     charset, CHARSET;
     checked, CHECKED;
+    default_checked, DEFAULT_CHECKED;
     cite, CITE;
     classid, CLASSID;
     cols, COLS;
@@ -357,6 +364,7 @@ impl JsComponent<Tag> {
     disabled, DISABLED;
     download, DOWNLOAD;
     enctype, ENCTYPE;
+    enterkeyhint, ENTERKEYHINT;
     form, FORM;
     formaction, FORMACTION;
     formenctype, FORMENCTYPE;
@@ -426,6 +434,7 @@ impl JsComponent<Tag> {
     target, TARGET;
     usemap, USEMAP;
     value, VALUE;
+    default_value, DEFAULT_VALUE;
     width, WIDTH;
     wmode, WMODE;
     wrap, WRAP;
