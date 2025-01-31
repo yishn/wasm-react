@@ -1,3 +1,4 @@
+mod builtin;
 mod callback;
 pub mod component;
 mod dom;
@@ -6,6 +7,7 @@ mod prop;
 mod react_bindings;
 mod vnode;
 
+pub use builtin::*;
 pub use callback::*;
 pub use component::Component;
 pub use dom::*;

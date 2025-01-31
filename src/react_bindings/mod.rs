@@ -61,6 +61,18 @@ extern "C" {
 
   // From the React namespace:
 
+  #[wasm_bindgen(thread_local_v2, js_namespace = React, js_name = Fragment)]
+  pub static FRAGMENT: JsValue;
+
+  #[wasm_bindgen(thread_local_v2, js_namespace = React, js_name = Profiler)]
+  pub static PROFILER: JsValue;
+
+  #[wasm_bindgen(thread_local_v2, js_namespace = React, js_name = StrictMode)]
+  pub static STRICT_MODE: JsValue;
+
+  #[wasm_bindgen(thread_local_v2, js_namespace = React, js_name = Suspense)]
+  pub static SUSPENSE: JsValue;
+
   #[wasm_bindgen(js_namespace = React, js_name = startTransition)]
   pub fn start_transition(f: &JsValue);
 
