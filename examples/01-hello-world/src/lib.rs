@@ -19,14 +19,12 @@ impl Component for App {
       )),
       Counter {
         count: *count.get(),
-        on_increment: Callback::new(move |_| {
+        on_increment: Prop::from(Callback::new(move |_| {
           count_mut.update(|count| count + 1)
-        })
-        .into(),
-        on_decrement: Callback::new(move |_| {
+        })),
+        on_decrement: Prop::from(Callback::new(move |_| {
           count_mut.update(|count| count - 1)
-        })
-        .into(),
+        })),
       },
     )
   }

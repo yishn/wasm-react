@@ -60,6 +60,7 @@ macro_rules! define_prop {
     #[non_exhaustive]
     pub enum Prop<T> {
       $(
+        #[doc(hidden)]
         $Variant($Variant<T>),
       )*
     }
@@ -109,6 +110,7 @@ macro_rules! define_prop {
     #[non_exhaustive]
     pub enum PropRef<T: 'static> {
       $(
+        #[doc(hidden)]
         $Variant(<$Variant<T> as PropContainer<T>>::Ref),
       )*
     }
@@ -140,13 +142,28 @@ impl<T: 'static> From<T> for Prop<T> {
   }
 }
 
-impl<T: PartialEq + 'static> PartialEq for Prop<T> {
+impl<T> Default for Prop<T>
+where
+  T: Default + 'static,
+{
+  fn default() -> Self {
+    Prop::from(T::default())
+  }
+}
+
+impl<T> PartialEq for Prop<T>
+where
+  T: PartialEq + 'static,
+{
   fn eq(&self, other: &Self) -> bool {
     T::eq(&self.get(), &other.get())
   }
 }
 
-impl<T: PartialEq + 'static> PartialEq<T> for Prop<T> {
+impl<T> PartialEq<T> for Prop<T>
+where
+  T: PartialEq + 'static,
+{
   fn eq(&self, other: &T) -> bool {
     T::eq(&self.get(), other)
   }
