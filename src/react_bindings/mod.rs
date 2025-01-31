@@ -45,7 +45,13 @@ extern "C" {
   #[wasm_bindgen(js_name = useInsertionEffect)]
   pub fn use_insertion_effect(f: &JsValue, dep: u8);
 
+  #[wasm_bindgen(js_name = useTransition)]
+  pub fn use_transition(callback: &mut dyn FnMut(bool, Function));
+
   // From the React namespace:
+
+  #[wasm_bindgen(js_namespace = React, js_name = startTransition)]
+  pub fn start_transition(f: &JsValue);
 
   #[wasm_bindgen(js_namespace = React, js_name = useId)]
   pub fn use_id() -> String;

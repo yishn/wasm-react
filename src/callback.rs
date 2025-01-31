@@ -97,10 +97,7 @@ where
   }
 
   /// Returns a new [`Callback`] by appending the given closure to the callback.
-  pub fn postmap<V>(
-    self,
-    mut f: impl FnMut(U) -> V + 'static,
-  ) -> Callback<T, V>
+  pub fn postmap<V>(self, mut f: impl FnMut(U) -> V + 'static) -> Callback<T, V>
   where
     V: 'static,
   {

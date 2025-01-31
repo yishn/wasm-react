@@ -14,7 +14,10 @@ pub use paste::paste;
 pub use prop::*;
 pub use vnode::*;
 
-use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
+use wasm_bindgen::{
+  prelude::{wasm_bindgen, Closure},
+  JsValue,
+};
 
 /// Contains all functions exported to JS by `wasm-react`. These functions should
 /// be called from JS only.
@@ -33,4 +36,8 @@ impl WasmReact {
   pub fn use_runtime(value: &JsValue) {
     react_bindings::use_runtime(value);
   }
+}
+
+pub fn start_transition(f: impl FnMut() + 'static) {
+  react_bindings::start_transition(&Closure::new(f).into_js_value());
 }

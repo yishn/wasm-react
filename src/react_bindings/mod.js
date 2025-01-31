@@ -97,3 +97,8 @@ export function useLayoutEffect(f, dep) {
 export function useInsertionEffect(f, dep) {
   React.useInsertionEffect(f, [dep]);
 }
+
+export function useTransition(callback) {
+  const [isPending, startTransition] = React.useTransition();
+  callback(isPending, startTransition);
+}
