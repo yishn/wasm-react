@@ -82,11 +82,11 @@ impl<T> Copy for RefContainer<T> {}
 pub fn use_ref<T: 'static>(init: impl FnOnce() -> T) -> RefContainer<T> {
   let owner = get_owner();
   let mut result = None;
-  let mut init_option = Some(init);
+  let mut init = Some(init);
 
   react_bindings::use_ref(
     &mut move || {
-      init_option
+      init
         .take()
         .map(|init| AnyRefContainer(owner.insert(Box::new(init()))))
         .unwrap_throw()

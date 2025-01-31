@@ -1,5 +1,5 @@
-use crate::hooks::{AnyRefContainer, OwnerContainer};
 use crate::component::{ComponentWrapper, MemoComponentWrapper};
+use crate::hooks::{AnyRefContainer, OwnerContainer};
 use js_sys::{Function, JsString};
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
@@ -78,4 +78,7 @@ extern "C" {
 
   #[wasm_bindgen(js_namespace = React, js_name = useId)]
   pub fn use_id() -> JsString;
+
+  #[wasm_bindgen(js_namespace = React, js_name = useDeferredValue)]
+  pub fn use_deferred_value(value: u8, init: u8) -> u8;
 }

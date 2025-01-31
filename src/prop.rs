@@ -1,5 +1,6 @@
 use crate::hooks::{
-  get_tmp_owner, Memo, MemoRef, RefContainer, RefContainerRef, State, StateRef,
+  get_tmp_owner, DeferredValue, DeferredValueRef, Memo, MemoRef, RefContainer,
+  RefContainerRef, State, StateRef,
 };
 use generational_box::{GenerationalBox, GenerationalRef};
 use std::{cell, fmt::Debug, ops::Deref};
@@ -40,6 +41,14 @@ impl<T: 'static> PropContainer<T> for Memo<T> {
 
   fn get(self) -> Self::Ref {
     Memo::get(self)
+  }
+}
+
+impl<T: 'static> PropContainer<T> for DeferredValue<T> {
+  type Ref = DeferredValueRef<T>;
+
+  fn get(self) -> Self::Ref {
+    DeferredValue::get(self)
   }
 }
 
@@ -113,6 +122,7 @@ define_prop! {
   RefContainer,
   State,
   Memo,
+  DeferredValue,
 }
 
 impl<T: 'static> From<T> for Prop<T> {
