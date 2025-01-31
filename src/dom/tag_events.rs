@@ -1,5 +1,5 @@
 use super::Tag;
-use crate::{Callback, JsComponent};
+use crate::{component::JsComponent, Callback};
 use paste::paste;
 use wasm_bindgen::intern;
 use web_sys::{

@@ -45,26 +45,6 @@ pub struct Callback<T, U = ()> {
   js: GenerationalBox<Option<JsValue>>,
 }
 
-impl<T, U> Debug for Callback<T, U> {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    f.debug_struct("Callback")
-      .field("closure", &self.closure)
-      .field("js", &self.js)
-      .finish()
-  }
-}
-
-impl<T, U> Clone for Callback<T, U> {
-  fn clone(&self) -> Self {
-    Self {
-      closure: self.closure.clone(),
-      js: self.js.clone(),
-    }
-  }
-}
-
-impl<T, U> Copy for Callback<T, U> {}
-
 impl<T, U> Callback<T, U>
 where
   T: 'static,
@@ -104,6 +84,26 @@ where
     Callback::new(move |t| f(self.call(t)))
   }
 }
+
+impl<T, U> Debug for Callback<T, U> {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    f.debug_struct("Callback")
+      .field("closure", &self.closure)
+      .field("js", &self.js)
+      .finish()
+  }
+}
+
+impl<T, U> Clone for Callback<T, U> {
+  fn clone(&self) -> Self {
+    Self {
+      closure: self.closure.clone(),
+      js: self.js.clone(),
+    }
+  }
+}
+
+impl<T, U> Copy for Callback<T, U> {}
 
 impl<T, U> From<Callback<T, U>> for JsValue
 where

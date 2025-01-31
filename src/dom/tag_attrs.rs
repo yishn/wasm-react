@@ -1,5 +1,5 @@
 use super::Tag;
-use crate::JsComponent;
+use crate::component::JsComponent;
 use js_sys::JsString;
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 

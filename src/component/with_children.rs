@@ -17,7 +17,10 @@ extern "C" {
   static CHILDREN: JsString = "children";
 }
 
-impl<C: Component> Component for WithChildren<C> {
+impl<C> Component for WithChildren<C>
+where
+  C: Component,
+{
   fn render(self, children: VNode) -> impl Into<VNode> {
     self.component.render(children)
   }

@@ -23,25 +23,25 @@ const rustComponents = {};
 let ownerRef;
 let tmpOwnerRef;
 
-export function createRustComponent(name, component, extraProps) {
-  rustComponents[name] ??= Object.assign(
+function getRustComponent(name) {
+  return (rustComponents[name] ??= Object.assign(
     (props) => {
       // Get `ComponentWrapper` struct
-      const component = props.component;
+      const componentWrapper = props.componentWrapper;
 
       // Set up owners
       ownerRef = React.useRef(null);
 
       if (ownerRef.current == null) {
-        ownerRef.current = component.newOwner();
+        ownerRef.current = componentWrapper.newOwner();
       }
 
       tmpOwnerRef = React.useRef(null);
       const oldTmpOwnerRef = tmpOwnerRef.current;
-      tmpOwnerRef.current = component.newOwner();
+      tmpOwnerRef.current = componentWrapper.newOwner();
 
       // Render
-      const result = component.render(props.children);
+      const result = componentWrapper.render(props.children);
 
       ownerRef = undefined;
       tmpOwnerRef = undefined;
@@ -51,11 +51,32 @@ export function createRustComponent(name, component, extraProps) {
       return result;
     },
     { displayName: name }
-  );
+  ));
+}
 
-  return createElement(rustComponents[name], {
+export function createRustComponent(name, componentWrapper, extraProps) {
+  const component = getRustComponent(name);
+
+  return createElement(component, {
     ...extraProps,
-    component,
+    componentWrapper,
+  });
+}
+
+export function createRustMemoComponent(
+  originalName,
+  memoName,
+  componentWrapper,
+  extraProps
+) {
+  const component = (rustComponents[memoName] ??= React.memo(
+    getRustComponent(originalName),
+    (a, b) => a.componentWrapper.eq(b.componentWrapper)
+  ));
+
+  return createElement(component, {
+    ...extraProps,
+    componentWrapper,
   });
 }
 
@@ -101,4 +122,10 @@ export function useInsertionEffect(f, dep) {
 export function useTransition(callback) {
   const [isPending, startTransition] = React.useTransition();
   callback(isPending, startTransition);
+}
+
+export function memo(component, equal) {
+  return React.memo(component, (a, b) =>
+    equal(a.componentWrapper, b.componentWrapper)
+  );
 }

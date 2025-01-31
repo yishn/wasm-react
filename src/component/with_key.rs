@@ -25,7 +25,10 @@ pub struct WithKey<C> {
   pub(super) key: GenerationalBox<JsValue>,
 }
 
-impl<C: PartialEq> PartialEq for WithKey<C> {
+impl<C> PartialEq for WithKey<C>
+where
+  C: PartialEq,
+{
   fn eq(&self, other: &Self) -> bool {
     self.component == other.component
   }
@@ -38,7 +41,10 @@ extern "C" {
   static KEY: JsString = "key";
 }
 
-impl<C: Component> Component for WithKey<C> {
+impl<C> Component for WithKey<C>
+where
+  C: Component,
+{
   fn render(self, children: VNode) -> impl Into<VNode> {
     self.component.render(children)
   }

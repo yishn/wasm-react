@@ -121,3 +121,15 @@ impl<T: 'static> From<T> for Prop<T> {
     Prop::GenerationalBox(owner.insert(value))
   }
 }
+
+impl<T: PartialEq + 'static> PartialEq for Prop<T> {
+  fn eq(&self, other: &Self) -> bool {
+    T::eq(&self.get(), &other.get())
+  }
+}
+
+impl<T: PartialEq + 'static> PartialEq<T> for Prop<T> {
+  fn eq(&self, other: &T) -> bool {
+    T::eq(&self.get(), other)
+  }
+}

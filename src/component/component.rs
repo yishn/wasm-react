@@ -1,11 +1,10 @@
-use super::{KeyType, WithChildren, WithKey};
+use super::{KeyType, Memo, WithChildren, WithKey};
 use crate::{
   hooks::{get_tmp_owner, OwnerContainer},
-  react_bindings::create_rust_component,
-  VNode,
+  react_bindings, VNode,
 };
 use js_sys::{JsString, Object, Reflect};
-use std::any::type_name;
+use std::any::{type_name, Any};
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
 #[wasm_bindgen]
@@ -62,11 +61,30 @@ where
     }
   }
 
+  fn memoized(self) -> Memo<Self>
+  where
+    Self: PartialEq,
+  {
+    Memo(self)
+  }
+
   fn build(self, props: &Object) -> VNode {
     let name = Self::name();
     let component = ComponentWrapper::from(self);
 
-    VNode(create_rust_component(name, component, props))
+    VNode(react_bindings::create_rust_component(
+      name, component, props,
+    ))
+  }
+}
+
+impl<T> From<T> for VNode
+where
+  T: Component,
+{
+  fn from(component: T) -> Self {
+    let props = component.props();
+    component.build(&props)
   }
 }
 
@@ -75,16 +93,36 @@ pub trait DynComponent: 'static {
   fn render(&self, children: VNode) -> VNode;
 }
 
-impl<T: Component> DynComponent for T {
+impl<T> DynComponent for T
+where
+  T: Component,
+{
   fn render(&self, children: VNode) -> VNode {
     Component::render(*self, children).into()
   }
 }
 
-impl<T: Component> From<T> for VNode {
-  fn from(component: T) -> Self {
-    let props = component.props();
-    component.build(&props)
+#[doc(hidden)]
+pub trait DynMemoComponent: DynComponent {
+  fn as_any(&self) -> &dyn Any;
+
+  fn eq(&self, other: &Box<dyn DynMemoComponent>) -> bool;
+}
+
+impl<T> DynMemoComponent for T
+where
+  T: Component + PartialEq,
+{
+  fn as_any(&self) -> &dyn Any {
+    self
+  }
+
+  fn eq(&self, other: &Box<dyn DynMemoComponent>) -> bool {
+    other
+      .as_any()
+      .downcast_ref()
+      .map(|other| T::eq(&self, other))
+      .unwrap_or_default()
   }
 }
 
@@ -93,8 +131,8 @@ impl<T: Component> From<T> for VNode {
 pub struct ComponentWrapper(Box<dyn DynComponent>);
 
 impl ComponentWrapper {
-  pub fn from(component: impl DynComponent) -> ComponentWrapper {
-    ComponentWrapper(Box::new(component))
+  pub fn from(component: impl DynComponent) -> Self {
+    Self(Box::new(component))
   }
 }
 
@@ -107,5 +145,31 @@ impl ComponentWrapper {
 
   pub fn render(&self, children: JsValue) -> JsValue {
     self.0.render(VNode(children)).into()
+  }
+}
+
+#[doc(hidden)]
+#[wasm_bindgen(js_name = __WasmReact_MemoComponentWrapper)]
+pub struct MemoComponentWrapper(Box<dyn DynMemoComponent>);
+
+impl MemoComponentWrapper {
+  pub fn from(component: impl DynMemoComponent) -> Self {
+    Self(Box::new(component))
+  }
+}
+
+#[wasm_bindgen(js_class = __WasmReact_MemoComponentWrapper)]
+impl MemoComponentWrapper {
+  #[wasm_bindgen(js_name = newOwner)]
+  pub fn new_owner(&self) -> OwnerContainer {
+    OwnerContainer::new()
+  }
+
+  pub fn render(&self, children: JsValue) -> JsValue {
+    self.0.render(VNode(children)).into()
+  }
+
+  pub fn eq(&self, other: &MemoComponentWrapper) -> bool {
+    self.0.eq(&other.0)
   }
 }

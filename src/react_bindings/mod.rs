@@ -1,5 +1,5 @@
 use crate::hooks::{AnyRefContainer, OwnerContainer};
-use crate::ComponentWrapper;
+use crate::component::{ComponentWrapper, MemoComponentWrapper};
 use js_sys::Function;
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
@@ -18,6 +18,14 @@ extern "C" {
   pub fn create_rust_component(
     name: &str,
     component: ComponentWrapper,
+    extra_props: &JsValue,
+  ) -> JsValue;
+
+  #[wasm_bindgen(js_name = createRustMemoComponent)]
+  pub fn create_rust_memo_component(
+    original_name: &str,
+    memo_name: &str,
+    component: MemoComponentWrapper,
     extra_props: &JsValue,
   ) -> JsValue;
 
@@ -47,6 +55,9 @@ extern "C" {
 
   #[wasm_bindgen(js_name = useTransition)]
   pub fn use_transition(callback: &mut dyn FnMut(bool, Function));
+
+  #[wasm_bindgen(js_name = memo)]
+  pub fn memo(component: &JsValue, equal: &JsValue) -> JsValue;
 
   // From the React namespace:
 

@@ -1,5 +1,5 @@
 mod callback;
-mod component;
+pub mod component;
 mod dom;
 pub mod hooks;
 mod prop;
@@ -7,7 +7,7 @@ mod react_bindings;
 mod vnode;
 
 pub use callback::*;
-pub use component::*;
+pub use component::Component;
 pub use dom::*;
 #[doc(hidden)]
 pub use paste::paste;

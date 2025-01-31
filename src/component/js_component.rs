@@ -60,7 +60,7 @@ where
   T: AsRef<JsValue> + 'static,
 {
   fn render(self, _children: VNode) -> impl Into<VNode> {
-    VNode::empty()
+    ()
   }
 
   fn props(self) -> Object {
