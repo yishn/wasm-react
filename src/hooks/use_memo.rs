@@ -1,17 +1,18 @@
 use super::{use_ref, Deps, RefContainer, RefContainerRef};
 use std::{fmt::Debug, ops::Deref};
+use wasm_bindgen::UnwrapThrowExt;
 
-pub struct MemoRef<T>(RefContainerRef<T>);
+pub struct MemoRef<T>(RefContainerRef<Option<T>>);
 
 impl<T: 'static> Deref for MemoRef<T> {
   type Target = T;
 
   fn deref(&self) -> &Self::Target {
-    self.0.deref()
+    self.0.deref().as_ref().unwrap_throw()
   }
 }
 
-pub struct Memo<T>(RefContainer<T>);
+pub struct Memo<T>(RefContainer<Option<T>>);
 
 impl<T: 'static> Memo<T> {
   pub fn get(self) -> MemoRef<T> {
@@ -36,22 +37,19 @@ impl<T> Clone for Memo<T> {
 
 impl<T> Copy for Memo<T> {}
 
-pub fn use_memo<T, D>(f: impl Fn() -> T, deps: Deps<D>) -> Memo<T>
+pub fn use_memo<T, D>(f: impl FnOnce() -> T, deps: Deps<D>) -> Memo<T>
 where
   T: 'static,
   D: PartialEq + 'static,
 {
+  let value_container = use_ref(|| None::<T>);
   let deps_container = use_ref(|| None::<Deps<D>>);
-  let value_container = use_ref(|| f());
 
   let current_deps = deps_container.current();
   let need_update = deps.is_all() || Some(&deps) != current_deps.as_ref();
 
   if need_update {
-    if current_deps.is_some() {
-      value_container.set_current(f());
-    }
-
+    value_container.set_current(Some(f()));
     deps_container.set_current(Some(deps));
   }
 

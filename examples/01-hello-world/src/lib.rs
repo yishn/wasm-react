@@ -1,6 +1,7 @@
 use wasm_bindgen::JsValue;
 use wasm_react::{
-  export_components, h, hooks::use_state, Callback, Component, VNode, Void,
+  export_components, h, hooks::use_state, Callback, Component, Prop, VNode,
+  Void,
 };
 
 #[derive(Debug, Clone, Copy)]
@@ -20,10 +21,12 @@ impl Component for App {
         count: *count.get(),
         on_increment: Callback::new(move |_| {
           count_mut.update(|count| count + 1)
-        }),
+        })
+        .into(),
         on_decrement: Callback::new(move |_| {
           count_mut.update(|count| count - 1)
-        }),
+        })
+        .into(),
       },
     )
   }
@@ -44,8 +47,8 @@ export_components! {
 #[derive(Debug, Clone, Copy)]
 struct Counter {
   count: i32,
-  on_increment: Callback<Void>,
-  on_decrement: Callback<Void>,
+  on_increment: Prop<Callback<Void>>,
+  on_decrement: Prop<Callback<Void>>,
 }
 
 impl Component for Counter {

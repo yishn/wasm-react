@@ -1,6 +1,4 @@
-use crate::hooks::get_tmp_owner;
-use generational_box::GenerationalBox;
-use std::{fmt::Debug, ops::DerefMut};
+use std::{cell::RefCell, fmt::Debug, ops::DerefMut, rc::Rc};
 use wasm_bindgen::{
   convert::{FromWasmAbi, IntoWasmAbi},
   describe::WasmDescribe,
@@ -41,8 +39,8 @@ impl From<Void> for JsValue {
 }
 
 pub struct Callback<T, U = ()> {
-  closure: GenerationalBox<Box<dyn FnMut(T) -> U>>,
-  js: GenerationalBox<Option<JsValue>>,
+  closure: Rc<RefCell<Box<dyn FnMut(T) -> U>>>,
+  js: Rc<RefCell<Option<JsValue>>>,
 }
 
 impl<T, U> Callback<T, U>
@@ -51,46 +49,46 @@ where
   U: 'static,
 {
   pub fn new(f: impl FnMut(T) -> U + 'static) -> Self {
-    let owner = get_tmp_owner();
-
     Self {
-      closure: owner.insert(Box::new(f)),
-      js: owner.insert(None),
+      closure: Rc::new(RefCell::new(Box::new(f))),
+      js: Rc::new(RefCell::new(None)),
     }
   }
 
-  pub fn call(self, arg: T) -> U {
-    let mut closure = self.closure.write();
-    closure(arg)
+  pub fn call(&self, arg: T) -> U {
+    (self.closure.borrow_mut())(arg)
   }
 
-  pub fn to_closure(self) -> impl FnMut(T) -> U + 'static {
-    move |arg| self.call(arg)
+  pub fn to_closure(&self) -> impl FnMut(T) -> U + 'static {
+    let cb = self.clone();
+    move |arg| cb.call(arg)
   }
 
   /// Returns a new [`Callback`] by prepending the given closure to the callback.
-  pub fn premap<V>(self, mut f: impl FnMut(V) -> T + 'static) -> Callback<V, U>
+  pub fn premap<V>(&self, mut f: impl FnMut(V) -> T + 'static) -> Callback<V, U>
   where
     V: 'static,
   {
-    Callback::new(move |v| self.call(f(v)))
+    let cb = self.clone();
+    Callback::new(move |v| cb.call(f(v)))
   }
 
   /// Returns a new [`Callback`] by appending the given closure to the callback.
-  pub fn postmap<V>(self, mut f: impl FnMut(U) -> V + 'static) -> Callback<T, V>
+  pub fn postmap<V>(
+    &self,
+    mut f: impl FnMut(U) -> V + 'static,
+  ) -> Callback<T, V>
   where
     V: 'static,
   {
-    Callback::new(move |t| f(self.call(t)))
+    let cb = self.clone();
+    Callback::new(move |t| f(cb.call(t)))
   }
 }
 
 impl<T, U> Debug for Callback<T, U> {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    f.debug_struct("Callback")
-      .field("closure", &self.closure)
-      .field("js", &self.js)
-      .finish()
+    f.debug_struct("Callback").finish()
   }
 }
 
@@ -103,18 +101,19 @@ impl<T, U> Clone for Callback<T, U> {
   }
 }
 
-impl<T, U> Copy for Callback<T, U> {}
-
 impl<T, U> From<Callback<T, U>> for JsValue
 where
   T: FromWasmAbi + 'static,
   U: IntoWasmAbi + 'static,
 {
   fn from(value: Callback<T, U>) -> Self {
-    let mut b = value.js.write();
-    let result = b.deref_mut().get_or_insert_with(|| {
-      Closure::<dyn FnMut(T) -> U>::new(move |arg| value.call(arg))
-        .into_js_value()
+    let mut result = value.js.borrow_mut();
+    let result = result.deref_mut().get_or_insert_with({
+      let value = value.clone();
+      move || {
+        Closure::<dyn FnMut(T) -> U>::new(move |arg| value.call(arg))
+          .into_js_value()
+      }
     });
 
     result.clone()
@@ -124,7 +123,7 @@ where
 impl<T: 'static> Callback<T> {
   /// Returns a new [`Callback`] that does nothing.
   pub fn noop() -> Self {
-    Callback::new(|_| ())
+    Callback::default()
   }
 }
 
@@ -155,7 +154,7 @@ where
   U: 'static,
 {
   fn eq(&self, other: &Self) -> bool {
-    self.closure.ptr_eq(&other.closure)
+    Rc::ptr_eq(&self.closure, &other.closure)
   }
 }
 

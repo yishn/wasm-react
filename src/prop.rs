@@ -1,6 +1,9 @@
-use crate::hooks::{
-  get_tmp_owner, DeferredValue, DeferredValueRef, Memo, MemoRef, RefContainer,
-  RefContainerRef, State, StateRef,
+use crate::{
+  hooks::{
+    get_tmp_owner, DeferredValue, DeferredValueRef, Memo, MemoRef,
+    RefContainer, RefContainerRef, State, StateRef,
+  },
+  Callback,
 };
 use generational_box::{GenerationalBox, GenerationalRef};
 use std::{cell, fmt::Debug, ops::Deref};
@@ -146,5 +149,15 @@ impl<T: PartialEq + 'static> PartialEq for Prop<T> {
 impl<T: PartialEq + 'static> PartialEq<T> for Prop<T> {
   fn eq(&self, other: &T) -> bool {
     T::eq(&self.get(), other)
+  }
+}
+
+impl<T, U> Prop<Callback<T, U>>
+where
+  T: 'static,
+  U: 'static,
+{
+  pub fn call(&self, arg: T) -> U {
+    self.get().call(arg)
   }
 }

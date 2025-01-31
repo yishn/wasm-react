@@ -1,4 +1,5 @@
 mod deps;
+mod use_callback;
 mod use_deferred_value;
 mod use_effect;
 mod use_memo;
@@ -9,6 +10,7 @@ mod use_transition;
 
 pub use crate::react_bindings::use_id;
 pub use deps::*;
+pub use use_callback::*;
 pub use use_deferred_value::*;
 pub use use_effect::*;
 pub use use_memo::*;
