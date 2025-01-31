@@ -19,9 +19,12 @@ impl<T: 'static> Memo<T> {
   }
 }
 
-impl<T> Debug for Memo<T> {
+impl<T> Debug for Memo<T>
+where
+  T: Debug + 'static,
+{
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    f.debug_tuple("Memo").field(&self.0).finish()
+    f.debug_tuple("Memo").field(&*self.get()).finish()
   }
 }
 

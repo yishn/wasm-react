@@ -62,11 +62,13 @@ impl<T: 'static> RefContainer<T> {
   }
 }
 
-impl<T> Debug for RefContainer<T> {
+impl<T> Debug for RefContainer<T>
+where
+  T: Debug + 'static,
+{
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     f.debug_tuple("RefContainer")
-      .field(&self.0)
-      .field(&self.1)
+      .field(&*self.current())
       .finish()
   }
 }

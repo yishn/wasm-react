@@ -21,9 +21,12 @@ impl<T: 'static> DeferredValue<T> {
   }
 }
 
-impl<T> Debug for DeferredValue<T> {
+impl<T> Debug for DeferredValue<T>
+where
+  T: Debug + 'static,
+{
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    f.debug_tuple("DeferredValue").field(&self.0).finish()
+    f.debug_tuple("DeferredValue").field(&*self.get()).finish()
   }
 }
 

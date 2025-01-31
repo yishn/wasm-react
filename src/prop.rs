@@ -69,12 +69,17 @@ macro_rules! define_prop {
       }
     }
 
-    impl<T> Debug for Prop<T> {
+    impl<T> Debug for Prop<T>
+    where
+      T: Debug + 'static,
+    {
       fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
           $(
-            Self::$Variant(inner) =>
-              f.debug_tuple(stringify!($Variant)).field(inner).finish(),
+            Self::$Variant(_) =>
+              f.debug_tuple(stringify!(Prop::$Variant))
+                .field(&*self.get())
+                .finish(),
           )*
         }
       }

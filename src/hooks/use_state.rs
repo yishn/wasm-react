@@ -23,9 +23,12 @@ impl<T: 'static> State<T> {
   }
 }
 
-impl<T> Debug for State<T> {
+impl<T> Debug for State<T>
+where
+  T: Debug + 'static,
+{
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    f.debug_tuple("State").field(&self.0).finish()
+    f.debug_tuple("State").field(&*self.get()).finish()
   }
 }
 
@@ -57,15 +60,6 @@ impl<T: 'static> StateMut<T> {
     if self.0.current().as_ref() != Some(&value) {
       self.set(value);
     }
-  }
-}
-
-impl<T> Debug for StateMut<T> {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    f.debug_tuple("StateMut")
-      .field(&self.0)
-      .field(&self.1)
-      .finish()
   }
 }
 
