@@ -81,4 +81,7 @@ extern "C" {
 
   #[wasm_bindgen(js_namespace = React, js_name = useDeferredValue)]
   pub fn use_deferred_value(value: u8, init: u8) -> u8;
+
+  #[wasm_bindgen(js_namespace = React, js_name = useDebugValue)]
+  pub fn use_debug_value(value: &JsValue);
 }
