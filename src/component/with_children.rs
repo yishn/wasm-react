@@ -1,13 +1,12 @@
 use super::Component;
-use crate::VNode;
-use generational_box::GenerationalBox;
+use crate::{Prop, VNode};
 use js_sys::{JsString, Object, Reflect};
 use wasm_bindgen::{prelude::wasm_bindgen, UnwrapThrowExt};
 
 #[derive(Debug, Clone, Copy)]
 pub struct WithChildren<C> {
   pub(super) component: C,
-  pub(super) children: GenerationalBox<VNode>,
+  pub(super) children: Prop<VNode>,
 }
 
 #[wasm_bindgen]
@@ -33,7 +32,7 @@ where
     let props = self.component.props();
 
     CHILDREN.with(|children| {
-      Reflect::set(&props, &children, &self.children.read()).unwrap_throw()
+      Reflect::set(&props, &children, &self.children.get()).unwrap_throw()
     });
 
     props

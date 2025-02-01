@@ -1,6 +1,5 @@
 use super::Component;
-use crate::VNode;
-use generational_box::GenerationalBox;
+use crate::{Prop, VNode};
 use js_sys::{JsString, Object, Reflect};
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue, UnwrapThrowExt};
 
@@ -22,7 +21,7 @@ impl_key_type! {
 #[derive(Debug, Clone, Copy)]
 pub struct WithKey<C> {
   pub(super) component: C,
-  pub(super) key: GenerationalBox<JsValue>,
+  pub(super) key: Prop<JsValue>,
 }
 
 impl<C> PartialEq for WithKey<C>
@@ -56,7 +55,7 @@ where
   fn props(self) -> Object {
     let props = self.component.props();
 
-    KEY.with(|key| Reflect::set(&props, &key, &self.key.read()).unwrap_throw());
+    KEY.with(|key| Reflect::set(&props, &key, &self.key.get()).unwrap_throw());
 
     props
   }

@@ -1,8 +1,5 @@
 use super::{KeyType, Memo, WithChildren, WithKey};
-use crate::{
-  hooks::{get_tmp_owner, OwnerContainer},
-  react_bindings, VNode,
-};
+use crate::{hooks::OwnerContainer, react_bindings, Prop, VNode};
 use js_sys::{JsString, Object, Reflect};
 use std::any::{type_name, Any};
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
@@ -44,20 +41,16 @@ where
   }
 
   fn key(self, key: impl KeyType) -> WithKey<Self> {
-    let owner = get_tmp_owner();
-
     WithKey {
       component: self,
-      key: owner.insert(key.into()),
+      key: Prop::from(key.into()),
     }
   }
 
   fn children(self, children: impl Into<VNode>) -> WithChildren<Self> {
-    let owner = get_tmp_owner();
-
     WithChildren {
       component: self,
-      children: owner.insert(children.into()),
+      children: Prop::from(children.into()),
     }
   }
 
