@@ -1,21 +1,20 @@
-use super::{get_owner, use_ref, RefContainer, RefContainerRef};
+use super::{use_ref, RefContainer, RefContainerRef};
 use crate::react_bindings::use_update;
-use generational_box::GenerationalBox;
 use js_sys::Function;
 use std::{fmt::Debug, ops::Deref};
 use wasm_bindgen::{JsValue, UnwrapThrowExt};
 
-pub struct StateRef<T>(RefContainerRef<Option<T>>);
+pub struct StateRef<T>(RefContainerRef<Option<(T, Function)>>);
 
 impl<T: 'static> Deref for StateRef<T> {
   type Target = T;
 
   fn deref(&self) -> &Self::Target {
-    self.0.deref().as_ref().unwrap_throw()
+    &self.0.deref().as_ref().unwrap_throw().0
   }
 }
 
-pub struct State<T>(RefContainer<Option<T>>);
+pub struct State<T>(RefContainer<Option<(T, Function)>>);
 
 impl<T: 'static> State<T> {
   pub fn get(self) -> StateRef<T> {
@@ -40,24 +39,39 @@ impl<T> Clone for State<T> {
 
 impl<T> Copy for State<T> {}
 
-pub struct StateMut<T>(RefContainer<Option<T>>, GenerationalBox<Function>);
+pub struct StateMut<T>(RefContainer<Option<(T, Function)>>);
 
 impl<T: 'static> StateMut<T> {
   pub fn set(self, value: T) {
-    self.0.set_current(Some(value));
-    self.1.read().call0(&JsValue::NULL).unwrap_throw();
+    self.0.current_mut().as_mut().unwrap_throw().0 = value;
+    self
+      .0
+      .current()
+      .as_ref()
+      .unwrap_throw()
+      .1
+      .call0(&JsValue::NULL)
+      .unwrap_throw();
   }
 
   pub fn update(self, updater: impl FnOnce(T) -> T) {
-    let value = self.0.current_mut().take().unwrap_throw();
-    self.set(updater(value));
+    let (value, f) = self.0.current_mut().take().unwrap_throw();
+    self.0.set_current(Some((updater(value), f)));
+    self
+      .0
+      .current()
+      .as_ref()
+      .unwrap_throw()
+      .1
+      .call0(&JsValue::NULL)
+      .unwrap_throw();
   }
 
   pub fn lazy_set(self, value: T)
   where
     T: PartialEq,
   {
-    if self.0.current().as_ref() != Some(&value) {
+    if self.0.current().as_ref().map(|(value, _)| value) != Some(&value) {
       self.set(value);
     }
   }
@@ -65,7 +79,7 @@ impl<T: 'static> StateMut<T> {
 
 impl<T> Clone for StateMut<T> {
   fn clone(&self) -> Self {
-    Self(self.0.clone(), self.1.clone())
+    Self(self.0.clone())
   }
 }
 
@@ -74,9 +88,8 @@ impl<T> Copy for StateMut<T> {}
 pub fn use_state<T: 'static>(
   init: impl FnOnce() -> T,
 ) -> (State<T>, StateMut<T>) {
-  let owner = get_owner();
-  let ref_container = use_ref(|| Some(init()));
-  let update = owner.insert(use_update());
+  let update = use_update();
+  let ref_container = use_ref(move || Some((init(), update)));
 
-  (State(ref_container), StateMut(ref_container, update))
+  (State(ref_container), StateMut(ref_container))
 }
