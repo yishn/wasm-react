@@ -7,12 +7,20 @@ use std::{
   marker::PhantomData,
   ops::{Deref, DerefMut},
 };
-use wasm_bindgen::{prelude::wasm_bindgen, UnwrapThrowExt};
+use wasm_bindgen::{prelude::wasm_bindgen, JsValue, UnwrapThrowExt};
 
 #[doc(hidden)]
 #[wasm_bindgen(js_name = __WasmReact_AnyRefContainer)]
 #[derive(Debug, Clone, Copy)]
 pub struct AnyRefContainer(GenerationalBox<Box<dyn Any>>);
+
+#[wasm_bindgen(js_class = __WasmReact_AnyRefContainer)]
+impl AnyRefContainer {
+  #[wasm_bindgen(js_name = set)]
+  pub fn set_js(&self, value: JsValue) {
+    *self.0.write() = Box::new(value);
+  }
+}
 
 pub struct RefContainerRef<T>(
   GenerationalRef<std::cell::Ref<'static, Box<dyn Any>>>,
